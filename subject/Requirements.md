@@ -46,7 +46,7 @@ kanban-plugin: board
 
 - [ ] `*/__pycache__`
 - [ ] `*/mypy_cache`
-- [ ] `*.png`
+- [ ] `*output*`
 
 
 ## Styling
