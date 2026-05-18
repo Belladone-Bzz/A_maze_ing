@@ -1,0 +1,14 @@
+[project]
+name = "A_maze_ing"
+version = "0.1.0"
+description = "Team project to test out mazes generation, solving and displaying using different algorithms."
+authors = [
+	{name = "Belladone-Bzz"},
+	{name = "jolyne-mangeot"}
+]
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+	"pydantic (==2.13.4)",
+	"mypy (>=2.1.0)"
+]
