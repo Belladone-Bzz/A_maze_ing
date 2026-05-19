@@ -14,10 +14,14 @@ EXIT=19,19
 
 OUTPUT_FILE=maze_output.txt
 
-# Maze generation factors: perfect for a perfect maze (literally True or False) and seed, for maze reproducibility (whole number)
+# Maze generation factors:
+# - perfect, for a perfect maze (literally True or False),
+# - seed, for maze reproducibility (whole number)
+# - central icon, to display the 42 logo on the center of the maze (True or False, requires min. 7x7 maze dimensions)
 
 PERFECT=True
 SEED=123456
+CENTRAL_ICON=True
 
 # Generation algorithms available: Kruskal
 
