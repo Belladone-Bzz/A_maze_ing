@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Annotated
-from enum import IntEnum
+from typing_extensions import Annotated
+from enum import IntEnum, Enum
+from random import choice, seed as set_seed, randint, shuffle
 
 
 MazeDimension = Annotated[int, Field(ge=2)]
@@ -19,6 +20,13 @@ class Directions(IntEnum):
     SOUTH = 1
     EAST = 2
     NORTH = 3
+
+
+class Movements(Enum):
+    WEST = (-1, 0)
+    SOUTH = (0, +1)
+    EAST = (+1, 0)
+    NORTH = (0, -1)
 
 
 class Maze:
@@ -40,6 +48,7 @@ class Maze:
             PERFECT=perfect,
             SEED=seed,
             CENTRAL_ICON=central_icon)
+        set_seed(self.config.SEED)
         self.cells: list[list[Maze.Cell]] = []
 
     class Config(BaseModel):
@@ -92,12 +101,13 @@ class Maze:
         Atributes: coordinates: bool, walls: list[bool], entry: bool,
         exit: bool, pattern: bool.
         """
-        def __init__(self, coordinates: CellCoordinates):
+        def __init__(self, coordinates: CellCoordinates, walled: bool):
             self.coordinates: CellCoordinates = coordinates
-            self.walls: list[bool] = [False, False, False, False]
+            self.walls: list[bool] = [walled, walled, walled, walled]
             self.entry = False
             self.exit = False
             self.pattern = False
+            self.is_visited = False
 
     def generation(self) -> None:
         """Method to generate all the cells in the maze grid in a
@@ -107,7 +117,7 @@ class Maze:
         for x in range(self.config.WIDTH):
             self.cells.append([])
             for y in range(self.config.HEIGHT):
-                self.cells[x].append(Maze.Cell((x, y)))
+                self.cells[x].append(Maze.Cell((x, y), True))
         for cell in self.cells[0]:
             cell.walls[Directions.WEST] = True
         for cell in self.cells[-1]:
@@ -117,6 +127,48 @@ class Maze:
             self.cells[x][-1].walls[Directions.SOUTH] = True
         self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
         self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
+
+    def access_next_cell(self, coords:CellCoordinates) -> CellCoordinates:
+        possibilities: list[tuple[int, int]] =\
+            list(move.value for move in Movements)
+        shuffle(possibilities)
+        for x, y in possibilities:
+            try:
+                potential_coords: CellCoordinates = (
+                    coords[0] + x, coords[1] + y)
+                if potential_coords[0] < 0 or potential_coords[1] < 0:
+                    continue
+                if self.cells[potential_coords[0]]\
+                        [potential_coords[1]].is_visited is False\
+                        and self.cells[potential_coords[0]]\
+                            [potential_coords[1]].pattern is False:
+                    self.cells[potential_coords[0]][potential_coords[1]].is_visited = True
+                    self.cells[coords[0]][coords[1]].walls[Directions[Movements((x, y)).name]] = False
+                    self.cells[potential_coords[0]][potential_coords[1]].walls[Directions[Movements((-x, -y)).name]] = False
+                    return potential_coords
+            except IndexError:
+                continue
+        else:
+            return coords
+
+    def backtracking_algo(self) -> None:
+        """Method to generate a perfect maze with a backtraking algorithm."""
+        start: CellCoordinates = (randint(0, self.config.WIDTH),
+                                  randint(0, self.config.HEIGHT))
+        print(start)
+        self.cells[start[0]][start[1]].is_visited = True
+        current: CellCoordinates = self.access_next_cell(start)
+        back_track: list[CellCoordinates] = [start, current]
+        while current != start:
+            next_cell = self.access_next_cell(current)
+            print(current, next_cell)
+            if current != next_cell:
+                current = next_cell
+                back_track.append(current)
+                continue
+            else:
+                current = back_track[-2]
+                del back_track[-1]
 
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
@@ -136,14 +188,16 @@ class Maze:
 if __name__ == "__main__":
     """Entry point of the program"""
     maze = Maze(
-        width=3,
-        height=3,
-        entry=(0, 0),
-        exit=(2, 2),
+        width=20,
+        height=20,
+        entry=(5, 8),
+        exit=(9, 13),
         perfect=True,
-        seed=123456,
+        seed=666,
         central_icon=False
     )
     print(maze.config)
     maze.generation()
+    print(maze)
+    maze.backtracking_algo()
     print(maze)
