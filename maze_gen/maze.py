@@ -170,6 +170,10 @@ class Maze:
                 current = back_track[-2]
                 del back_track[-1]
 
+    def prim_algo(self) -> None:
+        """"""
+        
+
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
         maze: str = "+---" * self.config.WIDTH + "+\n"
