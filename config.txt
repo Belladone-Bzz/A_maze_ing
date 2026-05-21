@@ -25,8 +25,8 @@ CENTRAL_ICON=True
 
 # Generation algorithms available: Kruskal
 
-GEN_ALGORITHM=Kruskal
+# GEN_ALGORITHM=Kruskal
 
 # Solving algorithms available: Dijkstra
 
-SOL_ALGORITHM=Dijkstra
+# SOL_ALGORITHM=Dijkstra
