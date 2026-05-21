@@ -95,7 +95,7 @@ def main() -> int:
         seed=cast(int, config["seed"]),
         central_icon=cast(bool, config["central_icon"]))
     maze.generation()
-    print(maze)
+    maze.backtracking_algo()
 
     print_maze(maze, get_theme("basic"))
     return 0

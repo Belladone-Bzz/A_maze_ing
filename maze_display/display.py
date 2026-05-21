@@ -57,12 +57,12 @@ def print_maze(maze: Maze, theme: Theme) -> None:
                 else str(theme.walls.VERTICAL)
                 if maze.cells[x][y].walls[Directions.SOUTH] is False
                 and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
-                and maze.cells[x][y].walls[Directions.EAST] is True
-                and maze.cells[x][y + 1].walls[Directions.EAST] is True
+                and (maze.cells[x][y].walls[Directions.EAST] is True
+                or maze.cells[x][y + 1].walls[Directions.EAST] is True)
 
                 else str(theme.walls.HORIZONTAL)
-                if maze.cells[x][y].walls[Directions.SOUTH] is True
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
+                if (maze.cells[x][y].walls[Directions.SOUTH] is True
+                or maze.cells[x + 1][y].walls[Directions.SOUTH] is True)
                 and maze.cells[x][y].walls[Directions.EAST] is False
                 and maze.cells[x][y + 1].walls[Directions.EAST] is False
 
@@ -84,7 +84,7 @@ def print_maze(maze: Maze, theme: Theme) -> None:
                 and maze.cells[x][y].walls[Directions.EAST] is True
                 and maze.cells[x][y + 1].walls[Directions.EAST] is False
 
-                else str(theme.walls.HORIZONTAL_U)
+                else str(theme.walls.HORIZONTAL_D)
                 if maze.cells[x][y].walls[Directions.SOUTH] is True
                 and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
                 and maze.cells[x][y].walls[Directions.EAST] is False
@@ -99,8 +99,8 @@ def print_maze(maze: Maze, theme: Theme) -> None:
                 else str(theme.angles.TOP_RIGHT)
                 if maze.cells[x][y].walls[Directions.SOUTH] is True
                 and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
-                and maze.cells[x][y].walls[Directions.EAST] is True
-                and maze.cells[x][y + 1].walls[Directions.EAST] is False
+                and maze.cells[x][y].walls[Directions.EAST] is False
+                and maze.cells[x][y + 1].walls[Directions.EAST] is True
 
                 else str(theme.angles.BOTTOM_LEFT)
                 if maze.cells[x][y].walls[Directions.SOUTH] is False
@@ -111,8 +111,8 @@ def print_maze(maze: Maze, theme: Theme) -> None:
                 else str(theme.angles.BOTTOM_RIGHT)
                 if maze.cells[x][y].walls[Directions.SOUTH] is True
                 and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
-                and maze.cells[x][y].walls[Directions.EAST] is False
-                and maze.cells[x][y + 1].walls[Directions.EAST] is True
+                and maze.cells[x][y].walls[Directions.EAST] is True
+                and maze.cells[x][y + 1].walls[Directions.EAST] is False
 
                 else " ")
 
@@ -123,6 +123,6 @@ def print_maze(maze: Maze, theme: Theme) -> None:
             else str(theme.walls.HORIZONTAL_U)
             if cell.walls[Directions.EAST] is True
             else str(theme.walls.HORIZONTAL))
-        for cell in (maze.cells[x][0] for x in range(maze.config.WIDTH)))
+        for cell in (maze.cells[x][-1] for x in range(maze.config.WIDTH)))
     line += str(theme.angles.BOTTOM_RIGHT)
     style_print(theme.walls_style, line, "\n")
