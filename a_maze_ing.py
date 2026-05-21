@@ -80,11 +80,12 @@ def main() -> int:
         return 2
     from time import sleep
     from typing import cast
-    from maze_gen import Maze, MazeDimension, CellCoordinates
+    from maze_gen import Maze
+    from maze_display import print_maze, Theme, get_theme
     print(
         "Correct configuration found and loaded,"
         "starting A_maze_ing program...")
-    sleep(3)
+    # sleep(3)
     maze = Maze(
         width=cast(int, config["width"]),
         height=cast(int, config["height"]),
@@ -93,7 +94,10 @@ def main() -> int:
         perfect=cast(bool, config["perfect"]),
         seed=cast(int, config["seed"]),
         central_icon=cast(bool, config["central_icon"]))
+    maze.generation()
     print(maze)
+
+    print_maze(maze, get_theme("basic"))
     return 0
 
 
