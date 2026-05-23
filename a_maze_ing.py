@@ -45,6 +45,10 @@ def parse_config_file(
                 if entry[1] == "":
                     raise ValueError()
                 output_file = entry[1]
+            elif entry[0] == "GEN_ALGORITHM":
+                if entry[1] not in ("Backtracking", "Prim"):
+                    raise ValueError()
+                entries.update({entry[0].lower(): str(entry[1])})
             else:
                 error_message +=\
                     f"ERROR - Unknown entry type {entry[0]} found\n"
@@ -52,11 +56,11 @@ def parse_config_file(
                 continue
             if entry[0] != "OUTPUT_FILE":
                 print(
-                    f"{f"OK - Entry '{entry[0]}' saved with value":<42}",
+                    f"{f"OK - Entry '{entry[0]}' saved with value":<43}",
                     f"- {entries[entry[0].lower()]}")
         except ValueError:
             error_message +=\
-                f"{f"ERROR - Invalid value type for {entry[0]} entry:":<52}"\
+                f"{f"ERROR - Invalid value type for {entry[0]} entry:":<53}"\
                 + f"- '{entry[1]}'\n"
             error = True
     print("\n", error_message, sep="", end="")
@@ -73,31 +77,49 @@ def main() -> int:
         return 1
     config: dict[str, str | int | bool | tuple[int, int]] = {}
     parsing_output: tuple[bool, str] = parse_config_file(argv[1], config)
+    from maze_display import error_print
     if parsing_output[0] is True or parsing_output[1] == "":
-        print(
-            "\nOne or multiple errors brought up during parsing of file",
-            f"'{argv[1]}'.\nRefer to the provided README file for guidance.")
+        error_print(
+            "\nOne or multiple errors brought up during parsing of file ",
+            f"'{argv[1]}'.\nRefer to the provided README for guidance.\n\n")
         return 2
     from time import sleep
     from typing import cast
+    from pydantic import ValidationError
     from maze_gen import Maze
-    from maze_display import print_maze, Theme, get_theme
+    from maze_display import print_maze, get_themes, print_interface
     print(
         "Correct configuration found and loaded,"
-        "starting A_maze_ing program...")
-    # sleep(3)
-    maze = Maze(
-        width=cast(int, config["width"]),
-        height=cast(int, config["height"]),
-        entry=cast(tuple[int, int], config["entry"]),
-        exit=cast(tuple[int, int], config["exit"]),
-        perfect=cast(bool, config["perfect"]),
-        seed=cast(int, config["seed"]),
-        central_icon=cast(bool, config["central_icon"]))
-    maze.generation()
-    maze.backtracking_algo()
-
-    print_maze(maze, get_theme("basic"))
+        "starting A_maze_ing program...\n")
+    sleep(1)
+    try:
+        maze = Maze(
+            width=cast(int, config["width"]),
+            height=cast(int, config["height"]),
+            entry=cast(tuple[int, int], config["entry"]),
+            exit=cast(tuple[int, int], config["exit"]),
+            perfect=cast(bool, config["perfect"]),
+            gen_algorithm=cast(str, config["gen_algorithm"]),
+            seed=cast(int, config["seed"]),
+            central_icon=cast(bool, config["central_icon"]))
+    except ValidationError as error:
+        error_print(
+            "Configuration errors found while validation :\n",
+            "\n".join(f"- {e["msg"]}" for e in error.errors()))
+        print(
+            "\nFix errors by refering to their description or the provided ",
+            "README and relaunch the program.\n")
+        exit()
+    menues: dict[str, tuple[str], dict[str, str, tuple[str]]] = {
+        "main": (
+            "Change current theme", "Show/Hide found path"
+            "Generate new maze", "Quit A_maze_ing"),
+        "maze config": {"Theme"}}
+    if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
+        for _ in maze.stepped_generation():
+            print_maze(maze, get_themes()["basic design"])
+            sleep(0.01)
+    print_interface(maze, get_themes()["basic design"])
     return 0
 
 

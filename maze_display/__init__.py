@@ -1,8 +1,8 @@
 
-from .display import print_maze
-from .utils import Theme, get_theme
+from .display import print_maze, print_interface
+from .utils import Theme, get_themes, Styling, style_print, error_print
 
 
 __all__ = [
-    "print_maze",
-    "Theme", "get_theme"]
+    "print_maze", "print_interface",
+    "Styling", "Theme", "get_themes", "style_print", "error_print"]

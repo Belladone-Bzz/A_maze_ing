@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, model_validator
-from typing_extensions import Annotated
+from typing import Annotated
+from collections.abc import Generator, Callable
 from enum import IntEnum, Enum
 from random import seed as set_seed, choice, randint, shuffle
 
@@ -39,13 +40,15 @@ class Maze:
     def __init__(
             self, width: int, height: int,
             entry: tuple[int, int], exit: tuple[int, int],
-            perfect: bool, seed: int, central_icon: bool = False):
+            perfect: bool, gen_algorithm: str,
+            seed: int, central_icon: bool = False):
         self.config = Maze.Config(
             WIDTH=width,
             HEIGHT=height,
             ENTRY=entry,
             EXIT=exit,
             PERFECT=perfect,
+            GEN_ALGORITHM=gen_algorithm,
             SEED=seed,
             CENTRAL_ICON=central_icon)
         set_seed(self.config.SEED)
@@ -60,6 +63,8 @@ class Maze:
         HEIGHT: MazeDimension
         ENTRY: CellCoordinates
         EXIT: CellCoordinates
+
+        GEN_ALGORITHM: Annotated[str, Field(min_length=1, max_length=15)]
 
         CENTRAL_ICON: Annotated[bool, Field(default=False)]
         PERFECT: Annotated[bool, Field(default=True)]
@@ -76,11 +81,11 @@ class Maze:
                     + "impossible when integrating the central pattern.\n"
             if self.ENTRY[0] >= self.HEIGHT or self.ENTRY[1] >= self.WIDTH:
                 error_message +=\
-                    "Entry coordinates (x, y)"\
+                    "Entry coordinates (x, y) "\
                     + "cannot exceed the maze's dimensions\n"
             if self.EXIT[0] >= self.HEIGHT or self.EXIT[1] >= self.WIDTH:
                 error_message +=\
-                    "Exit coordinates (x, y)"\
+                    "Exit coordinates (x, y) "\
                     + "cannot exceed the maze's dimensions\n"
             if error_message != "":
                 raise ValueError(error_message)
@@ -150,26 +155,24 @@ class Maze:
         else:
             return coords
 
-    def backtracking_algo(self) -> None:
+    def backtracking_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a backtraking algorithm."""
         start: CellCoordinates = (randint(0, self.config.WIDTH),
                                   randint(0, self.config.HEIGHT))
-        print(start)
         self.cells[start[0]][start[1]].is_visited = True
         current: CellCoordinates = self.access_next_cell(start) 
         back_track: list[CellCoordinates] = [start, current]
         while current != start:
             next_cell = self.access_next_cell(current)
-            print(current, next_cell)
             if current != next_cell:
                 current = next_cell
                 back_track.append(current)
-                continue
+                yield None
             else:
                 current = back_track[-2]
                 del back_track[-1]
 
-    def prim_algo(self) -> None:
+    def prim_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a Prim algorithm."""
         start: CellCoordinates = (randint(0, self.config.WIDTH),
                                   randint(0, self.config.HEIGHT))
@@ -217,8 +220,23 @@ class Maze:
                         and self.cells[potential_frontier[0]]\
                             [potential_frontier[1]].pattern is False:
                     frontiers.add(potential_frontier)
-            
-            print(frontiers)
+            yield None
+
+    def generate_maze(self) -> None:
+        self.generation()
+        algorithms: dict[str, Callable[["Maze"], Generator[None]]] = {
+            "Backtracking": self.backtracking_algo,
+            "Prim": self.prim_algo}
+        for _ in algorithms[self.config.GEN_ALGORITHM]():
+            pass
+
+    def stepped_generation(self) -> Generator[None]:
+        self.generation()
+        algorithms: dict[str, Callable[["Maze"], Generator[None]]] = {
+            "Backtracking": self.backtracking_algo,
+            "Prim": self.prim_algo}
+        for _ in algorithms[self.config.GEN_ALGORITHM]():
+            yield None
 
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
