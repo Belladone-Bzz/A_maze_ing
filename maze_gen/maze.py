@@ -62,7 +62,7 @@ class Maze:
         EXIT: CellCoordinates
 
         CENTRAL_ICON: Annotated[bool, Field(default=False)]
-        PERFECT: Annotated[bool, Field(default=True)]
+        PERFECT: Annotated[bool, Field()]
         SEED: Annotated[int, Field()]
 
         @model_validator(mode='after')
@@ -71,17 +71,17 @@ class Maze:
             error_message: str = ""
             if self.CENTRAL_ICON is True and (
                     self.WIDTH < 7 or self.HEIGHT < 7):
-                error_message +=\
-                    "Generating a maze with dimensions inferior to 7 by 7 is "\
-                    + "impossible when integrating the central pattern.\n"
+                error_message += (
+                    "Generating a maze with dimensions inferior to 7 by 7 is "
+                    "impossible when integrating the central pattern.")
             if self.ENTRY[0] >= self.HEIGHT or self.ENTRY[1] >= self.WIDTH:
-                error_message +=\
-                    "Entry coordinates (x, y)"\
-                    + "cannot exceed the maze's dimensions\n"
+                error_message += (
+                    "Entry coordinates (x, y) "
+                    "cannot exceed the maze's dimensions")
             if self.EXIT[0] >= self.HEIGHT or self.EXIT[1] >= self.WIDTH:
-                error_message +=\
-                    "Exit coordinates (x, y)"\
-                    + "cannot exceed the maze's dimensions\n"
+                error_message += (
+                    "Exit coordinates (x, y) "
+                    "cannot exceed the maze's dimensions")
             if error_message != "":
                 raise ValueError(error_message)
             return self
