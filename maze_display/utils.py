@@ -165,4 +165,6 @@ def move_cursor(y: int, x: int = 0) -> str:
 
 
 def style_print(style: Styling | str, content: str, end: str = "") -> None:
-    print(style, content, end, CursorOperations.STYLE_CLEAR, flush=True, sep="", end="")
+    print(
+        style, content, end, CursorOperations.STYLE_CLEAR,
+        flush=True, sep="", end="")

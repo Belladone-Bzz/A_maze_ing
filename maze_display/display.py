@@ -1,5 +1,6 @@
 
-from .utils import style_print, Styling, styling, Colors, CursorOperations
+from .utils import (
+    style_print, Styling, styling, Colors, CursorOperations, SmallIcons)
 from .themes import Theme
 from maze_gen import Maze, Directions
 
@@ -13,6 +14,9 @@ def print_error(
 
 def print_maze(maze: Maze, theme: Theme) -> None:
     print(CursorOperations.HEAVY_CLEAR)
+
+    emojis: tuple[SmallIcons, ...] = (
+        SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER)
 
     line: str = str(theme.angles.TOP_LEFT)
     line += "".join(
@@ -28,10 +32,16 @@ def print_maze(maze: Maze, theme: Theme) -> None:
     for y in range(maze.config.HEIGHT):
         line = str(theme.walls.VERTICAL)
         for x in range(maze.config.WIDTH):
-            line += (
-                    f" {theme.start} " if maze.cells[x][y].entry is True
-                    else f" {theme.exit} " if maze.cells[x][y].exit is True
-                    else "   ")
+            if maze.cells[x][y].entry is True:
+                line += (
+                    f" {theme.start} " if theme.start not in emojis
+                    else f" {theme.start}")
+            elif maze.cells[x][y].exit is True:
+                line += (
+                    f" {theme.exit} " if theme.exit not in emojis
+                    else f" {theme.exit}")
+            else:
+                line += "   "
             if x == maze.config.WIDTH - 1:
                 break
             line += (

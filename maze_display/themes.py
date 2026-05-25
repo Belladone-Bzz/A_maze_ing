@@ -53,7 +53,7 @@ def get_themes() -> dict[str, Theme]:
         "bee design": Theme(
             walls=BasicWalls,
             angles=RoundedAngles,
-            start=SmallIcons.EMPTY_SQUARE,
+            start=SmallIcons.BEE,
             exit=SmallIcons.FULL_SQUARE,
             visited_background=SmallIcons.NO_SHADE,
             progress_line=(BasicWalls, RoundedAngles),

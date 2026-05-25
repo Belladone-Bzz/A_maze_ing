@@ -40,10 +40,10 @@ def parse_config_file(
     return ("\n".join(error_message), output_file)
 
 
-def get_boolean(value: str) -> bool:
-    if value == "True":
+def get_boolean(value: str | bool) -> bool:
+    if str(value) == "True":
         return True
-    elif value == "False":
+    elif str(value) == "False":
         return False
     raise TypeError(
         f"invalid boolean value '{value}', must be 'True or 'False'")
@@ -60,8 +60,7 @@ def main() -> int:
         return 1
     config: dict[str, str] = {}
     mandatory_values: tuple[str, ...] = (
-        "WIDTH", "HEIGHT", "ENTRY", "EXIT", "PERFECT", "SEED",
-        "CENTRAL_ICON", "GEN_ALGORITHM")
+        "WIDTH", "HEIGHT", "ENTRY", "EXIT", "PERFECT", "GEN_ALGORITHM")
     parsing_output: tuple[str, str] = parse_config_file(
         argv[1], config, mandatory_values)
     if parsing_output[0] != "":
@@ -70,6 +69,7 @@ def main() -> int:
             f"'{argv[1]}':\n{parsing_output[0]}")
         return 2
     from maze_gen import Maze
+    from random import randint
     from pydantic import ValidationError
     try:
         maze = Maze(
@@ -83,8 +83,8 @@ def main() -> int:
                 int(config["exit"].split(",")[1])),
             perfect=get_boolean(config["perfect"]),
             gen_algorithm=config["gen_algorithm"],
-            seed=int(config["seed"]),
-            central_icon=get_boolean(config["central_icon"]))
+            seed=int(config.get("seed", randint(0, 9999999))),
+            central_icon=get_boolean(config.get("central_icon", True)))
     except (KeyError, TypeError, IndexError,
             ValueError, ValidationError) as error:
         message: str
@@ -107,17 +107,26 @@ def main() -> int:
     input(
         "\nCorrect configuration found and loaded."
         "\nStarting A_maze_ing program... ⏎ ")
-    menues: dict[str, tuple[str] | dict[str, str | tuple[str]]] = {
-        "main": (
-            "Change current theme", "Show/Hide found path"
-            "Generate new maze", "Quit A_maze_ing"),
-        "maze config": {"Theme"}}
+    menues: dict[str, list[dict[str, str | bool | int]]] = {
+        "main": [
+            {
+                "option_type": "selection", "text": "Change current theme"},
+            {
+                "option_type": "toggle", "value": True,
+                "text": "Show/Hide found path"},
+            {
+                "option_type": "selection", "text": "Generate new maze"},
+            {
+                "option_type": "selection", "text": "Quit A_maze_ing"}],
+        "maze config": ["Theme"]}
     menues
     if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
         for _ in maze.stepped_generation():
-            print_maze(maze, get_themes()["basic design"])
+            print_maze(maze, get_themes()["bee design"])
             sleep(0.01)
-    print_interface(maze, get_themes()["basic design"])
+    while True:
+        print_interface(maze, get_themes()["basic design"])
+        break
     return 0
 
 

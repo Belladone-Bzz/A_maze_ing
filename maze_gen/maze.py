@@ -183,11 +183,11 @@ class Maze:
         possibilities: list[tuple[int, int]] =\
             list(move.value for move in Movements)
         starts: tuple[CellCoordinates, ...] = (
-            (int((self.config.WIDTH - 1) / 2), 0),
-            (self.config.WIDTH - 1, int((self.config.HEIGHT - 1) / 2)),
-            (int((self.config.WIDTH - 1) / 2), self.config.HEIGHT - 1),
-            (0, int((self.config.HEIGHT - 1) / 2)),
-            (int((self.config.WIDTH - 1) / 2), int((self.config.HEIGHT - 1) / 2)))
+            (int((self.config.WIDTH - 1)/2), 0),
+            (self.config.WIDTH - 1, int((self.config.HEIGHT - 1)/2)),
+            (int((self.config.WIDTH - 1)/2), self.config.HEIGHT - 1),
+            (0, int((self.config.HEIGHT - 1)/2)),
+            (int((self.config.WIDTH - 1)/2), int((self.config.HEIGHT - 1)/2)))
         start: CellCoordinates = choice(starts)
         self.cells[start[0]][start[1]].is_visited = True
 
@@ -258,7 +258,6 @@ class Maze:
 
 if __name__ == "__main__":
     """Entry point of the program"""
-    from random import randint
     from time import sleep
     maze = Maze(
         width=20,
