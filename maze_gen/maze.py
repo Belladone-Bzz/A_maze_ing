@@ -67,7 +67,7 @@ class Maze:
         GEN_ALGORITHM: Annotated[str, Field(min_length=1, max_length=15)]
 
         CENTRAL_ICON: Annotated[bool, Field(default=False)]
-        PERFECT: Annotated[bool, Field(default=True)]
+        PERFECT: Annotated[bool, Field()]
         SEED: Annotated[int, Field()]
 
         @model_validator(mode='after')
@@ -76,17 +76,17 @@ class Maze:
             error_message: str = ""
             if self.CENTRAL_ICON is True and (
                     self.WIDTH < 7 or self.HEIGHT < 7):
-                error_message +=\
-                    "Generating a maze with dimensions inferior to 7 by 7 is "\
-                    + "impossible when integrating the central pattern.\n"
+                error_message += (
+                    "Generating a maze with dimensions inferior to 7 by 7 is "
+                    "impossible when integrating the central pattern.")
             if self.ENTRY[0] >= self.HEIGHT or self.ENTRY[1] >= self.WIDTH:
-                error_message +=\
-                    "Entry coordinates (x, y) "\
-                    + "cannot exceed the maze's dimensions\n"
+                error_message += (
+                    "Entry coordinates (x, y) "
+                    "cannot exceed the maze's dimensions")
             if self.EXIT[0] >= self.HEIGHT or self.EXIT[1] >= self.WIDTH:
-                error_message +=\
-                    "Exit coordinates (x, y) "\
-                    + "cannot exceed the maze's dimensions\n"
+                error_message += (
+                    "Exit coordinates (x, y) "
+                    "cannot exceed the maze's dimensions")
             if error_message != "":
                 raise ValueError(error_message)
             return self
@@ -224,7 +224,7 @@ class Maze:
 
     def generate_maze(self) -> None:
         self.generation()
-        algorithms: dict[str, Callable[["Maze"], Generator[None]]] = {
+        algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
@@ -232,7 +232,7 @@ class Maze:
 
     def stepped_generation(self) -> Generator[None]:
         self.generation()
-        algorithms: dict[str, Callable[["Maze"], Generator[None]]] = {
+        algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
@@ -261,6 +261,7 @@ if __name__ == "__main__":
         entry=(0, 0),
         exit=(2, 2),
         perfect=True,
+        gen_algorithm="Prim",
         seed=666,
         central_icon=False
     )

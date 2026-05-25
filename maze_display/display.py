@@ -1,10 +1,18 @@
 
-from .utils import style_print, Theme, Styling
+from .utils import style_print, Styling, styling, Colors, CursorOperations
+from .themes import Theme
 from maze_gen import Maze, Directions
 
 
+def print_error(
+        content: str,
+        end: str = "\n\nRefer to the provided README file for guidance.\n\n"
+        ) -> None:
+    style_print(styling([Styling.BOLD], Colors.RED), content, end)
+
+
 def print_maze(maze: Maze, theme: Theme) -> None:
-    print(Styling.HEAVY_CLEAR)
+    print(CursorOperations.HEAVY_CLEAR)
 
     line: str = str(theme.angles.TOP_LEFT)
     line += "".join(

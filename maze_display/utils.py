@@ -125,6 +125,14 @@ class Colors(StyleEnum):
 
 
 class Styling(StyleEnum):
+    BOLD = "1"
+    DIM = "2"
+    FOREGROUND = "3"
+    BACKGROUND = "4"
+    BLINKING = "5"
+
+
+class CursorOperations(StyleEnum):
     ESC = "\033["
 
     SHOW_CURSOR = "\033[25h"
@@ -138,80 +146,17 @@ class Styling(StyleEnum):
     HEAVY_CLEAR = "\033[3J\033[1;0H\033[0J"
     STYLE_CLEAR = "\033[0m"
 
-    BOLD = "1"
-    DIM = "2"
-    FOREGROUND = "3"
-    BACKGROUND = "4"
-    BLINKING = "5"
-    STYLE = "m"
 
-    NO_STYLE = ""
-    ESC + f"{BOLD}{STYLE}"
-    BOLD_COLORED = lambda color: f"\033[3{color};1m"
+def styling(
+        style: list[Styling] = [],
+        fg_color: Colors = Colors.DEFAULT,
+        bg_color: Colors = Colors.DEFAULT) -> str:
+    return (f"\033[0;{";".join([
+        *(str(st) for st in style), f"3{fg_color}", f"4{bg_color}"])}m")
 
 
-
-class Theme:
-    def __init__(
-            self, walls: type[Walls], angles: type[Angles],
-            start: SmallIcons, exit: SmallIcons,
-            visited_background: SmallIcons,
-            progress_line: tuple[type[Walls], type[Angles]],
-            walls_style: Styling, path_style: Styling,
-            start_style: Styling, exit_style: Styling,
-            icon_walls: type[Walls], icon_angles: type[Angles],
-            icon_style: Styling):
-        self.walls = walls
-        self.angles = angles
-        self.start = start
-        self.exit = exit
-        self.visited_background = visited_background
-        self.progress_line = progress_line
-        self.walls_style = walls_style
-        self.path_style = path_style
-        self.start_style = start_style
-        self.exit_style = exit_style
-        self.icon_walls = icon_walls
-        self.icon_angles = icon_angles
-        self.icon_style = icon_style
-
-
-def get_themes() -> dict[str, Theme]:
-    return {
-        "basic design": Theme(
-            walls=BoldBasicWalls,
-            angles=BoldBasicAngles,
-            start=SmallIcons.EMPTY_SQUARE,
-            exit=SmallIcons.FULL_SQUARE,
-            visited_background=SmallIcons.NO_SHADE,
-            progress_line=(BasicWalls, RoundedAngles),
-
-            walls_style=Styling.NO_STYLE,
-            path_style=Styling.BOLD_COLORED(Colors.YELLOW),
-            start_style=Styling.BOLD_COLORED(Colors.YELLOW),
-            exit_style=Styling.BOLD_COLORED(Colors.YELLOW),
-
-            icon_walls=DoubleWalls,
-            icon_angles=DoubleAngles,
-
-            icon_style=Styling.BOLD_COLORED(Colors.YELLOW)),
-        "bee design": Theme(
-            walls=BasicWalls,
-            angles=RoundedAngles,
-            start=SmallIcons.EMPTY_SQUARE,
-            exit=SmallIcons.FULL_SQUARE,
-            visited_background=SmallIcons.NO_SHADE,
-            progress_line=(BasicWalls, RoundedAngles),
-
-            walls_style=Styling.NO_STYLE,
-            path_style=Styling.BOLD_COLORED(Colors.YELLOW),
-            start_style=Styling.BOLD_COLORED(Colors.YELLOW),
-            exit_style=Styling.BOLD_COLORED(Colors.YELLOW),
-
-            icon_walls=DoubleWalls,
-            icon_angles=DoubleAngles,
-
-            icon_style=Styling.BOLD_COLORED(Colors.YELLOW))}
+def bold_style(color: Colors = Colors.DEFAULT) -> str:
+    return f"\033[3{color};1m"
 
 
 def move_cursor(y: int, x: int = 0) -> str:
@@ -219,9 +164,5 @@ def move_cursor(y: int, x: int = 0) -> str:
     return coordinate
 
 
-def style_print(style: Styling, content: str, end: str = "") -> None:
-    print(style, content, end, Styling.STYLE_CLEAR, sep="", end="")
-
-
-def error_print(content: str, end: str = "") -> None:
-    style_print(Styling.BOLD_COLORED(Colors.RED), content, end)
+def style_print(style: Styling | str, content: str, end: str = "") -> None:
+    print(style, content, end, CursorOperations.STYLE_CLEAR, sep="", end="")
