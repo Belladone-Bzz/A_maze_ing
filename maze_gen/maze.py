@@ -177,7 +177,7 @@ class Maze:
         frontiers: set[CellCoordinates] = set()
         possibilities: list[tuple[int, int]] =\
             list(move.value for move in Movements)
-        starts: tuple[CellCoordinates] = (
+        starts: tuple[CellCoordinates, ...] = (
             (int(self.config.WIDTH/2), 0),
             (self.config.WIDTH, int(self.config.HEIGHT/2)),
             (int(self.config.WIDTH/2), self.config.HEIGHT),
