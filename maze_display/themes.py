@@ -54,16 +54,33 @@ def get_themes() -> dict[str, Theme]:
             walls=BasicWalls,
             angles=RoundedAngles,
             start=SmallIcons.BEE,
-            exit=SmallIcons.FULL_SQUARE,
+            exit=SmallIcons.FLOWER,
             visited_background=SmallIcons.NO_SHADE,
             progress_line=(BasicWalls, RoundedAngles),
 
-            walls_style=styling(),
-            path_style=styling([Styling.BOLD], Colors.YELLOW),
-            start_style=styling([Styling.BOLD], Colors.YELLOW),
-            exit_style=styling([Styling.BOLD], Colors.YELLOW),
+            walls_style=styling([], Colors.YELLOW),
+            path_style=styling([], Colors.YELLOW),
+            start_style=styling([], Colors.YELLOW),
+            exit_style=styling([], Colors.YELLOW),
 
             icon_walls=DoubleWalls,
             icon_angles=DoubleAngles,
 
-            icon_style=styling([Styling.BOLD], Colors.YELLOW))}
+            icon_style=styling([Styling.BOLD], Colors.YELLOW)),
+        "metamorphosis design" : Theme(
+            walls=BasicWalls,
+            angles=RoundedAngles,
+            start=SmallIcons.CATERPILLAR,
+            exit=SmallIcons.BUTTERFLY,
+            visited_background=SmallIcons.NO_SHADE,
+            progress_line=(BasicWalls, RoundedAngles),
+
+            walls_style=styling([], Colors.MAGENTA),
+            path_style=styling([], Colors.YELLOW),
+            start_style=styling([], Colors.MAGENTA),
+            exit_style=styling([], Colors.MAGENTA),
+
+            icon_walls=DoubleWalls,
+            icon_angles=DoubleAngles,
+
+            icon_style=styling([Styling.BOLD], Colors.MAGENTA))}

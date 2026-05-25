@@ -125,7 +125,7 @@ def main() -> int:
             print_maze(maze, get_themes()["bee design"])
             sleep(0.01)
     while True:
-        print_interface(maze, get_themes()["basic design"])
+        print_interface(maze, get_themes()["bee design"])
         break
     return 0
 

@@ -16,7 +16,8 @@ def print_maze(maze: Maze, theme: Theme) -> None:
     print(CursorOperations.HEAVY_CLEAR)
 
     emojis: tuple[SmallIcons, ...] = (
-        SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER)
+        SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER,
+        SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR)
 
     line: str = str(theme.angles.TOP_LEFT)
     line += "".join(
