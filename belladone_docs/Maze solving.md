@@ -37,7 +37,7 @@ The algorithm goes through each cell in the maze iteratively, filling in the dea
 ### Dijkstra Algorithm
 This is a non-heuristic algorithm that guarantees the shortest path by exploring all possible routes from the starting point to the destination. It does so by systematically considering the shortest distance to each node and updating paths until the most efficient route is found.
 
-Dijkstra's algorithm finds the shortest path from one vertex to all other vertices. It does so by repeatedly selecting the nearest unvisited vertex and calculating the distance to all the unvisited neighboring vertices. To find the shortest path, Dijkstra's algorithm needs to know which vertex is the source, it needs a way to mark vertices as visited, and it needs an overview of the current shortest distance to each vertex as it works its way through the graph, updating these distances when a shorter distance is found.
+Dijkstra's algorithm finds the shortest path from one vertex to all other vertices. It does so by repeatedly selecting the nearest un-visited vertex and calculating the distance to all the un-visited neighboring vertices. To find the shortest path, Dijkstra's algorithm needs to know which vertex is the source, it needs a way to mark vertices as visited, and it needs an overview of the current shortest distance to each vertex as it works its way through the graph, updating these distances when a shorter distance is found.
 
 **Seems ideal for perfect maze solving.**
 ### A* Algorithm
