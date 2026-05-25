@@ -128,39 +128,42 @@ class Maze:
         self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
         self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
 
-    def access_next_cell(self, coords:CellCoordinates) -> CellCoordinates:
-        possibilities: list[tuple[int, int]] =\
-            list(move.value for move in Movements)
-        shuffle(possibilities)
-        for x, y in possibilities:
-            potential_coords: CellCoordinates = (
-                coords[0] + x, coords[1] + y)
-            if potential_coords[0] < 0 or potential_coords[1] < 0\
-                or potential_coords[0] >= self.config.WIDTH\
-                    or potential_coords[1] >= self.config.HEIGHT:
-                continue
-            if self.cells[potential_coords[0]]\
-                    [potential_coords[1]].is_visited is False\
-                    and self.cells[potential_coords[0]]\
-                        [potential_coords[1]].pattern is False:
-                self.cells[potential_coords[0]][potential_coords[1]].is_visited = True
-                self.cells[coords[0]][coords[1]].walls[Directions[Movements((x, y)).name]] = False
-                self.cells[potential_coords[0]][potential_coords[1]].walls[Directions[Movements((-x, -y)).name]] = False
-                return potential_coords
-        else:
-            return coords
-
     def backtracking_algo(self) -> None:
         """Method to generate a perfect maze with a backtraking algorithm."""
         start: CellCoordinates = (randint(0, self.config.WIDTH),
                                   randint(0, self.config.HEIGHT))
-        print(start)
         self.cells[start[0]][start[1]].is_visited = True
-        current: CellCoordinates = self.access_next_cell(start) 
+
+        def access_next_cell(coords: CellCoordinates) -> CellCoordinates:
+            """Method to find and access the next cell."""
+            possibilities: list[tuple[int, int]] =\
+                list(move.value for move in Movements)
+            shuffle(possibilities)
+            for x, y in possibilities:
+                potential_coords: CellCoordinates = (
+                    coords[0] + x, coords[1] + y)
+                if potential_coords[0] < 0 or potential_coords[1] < 0\
+                    or potential_coords[0] >= self.config.WIDTH\
+                        or potential_coords[1] >= self.config.HEIGHT:
+                    continue
+                if self.cells[potential_coords[0]][
+                    potential_coords[1]].is_visited is False\
+                        and self.cells[potential_coords[0]][
+                            potential_coords[1]].pattern is False:
+                    self.cells[potential_coords[0]][potential_coords[1]].\
+                        is_visited = True
+                    self.cells[coords[0]][coords[1]].walls[Directions[
+                        Movements((x, y)).name]] = False
+                    self.cells[potential_coords[0]][potential_coords[
+                        1]].walls[Directions[Movements((-x, -y)).name]] = False
+                    return potential_coords
+            else:
+                return coords
+
+        current: CellCoordinates = access_next_cell(start)
         back_track: list[CellCoordinates] = [start, current]
         while current != start:
-            next_cell = self.access_next_cell(current)
-            print(current, next_cell)
+            next_cell = access_next_cell(current)
             if current != next_cell:
                 current = next_cell
                 back_track.append(current)
@@ -171,52 +174,50 @@ class Maze:
 
     def prim_algo(self) -> None:
         """Method to generate a perfect maze with a Prim algorithm."""
-        start: CellCoordinates = (randint(0, self.config.WIDTH),
-                                  randint(0, self.config.HEIGHT))
-        self.cells[start[0]][start[1]].is_visited = True
-        maze_cell: list[CellCoordinates] = [start, start]
         frontiers: set[CellCoordinates] = set()
         possibilities: list[tuple[int, int]] =\
             list(move.value for move in Movements)
-        for x, y in possibilities:
-            potential_frontier: CellCoordinates = (
-                start[0] + x, start[1] + y)
-            if potential_frontier[0] < 0 or potential_frontier[1] < 0\
-                or potential_frontier[0] >= self.config.WIDTH\
-                    or potential_frontier[1] >= self.config.HEIGHT:
-                continue
-            if self.cells[potential_frontier[0]]\
-                    [potential_frontier[1]].is_visited is False\
-                    and self.cells[potential_frontier[0]]\
-                        [potential_frontier[1]].pattern is False:
-                frontiers.add(potential_frontier)
-        while frontiers:
-            start = choice(list(frontiers))
-            self.cells[start[0]][start[1]].is_visited = True
-            frontiers.remove(start)
-            maze_cell.append(start)
+        starts: tuple[CellCoordinates] = (
+            (int(self.config.WIDTH/2), 0),
+            (self.config.WIDTH, int(self.config.HEIGHT/2)),
+            (int(self.config.WIDTH/2), self.config.HEIGHT),
+            (0, int(self.config.HEIGHT/2)),
+            (int(self.config.WIDTH/2), int(self.config.HEIGHT/2)))
+        start: CellCoordinates = choice(starts)
+        self.cells[start[0]][start[1]].is_visited = True
 
-            for cell in reversed(maze_cell):
-                direction: tuple[int, int] = (cell[0] - start[0], cell[1] - start[1])
-                if direction in Movements:
-                    self.cells[cell[0]][cell[1]].walls[Directions[Movements((-direction[0], -direction[1])).name]] = False
-                    self.cells[start[0]][start[1]].walls[Directions[Movements(direction).name]] = False
-                    break
-
-
+        def find_frontiers() -> None:
+            """Method to find all frontier's cell."""
             for x, y in possibilities:
-                potential_frontier = (
+                potential_frontier: CellCoordinates = (
                     start[0] + x, start[1] + y)
                 if potential_frontier[0] < 0 or potential_frontier[1] < 0\
                     or potential_frontier[0] >= self.config.WIDTH\
                         or potential_frontier[1] >= self.config.HEIGHT:
                     continue
-                if self.cells[potential_frontier[0]]\
-                        [potential_frontier[1]].is_visited is False\
-                        and self.cells[potential_frontier[0]]\
-                            [potential_frontier[1]].pattern is False:
+                if self.cells[potential_frontier[0]][
+                    potential_frontier[1]].is_visited is False\
+                        and self.cells[potential_frontier[0]][
+                            potential_frontier[1]].pattern is False:
                     frontiers.add(potential_frontier)
 
+        maze_cell: list[CellCoordinates] = [start, start]
+        find_frontiers()
+        while frontiers:
+            start = choice(list(frontiers))
+            self.cells[start[0]][start[1]].is_visited = True
+            frontiers.remove(start)
+            maze_cell.append(start)
+            for cell in reversed(maze_cell):
+                direction: tuple[int, int] = (
+                    cell[0] - start[0], cell[1] - start[1])
+                if direction in Movements:
+                    self.cells[cell[0]][cell[1]].walls[Directions[Movements(
+                        (-direction[0], -direction[1])).name]] = False
+                    self.cells[start[0]][start[1]].walls[Directions[Movements(
+                        direction).name]] = False
+                    break
+            find_frontiers()
 
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
