@@ -191,7 +191,6 @@ class Maze:
                         [potential_frontier[1]].pattern is False:
                 frontiers.add(potential_frontier)
         while frontiers:
-            print(start)
             start = choice(list(frontiers))
             self.cells[start[0]][start[1]].is_visited = True
             frontiers.remove(start)
@@ -217,8 +216,7 @@ class Maze:
                         and self.cells[potential_frontier[0]]\
                             [potential_frontier[1]].pattern is False:
                     frontiers.add(potential_frontier)
-            
-            print(frontiers)
+
 
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
