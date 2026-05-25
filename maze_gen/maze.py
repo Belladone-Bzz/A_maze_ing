@@ -133,10 +133,31 @@ class Maze:
         self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
         self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
 
+    def count_walls(self) -> int:
+                """"""
+                count: int = 0
+                for y in range(0, (self.config.HEIGHT)):
+                    for x in range(0, (self.config.WIDTH)):
+                        if self.cells[x][y].walls[Directions.EAST] is True:
+                            count += 1
+                        if self.cells[x][y].walls[Directions.SOUTH] is True:
+                            count += 1
+                count -= (self.config.HEIGHT + self.config.WIDTH)
+                return count
+
+    def is_imperfect(self) -> None:
+        """"""
+        walls: int = (self.config.HEIGHT * self.config.WIDTH + 1) -\
+        (self.config.HEIGHT + self.config.WIDTH)
+        nb_to_destroy: int = int(walls/10)
+        if nb_to_destroy == 0:
+            nb_to_destroy += 1
+
+
     def backtracking_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a backtraking algorithm."""
-        start: CellCoordinates = (randint(0, self.config.WIDTH),
-                                  randint(0, self.config.HEIGHT))
+        start: CellCoordinates = (randint(0, self.config.WIDTH - 1),
+                                  randint(0, self.config.HEIGHT - 1))
         self.cells[start[0]][start[1]].is_visited = True
 
         def access_next_cell(coords: CellCoordinates) -> CellCoordinates:
@@ -260,12 +281,12 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=20,
-        height=20,
+        width=3,
+        height=4,
         entry=(0, 0),
         exit=(2, 2),
         perfect=True,
-        gen_algorithm="Prim",
+        gen_algorithm="Backtracking",
         seed=randint(0, 99999999),
         central_icon=False
     )

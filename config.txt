@@ -2,13 +2,13 @@
 
 # Positive numerical values (may exceed terminal maximum display size)
 
-WIDTH=30
-HEIGHT=20
+WIDTH=40
+HEIGHT=30
 
 # Positive numerical coordinates separated by a comma (may not exceed maze size)
 
 ENTRY=0,0
-EXIT=14,11
+EXIT=7,5
 
 # File to overwrite with hexadecimal maze layout and more
 
@@ -25,7 +25,7 @@ PERFECT=True
 
 # Generation algorithms available: Backtracking, Prim
 
-GEN_ALGORITHM=Backtracking
+GEN_ALGORITHM=Prim
 
 # Solving algorithms available: Dijkstra
 
