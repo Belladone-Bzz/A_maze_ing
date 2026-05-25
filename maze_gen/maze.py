@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, model_validator
-from typing_extensions import Annotated
+from typing import Annotated
+from collections.abc import Generator, Callable
 from enum import IntEnum, Enum
 from random import seed as set_seed, choice, randint, shuffle
 
@@ -39,13 +40,15 @@ class Maze:
     def __init__(
             self, width: int, height: int,
             entry: tuple[int, int], exit: tuple[int, int],
-            perfect: bool, seed: int, central_icon: bool = False):
+            perfect: bool, gen_algorithm: str,
+            seed: int, central_icon: bool = False):
         self.config = Maze.Config(
             WIDTH=width,
             HEIGHT=height,
             ENTRY=entry,
             EXIT=exit,
             PERFECT=perfect,
+            GEN_ALGORITHM=gen_algorithm,
             SEED=seed,
             CENTRAL_ICON=central_icon)
         set_seed(self.config.SEED)
@@ -61,8 +64,10 @@ class Maze:
         ENTRY: CellCoordinates
         EXIT: CellCoordinates
 
+        GEN_ALGORITHM: Annotated[str, Field(min_length=1, max_length=15)]
+
         CENTRAL_ICON: Annotated[bool, Field(default=False)]
-        PERFECT: Annotated[bool, Field(default=True)]
+        PERFECT: Annotated[bool, Field()]
         SEED: Annotated[int, Field()]
 
         @model_validator(mode='after')
@@ -71,17 +76,17 @@ class Maze:
             error_message: str = ""
             if self.CENTRAL_ICON is True and (
                     self.WIDTH < 7 or self.HEIGHT < 7):
-                error_message +=\
-                    "Generating a maze with dimensions inferior to 7 by 7 is "\
-                    + "impossible when integrating the central pattern.\n"
+                error_message += (
+                    "Generating a maze with dimensions inferior to 7 by 7 is "
+                    "impossible when integrating the central pattern.")
             if self.ENTRY[0] >= self.HEIGHT or self.ENTRY[1] >= self.WIDTH:
-                error_message +=\
-                    "Entry coordinates (x, y)"\
-                    + "cannot exceed the maze's dimensions\n"
+                error_message += (
+                    "Entry coordinates (x, y) "
+                    "cannot exceed the maze's dimensions")
             if self.EXIT[0] >= self.HEIGHT or self.EXIT[1] >= self.WIDTH:
-                error_message +=\
-                    "Exit coordinates (x, y)"\
-                    + "cannot exceed the maze's dimensions\n"
+                error_message += (
+                    "Exit coordinates (x, y) "
+                    "cannot exceed the maze's dimensions")
             if error_message != "":
                 raise ValueError(error_message)
             return self
@@ -128,7 +133,7 @@ class Maze:
         self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
         self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
 
-    def backtracking_algo(self) -> None:
+    def backtracking_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a backtraking algorithm."""
         start: CellCoordinates = (randint(0, self.config.WIDTH),
                                   randint(0, self.config.HEIGHT))
@@ -167,22 +172,22 @@ class Maze:
             if current != next_cell:
                 current = next_cell
                 back_track.append(current)
-                continue
+                yield None
             else:
                 current = back_track[-2]
                 del back_track[-1]
 
-    def prim_algo(self) -> None:
+    def prim_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a Prim algorithm."""
         frontiers: set[CellCoordinates] = set()
         possibilities: list[tuple[int, int]] =\
             list(move.value for move in Movements)
         starts: tuple[CellCoordinates, ...] = (
-            (int(self.config.WIDTH/2), 0),
-            (self.config.WIDTH, int(self.config.HEIGHT/2)),
-            (int(self.config.WIDTH/2), self.config.HEIGHT),
-            (0, int(self.config.HEIGHT/2)),
-            (int(self.config.WIDTH/2), int(self.config.HEIGHT/2)))
+            (int((self.config.WIDTH - 1) / 2), 0),
+            (self.config.WIDTH - 1, int((self.config.HEIGHT - 1) / 2)),
+            (int((self.config.WIDTH - 1) / 2), self.config.HEIGHT - 1),
+            (0, int((self.config.HEIGHT - 1) / 2)),
+            (int((self.config.WIDTH - 1) / 2), int((self.config.HEIGHT - 1) / 2)))
         start: CellCoordinates = choice(starts)
         self.cells[start[0]][start[1]].is_visited = True
 
@@ -217,7 +222,24 @@ class Maze:
                     self.cells[start[0]][start[1]].walls[Directions[Movements(
                         direction).name]] = False
                     break
+            yield None
             find_frontiers()
+
+    def generate_maze(self) -> None:
+        self.generation()
+        algorithms: dict[str, Callable[[], Generator[None]]] = {
+            "Backtracking": self.backtracking_algo,
+            "Prim": self.prim_algo}
+        for _ in algorithms[self.config.GEN_ALGORITHM]():
+            pass
+
+    def stepped_generation(self) -> Generator[None]:
+        self.generation()
+        algorithms: dict[str, Callable[[], Generator[None]]] = {
+            "Backtracking": self.backtracking_algo,
+            "Prim": self.prim_algo}
+        for _ in algorithms[self.config.GEN_ALGORITHM]():
+            yield None
 
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
@@ -236,17 +258,20 @@ class Maze:
 
 if __name__ == "__main__":
     """Entry point of the program"""
+    from random import randint
+    from time import sleep
     maze = Maze(
         width=20,
         height=20,
         entry=(0, 0),
         exit=(2, 2),
         perfect=True,
-        seed=666,
+        gen_algorithm="Prim",
+        seed=randint(0, 99999999),
         central_icon=False
     )
     print(maze.config)
-    maze.generation()
-    print(maze)
-    maze.prim_algo()
-    print(maze)
+    for _ in maze.stepped_generation():
+        print("\033[3J\033[1;0H\033[0J")
+        print(maze)
+        sleep(0.01)

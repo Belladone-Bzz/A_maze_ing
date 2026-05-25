@@ -12,7 +12,7 @@ EXIT=2,2
 
 # File to overwrite with hexadecimal maze layout and more
 
-OUTPUT_FILE=maze_output.txt
+OUTPUT_FILE=output
 
 # Maze generation factors:
 # - perfect, for a perfect maze (literally True or False),
@@ -23,9 +23,9 @@ PERFECT=True
 SEED=123456
 CENTRAL_ICON=False
 
-# Generation algorithms available: Kruskal
+# Generation algorithms available: Backtracking, Prim
 
-# GEN_ALGORITHM=Kruskal
+GEN_ALGORITHM=Prim
 
 # Solving algorithms available: Dijkstra
 
