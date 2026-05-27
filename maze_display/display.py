@@ -152,17 +152,3 @@ def print_maze(maze: Maze, theme: Theme) -> None:
         for cell in (maze.cells[x][-1] for x in range(maze.config.WIDTH)))
     line += str(theme.angles.BOTTOM_RIGHT)
     style_print(theme.walls_style, line, "\n")
-
-
-def print_menu(maze: Maze, theme: Theme) -> None:
-    pass
-
-
-def print_interface(maze: Maze, theme: Theme) -> None:
-    if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
-        print_maze(maze, theme)
-    else:
-        print(
-            "The maze requested is too big to be displayed in terminal,"
-            "see output file for generation.")
-    print_menu(maze, theme)

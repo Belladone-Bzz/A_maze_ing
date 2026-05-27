@@ -5,3 +5,6 @@
 # project related files
 *output*
 *test*
+
+# vscode related folders
+**/.vscode

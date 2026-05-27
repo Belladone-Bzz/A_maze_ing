@@ -1,2 +1,3 @@
 mypy>=2.1.0
 pydantic==2.13.4
+terminedia==0.4.2

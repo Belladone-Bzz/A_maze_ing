@@ -112,6 +112,8 @@ class SmallIcons(StyleEnum):
     WRITING_PEN = "✎"
     CHECK_MARK = "✔"
     CIRCLED_STAR = "✪"
+    LEFT_ARROW = "⏴"
+    RIGHT_ARROW = "⏵"
 
 
 class Colors(StyleEnum):
