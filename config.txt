@@ -20,8 +20,12 @@ OUTPUT_FILE=output
 # - central icon, to display the 42 logo on the center of the maze (True or False, requires min. 7x7 maze dimensions)
 
 PERFECT=True
-# SEED=123456
+SEED=702999800310
 # CENTRAL_ICON=False
+
+# Color, characters and styling theme to apply when printing the generated maze.
+
+# THEME=Default
 
 # Generation algorithms available: Backtracking, Prim
 

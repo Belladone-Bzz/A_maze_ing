@@ -22,7 +22,8 @@ def parse_config_file(
             continue
         entry: list[str] = line.split("=")
         if len(entry) == 2:
-            if entry[0] not in mandatory_values:
+            if entry[0] not in (
+                    *mandatory_values, "SEED", "CENTRAL_ICON", "THEME"):
                 error_message.append(
                     f" - unknown value key on line {number}: "
                     f"'{entry[0][:15]}={entry[1][:20]}'")
@@ -78,6 +79,10 @@ def instantiate_maze(
         return message
 
 
+def write_out_maze(maze: Maze, output_file: str) -> str:
+    pass
+
+
 def main() -> int:
     from sys import argv
     from maze_display import print_error
@@ -101,21 +106,32 @@ def main() -> int:
         return 2
 
     from random import randint
-    if "seed" not in config.keys():
-        config.update({"seed": randint(0, 1000000000000)})
-    if "central_icon" not in config.keys():
-        config.update({"central_icon": True})
+    try:
+        if "seed" not in config.keys():
+            config.update({"seed": randint(0, 1000000000000)})
+        int(config["seed"])
+        if config.get("central_icon", "True") not in ("True", "False"):
+            raise ValueError
+        config.update({"central_icon": config.get("central_icon", "True")})
+        if config.get("theme", "Default") not in (
+                "Default", "Bees", "Metamorphosis"):
+            raise ValueError
+        config.update({"theme": config.get("theme", "Default")})
+    except ValueError as error:
+        print_error("\nOne or multiple errors caught during reading of"
+                    "optional configuration values:\n" + error)
+    config.update({"show_path": "True"})
+
     maze: str | Maze = instantiate_maze(config, mandatory_values)
     if isinstance(maze, str):
         print_error(
-            "\nOne or multiple errors caught during configuration reading:\n",
-            maze, sep="")
+            "\nOne or multiple errors caught during configuration reading:\n"
+            + maze)
         return 3
-    from time import sleep
     from collections.abc import Callable
     from terminedia import getch
     from maze_display import (
-        print_maze, Theme, get_themes,
+        print_maze, Theme, get_themes, print_maze_generation,
         instantiate_menues)
     input(
         "\nCorrect configuration found and loaded."
@@ -124,27 +140,28 @@ def main() -> int:
     menu_output: str
     menu_module: Callable[[str, str | Theme], None]
     while True:
-        if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
-            for _ in maze.stepped_generation():
-                print_maze(maze, get_themes()["basic design"])
-                sleep(0.01)
+        print_maze_generation(maze, get_themes()[config["theme"]])
         menu_module = instantiate_menues(config)
         while True:
             if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
-                print_maze(maze, get_themes()["basic design"])
+                print_maze(maze, get_themes()[config["theme"]])
             else:
                 print("too small")
-            menu_module("print_menu", get_themes()["basic design"])
+            menu_module("print_menu", get_themes()[config["theme"]])
             user_input = getch()
             menu_output = menu_module("browse_menu", user_input)
             if menu_output == "maze_gen":
                 new_maze: str | Maze = instantiate_maze(
                     config, mandatory_values)
                 if isinstance(new_maze, str):
-                    menu_module("maze_gen_error",  new_maze)
+                    menu_module("maze_error", new_maze)
                 else:
                     maze = new_maze
                     break
+            elif menu_output == "save_maze":
+                menu_output = write_out_maze(maze, config["output_file"])
+                if menu_output != "":
+                    menu_module("maze_error", menu_output)
     return 0
 
 

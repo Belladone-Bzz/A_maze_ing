@@ -1,5 +1,5 @@
 
-from .utils import style_print, SmallIcons
+from .utils import style_print, SmallIcons, CursorOperations
 from .display import print_error
 from .themes import Theme
 from random import randint
@@ -60,72 +60,79 @@ def instantiate_menues(
         print("Hihi !")
         raise ProgramQuit
 
-    def randomize_seed() -> None:
+    def randomize_seed(_: str) -> None:
         config["seed"] = randint(0, 1000000000000)
 
-    def generate_new_maze() -> str:
-        return "maze_gen"
+    def update_output_file(_: str) -> None:
+        config["output_file"] = input(
+            "Enter desired output destination: ".center(int(config["width"])))
 
     class Option:
         def __init__(
-                self, name: str, option_type: str,
-                text: str, options: list[str] | None = None,
+                self, name: str, option_type: str, text: str, 
+                config: dict[str, str] | None = None,
+                options: list[str] | None = None,
                 exec: Callable[[str], None] | None = None) -> None:
             self.name: str = name
             self.option_type: str = option_type
             self.current_option: int = 0
-            self.options: list[str] = options
             self.text: str = text
-            self.exec: Callable[[str], None] | None = exec
+            self.options: list[str] | None = options
+            self.config: dict[str, str] | None = config
+            self.exec: Callable[[str], str | None] | None = exec
 
         def __str__(self) -> str:
-            if config.get(self.name) is not None:
-                return self.text.format(value=config.get(self.name))
+            if (
+                    self.config is not None
+                    and self.config.get(self.name) is not None):
+                return self.text.format(value=self.config.get(self.name))
             return self.text
 
         def toggle(self):
-            if config[self.name] == "True":
-                config[self.name] = "False"
+            if self.config[self.name] == "True":
+                self.config[self.name] = "False"
             else:
-                config[self.name] = "True"
+                self.config[self.name] = "True"
 
         def value_up(self, factor: int) -> None:
             if self.option_type == "slider":
-                value: int = int(config[self.name])
+                value: int = int(self.config[self.name])
                 value += factor
                 value_range: range = get_config_ranges(self.name)
                 if value > value_range[-1]:
                     value = value_range[0]
-                config[self.name] = str(value)
+                self.config[self.name] = str(value)
             elif self.option_type == "double_slider":
                 values: list[int, int] = [
-                    int(config[self.name].split(",")[0]),
-                    int(config[self.name].split(",")[1])]
+                    int(self.config[self.name].split(",")[0]),
+                    int(self.config[self.name].split(",")[1])]
                 values[self.current_option] += factor
                 value_range: range = get_config_ranges(
                     self.name)[self.current_option]
                 if values[self.current_option] > value_range[-1]:
                     values[self.current_option] = value_range[0]
-                config[self.name] = ",".join([str(value) for value in values])
+                self.config[self.name] = ",".join(
+                    [str(value) for value in values])
 
         def value_down(self, factor: int) -> None:
             if self.option_type == "slider":
-                value: int = int(config[self.name])
+                value: int = int(self.config[self.name])
                 value -= factor
                 value_range: range = get_config_ranges(self.name)
                 if value < value_range[0]:
                     value = value_range[-1]
-                config[self.name] = str(value)
+                self.config[self.name] = str(value)
             elif self.option_type == "double_slider":
                 values: list[int, int] = [
-                    int(config[self.name].split(",")[0]),
-                    int(config[self.name].split(",")[1])]
+                    int(self.config[self.name].split(",")[0]),
+                    int(self.config[self.name].split(",")[1])]
                 values[self.current_option] -= factor
                 value_range: range = get_config_ranges(
                     self.name)[self.current_option]
                 if values[self.current_option] < value_range[0]:
                     values[self.current_option] = value_range[-1]
-                config[self.name] = ",".join([str(value) for value in values])
+                self.config[self.name] = ",".join(
+                    [str(value) for value in values])
 
         def value_left(self) -> None:
             if self.option_type in ("slider, double_slider"):
@@ -165,90 +172,93 @@ def instantiate_menues(
     menues = {
         "main": [
             Option(
-                name="show path",
+                name="show_path", config=config,
                 option_type="toggle",
-                text="Show/Hide found path"),
+                text="Show found path: {value}"),
             Option(
-                name="theme",
-                option_type="validate",
-                text="Change current theme",
-                exec=partial(change_menu, "theme")),
+                name="theme", config=config,
+                option_type="selection",
+                options=["Default", "Bees", "Metamorphosis", "Meuuh"],
+                text="Current theme: {value}"),
             Option(
                 name="save maze",
                 option_type="validate",
-                text="Save maze to output file"),
+                text="Save maze to output file",
+                exec=partial(lambda _: "save_maze", "")),
             Option(
                 name="generate",
                 option_type="validate",
                 text="Generate new maze",
                 exec=partial(change_menu, "maze_config")),
             Option(
-                name="quit",
+                name="quit", config=config,
                 option_type="validate",
                 text="Quit A_maze_ing",
                 exec=partial(leave_program, ""))],
         "maze_config": [
             Option(
-                name="width",
+                name="width", config=config,
                 option_type="slider",
                 text=f"{"Width:":<22}""{value:>13}"),
             Option(
-                name="height",
+                name="height", config=config,
                 option_type="slider",
                 text=f"{"Height:":<22}""{value:>13}"),
             Option(
-                name="entry",
+                name="entry", config=config,
                 option_type="double_slider",
                 text=f"{"Entry:":<22}""{value:>13}"),
             Option(
-                name="exit",
+                name="exit", config=config,
                 option_type="double_slider",
                 text=f"{"Exit:":<22}""{value:>13}"),
             Option(
-                name="perfect",
+                name="perfect", config=config,
                 option_type="toggle",
                 text=f"{"Perfect:":<22}""{value:>13}"),
             Option(
-                name="central_icon",
+                name="central_icon", config=config,
                 option_type="toggle",
                 text=f"{"Central icon:":<22}""{value:>13}"),
             Option(
-                name="gen_algorithm",
+                name="gen_algorithm", config=config,
                 option_type="selection",
                 options=["Backtracking", "Prim"],
                 text=(
                     f"{"Generation algorithm:":<22}"
                     "{value:>13}")),
             Option(
-                name="sol_algorithm",
+                name="sol_algorithm", config=config,
                 option_type="selection",
                 options=["Dijkstra"],
                 text=(
                     f"{"Solving algorithm:":<22}"
                     "{value:>13}")),
             Option(
-                name="seed",
+                name="seed", config=config,
                 option_type="slider",
                 text=f"{"Generation seed:":<22}""{value:>13}"),
             Option(
                 name="randomize seed",
                 option_type="validate",
                 text="Randomize seed",
-                exec=randomize_seed),
+                exec=partial(randomize_seed, "")),
             Option(
-                name="output_file",
-                option_type="text",
-                text=f"{'Output file:':<22}""{value:>13}"),
+                name="output_file", config=config,
+                option_type="validate",
+                text=f"{'Output file:':<15}""{value:>20.20}",
+                exec=partial(update_output_file, "")),
             Option(
                 name="generate maze",
                 option_type="validate",
                 text="- Generate maze -",
-                exec= generate_new_maze),
+                exec=partial(lambda _: "maze_gen", "")),
             Option(
                 name="back",
                 option_type="validate",
                 text="return",
-                exec=partial(change_menu, "main"))]}
+                exec=partial(change_menu, "main"))],
+    }
 
     def browse_menu(user_input: str) -> str:
         nonlocal current_index
@@ -285,6 +295,7 @@ def instantiate_menues(
         menu_width: int = max(
             len(str(entry)) for entry in chain(
                 menues[current_menu], current_error.split("\n"))) + 6
+        print(CursorOperations.LIGHT_CLEAR, end="")
         line: str = (
             theme.angles.TOP_LEFT + (theme.walls.HORIZONTAL * menu_width)
             + theme.angles.TOP_RIGHT)
@@ -329,7 +340,7 @@ def instantiate_menues(
             return browse_menu(cast(str, user_input))
         elif current_action == "print_menu":
             print_menu(cast(Theme, user_input))
-        elif current_action == "maze_gen_error":
+        elif current_action == "maze_error":
             nonlocal current_error
             current_error = user_input
 

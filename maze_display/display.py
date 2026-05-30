@@ -1,8 +1,10 @@
 
 from .utils import (
-    style_print, Styling, styling, Colors, CursorOperations, SmallIcons)
+    style_print, Styling, styling, Colors, CursorOperations, SmallIcons,
+    move_cursor)
 from .themes import Theme
 from maze_gen import Maze, Directions
+from time import sleep
 
 
 def print_error(
@@ -13,11 +15,12 @@ def print_error(
 
 
 def print_maze(maze: Maze, theme: Theme) -> None:
-    print(CursorOperations.HEAVY_CLEAR)
+    print(move_cursor(0,0))
 
     emojis: tuple[SmallIcons, ...] = (
         SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER,
-        SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR)
+        SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR, SmallIcons.COW,
+        SmallIcons.MILK)
 
     line: str = str(theme.angles.TOP_LEFT)
     line += "".join(
@@ -152,3 +155,11 @@ def print_maze(maze: Maze, theme: Theme) -> None:
         for cell in (maze.cells[x][-1] for x in range(maze.config.WIDTH)))
     line += str(theme.angles.BOTTOM_RIGHT)
     style_print(theme.walls_style, line, "\n")
+
+
+def print_maze_generation(maze: Maze, theme: Theme) -> None:
+    print(CursorOperations.HEAVY_CLEAR, end="")
+    if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
+        for _ in maze.stepped_generation():
+            print_maze(maze, theme)
+            sleep(0.005)

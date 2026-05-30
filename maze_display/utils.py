@@ -105,6 +105,8 @@ class SmallIcons(StyleEnum):
     BEE = "🐝"
     FLOWER = "🌸"
     CATERPILLAR = "🐛"
+    COW = "🐄"
+    MILK = "🥛"
     BUTTERFLY = "🦋"
     PHONE = "☎"
     CUTTING_SCISSORS = "✁"
