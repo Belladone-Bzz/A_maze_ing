@@ -2,7 +2,7 @@
 from .utils import Styling, styling, Colors, Walls, Angles
 from .utils import (
     BasicWalls, BoldBasicWalls, DoubleWalls,
-    BasicAngles, BoldBasicAngles, DoubleAngles, RoundedAngles,
+    BoldBasicAngles, DoubleAngles, RoundedAngles,
     SmallIcons)
 
 
@@ -67,7 +67,7 @@ def get_themes() -> dict[str, Theme]:
             icon_angles=DoubleAngles,
 
             icon_style=styling([Styling.BOLD], Colors.YELLOW)),
-        "Metamorphosis" : Theme(
+        "Metamorphosis": Theme(
             walls=BasicWalls,
             angles=RoundedAngles,
             start=SmallIcons.CATERPILLAR,

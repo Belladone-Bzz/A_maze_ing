@@ -46,7 +46,7 @@ def get_boolean(value: str | bool) -> bool:
 
 def instantiate_maze(
         config: dict[str, str],
-        mandatory_values: tuple[str]) -> str | Maze:
+        mandatory_values: tuple[str, ...]) -> str | Maze:
     try:
         from pydantic import ValidationError
         maze = Maze(
@@ -122,7 +122,7 @@ def main() -> int:
     from random import randint
     try:
         if "seed" not in config.keys():
-            config.update({"seed": randint(0, 1000000000000)})
+            config.update({"seed": str(randint(0, 1000000000000))})
         int(config["seed"])
         if config.get("central_icon", "True") not in ("True", "False"):
             raise ValueError
@@ -133,7 +133,7 @@ def main() -> int:
         config.update({"theme": config.get("theme", "Default")})
     except ValueError as error:
         print_error("\nOne or multiple errors caught during reading of"
-                    "optional configuration values:\n" + error)
+                    "optional configuration values:\n" + str(error))
     config.update({"show_path": "True"})
 
     maze: str | Maze = instantiate_maze(config, mandatory_values)
@@ -152,7 +152,7 @@ def main() -> int:
         "\nStarting A_maze_ing program... ⏎ ")
     user_input: str
     menu_output: str
-    menu_module: Callable[[str, str | Theme], None]
+    menu_module: Callable[[str, str | Theme], str]
     while True:
         print_maze_generation(maze, get_themes()[config["theme"]])
         menu_module = instantiate_menues(config)

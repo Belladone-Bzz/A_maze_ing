@@ -23,13 +23,13 @@ class Keyboard(Enum):
 
 
 def instantiate_menues(
-        config: dict[str, str]) -> Callable[[str, str | Theme], str | None]:
+        config: dict[str, str]) -> Callable[[str, str | Theme], str]:
 
     config_save: dict[str, str] = config.copy()
     current_menu: str = "main"
     current_index: int = 0
     current_error: str = ""
-    focused_option: Option | None = None
+    focused_option: "Option" | None = None
 
     def get_config_ranges(option: str) -> range | tuple[range, range]:
         match option:
@@ -42,7 +42,7 @@ def instantiate_menues(
             case _:
                 return range(0)
 
-    def change_menu(new_menu: str) -> None:
+    def change_menu(new_menu: str) -> str:
         nonlocal current_menu
         nonlocal current_index
         nonlocal current_error
@@ -56,82 +56,84 @@ def instantiate_menues(
             config_save.update(config)
         return ""
 
-    def leave_program(_: str) -> None:
-        print("Hihi !")
+    def leave_program(_: str) -> str:
         raise ProgramQuit
 
-    def randomize_seed(_: str) -> None:
-        config["seed"] = randint(0, 1000000000000)
+    def randomize_seed(_: str) -> str:
+        config["seed"] = str(randint(0, 1000000000000))
+        return ""
 
-    def update_output_file(_: str) -> None:
+    def update_output_file(_: str) -> str:
         config["output_file"] = input(
             "Enter desired output destination: ".center(int(config["width"])))
+        return ""
 
     class Option:
         def __init__(
-                self, name: str, option_type: str, text: str, 
-                config: dict[str, str] | None = None,
-                options: list[str] | None = None,
-                exec: Callable[[str], None] | None = None) -> None:
+                self, name: str, option_type: str, text: str,
+                options: list[str] = [],
+                exec: partial[str] = partial(lambda _: "", "")) -> None:
             self.name: str = name
             self.option_type: str = option_type
             self.current_option: int = 0
             self.text: str = text
-            self.options: list[str] | None = options
-            self.config: dict[str, str] | None = config
-            self.exec: Callable[[str], str | None] | None = exec
+            self.options: list[str] = options
+            self.exec: partial[str] = exec
 
         def __str__(self) -> str:
             if (
-                    self.config is not None
-                    and self.config.get(self.name) is not None):
-                return self.text.format(value=self.config.get(self.name))
+                    config is not None
+                    and config.get(self.name) is not None):
+                return self.text.format(value=config.get(self.name))
             return self.text
 
-        def toggle(self):
-            if self.config[self.name] == "True":
-                self.config[self.name] = "False"
+        def toggle(self) -> None:
+
+            if config[self.name] == "True":
+                config[self.name] = "False"
             else:
-                self.config[self.name] = "True"
+                config[self.name] = "True"
 
         def value_up(self, factor: int) -> None:
+            value_range: range
             if self.option_type == "slider":
-                value: int = int(self.config[self.name])
+                value: int = int(config[self.name])
                 value += factor
-                value_range: range = get_config_ranges(self.name)
+                value_range = cast(range, get_config_ranges(self.name))
                 if value > value_range[-1]:
                     value = value_range[0]
-                self.config[self.name] = str(value)
+                config[self.name] = str(value)
             elif self.option_type == "double_slider":
-                values: list[int, int] = [
-                    int(self.config[self.name].split(",")[0]),
-                    int(self.config[self.name].split(",")[1])]
+                values: list[int] = [
+                    int(config[self.name].split(",")[0]),
+                    int(config[self.name].split(",")[1])]
                 values[self.current_option] += factor
-                value_range: range = get_config_ranges(
-                    self.name)[self.current_option]
+                value_range = cast(
+                    range, get_config_ranges(self.name)[self.current_option])
                 if values[self.current_option] > value_range[-1]:
                     values[self.current_option] = value_range[0]
-                self.config[self.name] = ",".join(
+                config[self.name] = ",".join(
                     [str(value) for value in values])
 
         def value_down(self, factor: int) -> None:
+            value_range: range
             if self.option_type == "slider":
-                value: int = int(self.config[self.name])
+                value: int = int(config[self.name])
                 value -= factor
-                value_range: range = get_config_ranges(self.name)
+                value_range = cast(range, get_config_ranges(self.name))
                 if value < value_range[0]:
                     value = value_range[-1]
-                self.config[self.name] = str(value)
+                config[self.name] = str(value)
             elif self.option_type == "double_slider":
-                values: list[int, int] = [
-                    int(self.config[self.name].split(",")[0]),
-                    int(self.config[self.name].split(",")[1])]
+                values: list[int] = [
+                    int(config[self.name].split(",")[0]),
+                    int(config[self.name].split(",")[1])]
                 values[self.current_option] -= factor
-                value_range: range = get_config_ranges(
-                    self.name)[self.current_option]
+                value_range = cast(
+                    range, get_config_ranges(self.name)[self.current_option])
                 if values[self.current_option] < value_range[0]:
                     values[self.current_option] = value_range[-1]
-                self.config[self.name] = ",".join(
+                config[self.name] = ",".join(
                     [str(value) for value in values])
 
         def value_left(self) -> None:
@@ -172,11 +174,11 @@ def instantiate_menues(
     menues = {
         "main": [
             Option(
-                name="show_path", config=config,
+                name="show_path",
                 option_type="toggle",
                 text="Show found path: {value}"),
             Option(
-                name="theme", config=config,
+                name="theme",
                 option_type="selection",
                 options=["Default", "Bees", "Metamorphosis", "Meuuh"],
                 text="Current theme: {value}"),
@@ -191,51 +193,51 @@ def instantiate_menues(
                 text="Generate new maze",
                 exec=partial(change_menu, "maze_config")),
             Option(
-                name="quit", config=config,
+                name="quit",
                 option_type="validate",
                 text="Quit A_maze_ing",
                 exec=partial(leave_program, ""))],
         "maze_config": [
             Option(
-                name="width", config=config,
+                name="width",
                 option_type="slider",
                 text=f"{"Width:":<22}""{value:>13}"),
             Option(
-                name="height", config=config,
+                name="height",
                 option_type="slider",
                 text=f"{"Height:":<22}""{value:>13}"),
             Option(
-                name="entry", config=config,
+                name="entry",
                 option_type="double_slider",
                 text=f"{"Entry:":<22}""{value:>13}"),
             Option(
-                name="exit", config=config,
+                name="exit",
                 option_type="double_slider",
                 text=f"{"Exit:":<22}""{value:>13}"),
             Option(
-                name="perfect", config=config,
+                name="perfect",
                 option_type="toggle",
                 text=f"{"Perfect:":<22}""{value:>13}"),
             Option(
-                name="central_icon", config=config,
+                name="central_icon",
                 option_type="toggle",
                 text=f"{"Central icon:":<22}""{value:>13}"),
             Option(
-                name="gen_algorithm", config=config,
+                name="gen_algorithm",
                 option_type="selection",
                 options=["Backtracking", "Prim"],
                 text=(
                     f"{"Generation algorithm:":<22}"
                     "{value:>13}")),
             Option(
-                name="sol_algorithm", config=config,
+                name="sol_algorithm",
                 option_type="selection",
                 options=["Dijkstra"],
                 text=(
                     f"{"Solving algorithm:":<22}"
                     "{value:>13}")),
             Option(
-                name="seed", config=config,
+                name="seed",
                 option_type="slider",
                 text=f"{"Generation seed:":<22}""{value:>13}"),
             Option(
@@ -244,7 +246,7 @@ def instantiate_menues(
                 text="Randomize seed",
                 exec=partial(randomize_seed, "")),
             Option(
-                name="output_file", config=config,
+                name="output_file",
                 option_type="validate",
                 text=f"{'Output file:':<15}""{value:>20.20}",
                 exec=partial(update_output_file, "")),
@@ -278,7 +280,7 @@ def instantiate_menues(
         elif user_input in ("w", Keyboard.UP.value):
             current_index -= 1
             if current_index < 0:
-                current_index =  len(menues[current_menu]) - 1
+                current_index = len(menues[current_menu]) - 1
         elif user_input == "\r":
             if menues[current_menu][current_index].option_type == "validate":
                 return menues[current_menu][current_index].exec()
@@ -286,6 +288,7 @@ def instantiate_menues(
                 menues[current_menu][current_index].toggle()
             else:
                 focused_option = menues[current_menu][current_index]
+        return ""
 
     def print_menu(theme: Theme) -> None:
         nonlocal current_menu
@@ -317,9 +320,10 @@ def instantiate_menues(
                     style_print(theme.walls_style, theme.walls.VERTICAL, "\n")
             if index == current_index:
                 line = (
-                    ("\033[4m" if focused_option == entry else "") + (
-                    f"{SmallIcons.LEFT_ARROW} {entry} "
-                    f"{SmallIcons.RIGHT_ARROW}").center(menu_width))
+                    ("\033[4m" if focused_option == entry else "")
+                    + (
+                        f"{SmallIcons.LEFT_ARROW} {entry} "
+                        f"{SmallIcons.RIGHT_ARROW}").center(menu_width))
             else:
                 line = (str(entry).center(menu_width))
             style_print(
@@ -328,20 +332,21 @@ def instantiate_menues(
             style_print(
                 theme.icon_style, line.center(menu_width))
             style_print(theme.walls_style, theme.walls.VERTICAL, "\n")
-        line: str = (
+        line = (
             theme.angles.BOTTOM_LEFT + (theme.walls.HORIZONTAL * menu_width)
             + theme.angles.BOTTOM_RIGHT)
         style_print(theme.walls_style, line.center(
             int(config_save["width"]) * 4), "\n")
 
     def menues_module(
-            current_action: str, user_input: str | Theme) -> str | None:
+            current_action: str, user_input: str | Theme) -> str:
         if current_action == "browse_menu":
             return browse_menu(cast(str, user_input))
         elif current_action == "print_menu":
             print_menu(cast(Theme, user_input))
         elif current_action == "maze_error":
             nonlocal current_error
-            current_error = user_input
+            current_error = cast(str, user_input)
+        return ""
 
     return menues_module

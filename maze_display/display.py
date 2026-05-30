@@ -15,7 +15,7 @@ def print_error(
 
 
 def print_maze(maze: Maze, theme: Theme) -> None:
-    print(move_cursor(0,0))
+    print(move_cursor(0, 0))
 
     emojis: tuple[SmallIcons, ...] = (
         SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER,
