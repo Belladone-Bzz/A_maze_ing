@@ -75,9 +75,7 @@ def instantiate_maze(
                     if missing.lower() not in config.keys())}")
         else:
             message = f" - {error}"
-        return (
-            "\nOne or multiple errors caught during configuration reading:\n"
-            f"{message}")
+        return message
 
 
 def main() -> int:
@@ -104,12 +102,14 @@ def main() -> int:
 
     from random import randint
     if "seed" not in config.keys():
-        config.update({"seed": randint(0, 9999999)})
+        config.update({"seed": randint(0, 1000000000000)})
     if "central_icon" not in config.keys():
         config.update({"central_icon": True})
     maze: str | Maze = instantiate_maze(config, mandatory_values)
     if isinstance(maze, str):
-        print_error(maze)
+        print_error(
+            "\nOne or multiple errors caught during configuration reading:\n",
+            maze, sep="")
         return 3
     from time import sleep
     from collections.abc import Callable
@@ -120,21 +120,31 @@ def main() -> int:
     input(
         "\nCorrect configuration found and loaded."
         "\nStarting A_maze_ing program... ⏎ ")
-    if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
-        for _ in maze.stepped_generation():
-            print_maze(maze, get_themes()["basic design"])
-            sleep(0.01)
     user_input: str
-    menu_module: Callable[[str, str | Theme], None] = instantiate_menues(config)
+    menu_output: str
+    menu_module: Callable[[str, str | Theme], None]
     while True:
         if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
-            print_maze(maze, get_themes()["basic design"])
-        else:
-            print("too small")
-        menu_module("print_menu", get_themes()["basic design"])
-        user_input = getch()
-        # "'\x1b[B' : down, A: up, C: right, D: left"
-        menu_module("browse_menu", user_input)
+            for _ in maze.stepped_generation():
+                print_maze(maze, get_themes()["basic design"])
+                sleep(0.01)
+        menu_module = instantiate_menues(config)
+        while True:
+            if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
+                print_maze(maze, get_themes()["basic design"])
+            else:
+                print("too small")
+            menu_module("print_menu", get_themes()["basic design"])
+            user_input = getch()
+            menu_output = menu_module("browse_menu", user_input)
+            if menu_output == "maze_gen":
+                new_maze: str | Maze = instantiate_maze(
+                    config, mandatory_values)
+                if isinstance(new_maze, str):
+                    menu_module("maze_gen_error",  new_maze)
+                else:
+                    maze = new_maze
+                    break
     return 0
 
 

@@ -131,8 +131,8 @@ class Colors(StyleEnum):
 class Styling(StyleEnum):
     BOLD = "1"
     DIM = "2"
-    FOREGROUND = "3"
-    BACKGROUND = "4"
+    ITALIC = "3"
+    UNDERLINED = "4"
     BLINKING = "5"
 
 
