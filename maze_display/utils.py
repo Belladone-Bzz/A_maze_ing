@@ -105,6 +105,8 @@ class SmallIcons(StyleEnum):
     BEE = "🐝"
     FLOWER = "🌸"
     CATERPILLAR = "🐛"
+    COW = "🐄"
+    MILK = "🥛"
     BUTTERFLY = "🦋"
     PHONE = "☎"
     CUTTING_SCISSORS = "✁"
@@ -112,6 +114,8 @@ class SmallIcons(StyleEnum):
     WRITING_PEN = "✎"
     CHECK_MARK = "✔"
     CIRCLED_STAR = "✪"
+    LEFT_ARROW = "⏴"
+    RIGHT_ARROW = "⏵"
 
 
 class Colors(StyleEnum):
@@ -129,8 +133,8 @@ class Colors(StyleEnum):
 class Styling(StyleEnum):
     BOLD = "1"
     DIM = "2"
-    FOREGROUND = "3"
-    BACKGROUND = "4"
+    ITALIC = "3"
+    UNDERLINED = "4"
     BLINKING = "5"
 
 

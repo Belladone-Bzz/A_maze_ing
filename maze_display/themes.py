@@ -2,7 +2,7 @@
 from .utils import Styling, styling, Colors, Walls, Angles
 from .utils import (
     BasicWalls, BoldBasicWalls, DoubleWalls,
-    BasicAngles, BoldBasicAngles, DoubleAngles, RoundedAngles,
+    BoldBasicAngles, DoubleAngles, RoundedAngles,
     SmallIcons)
 
 
@@ -33,7 +33,7 @@ class Theme:
 
 def get_themes() -> dict[str, Theme]:
     return {
-        "basic design": Theme(
+        "Default": Theme(
             walls=BoldBasicWalls,
             angles=BoldBasicAngles,
             start=SmallIcons.EMPTY_SQUARE,
@@ -50,7 +50,7 @@ def get_themes() -> dict[str, Theme]:
             icon_angles=DoubleAngles,
 
             icon_style=styling([Styling.BOLD], Colors.YELLOW)),
-        "bee design": Theme(
+        "Bees": Theme(
             walls=BasicWalls,
             angles=RoundedAngles,
             start=SmallIcons.BEE,
@@ -67,7 +67,7 @@ def get_themes() -> dict[str, Theme]:
             icon_angles=DoubleAngles,
 
             icon_style=styling([Styling.BOLD], Colors.YELLOW)),
-        "metamorphosis design" : Theme(
+        "Metamorphosis": Theme(
             walls=BasicWalls,
             angles=RoundedAngles,
             start=SmallIcons.CATERPILLAR,
@@ -83,4 +83,21 @@ def get_themes() -> dict[str, Theme]:
             icon_walls=DoubleWalls,
             icon_angles=DoubleAngles,
 
-            icon_style=styling([Styling.BOLD], Colors.MAGENTA))}
+            icon_style=styling([Styling.BOLD], Colors.MAGENTA)),
+        "Meuuh": Theme(
+            walls=DoubleWalls,
+            angles=DoubleAngles,
+            start=SmallIcons.MILK,
+            exit=SmallIcons.COW,
+            visited_background=SmallIcons.NO_SHADE,
+            progress_line=(DoubleWalls, DoubleAngles),
+
+            walls_style=styling([Styling.BLINKING], Colors.YELLOW),
+            path_style=styling([Styling.BLINKING], Colors.GREEN),
+            start_style=styling([], Colors.YELLOW),
+            exit_style=styling([], Colors.YELLOW),
+
+            icon_walls=BoldBasicWalls,
+            icon_angles=BoldBasicAngles,
+
+            icon_style=styling([Styling.ITALIC], Colors.WHITE))}

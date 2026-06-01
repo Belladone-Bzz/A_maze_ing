@@ -1,8 +1,10 @@
 
 from .utils import (
-    style_print, Styling, styling, Colors, CursorOperations, SmallIcons)
+    style_print, Styling, styling, Colors, CursorOperations, SmallIcons,
+    move_cursor)
 from .themes import Theme
 from maze_gen import Maze, Directions
+from time import sleep
 
 
 def print_error(
@@ -13,11 +15,12 @@ def print_error(
 
 
 def print_maze(maze: Maze, theme: Theme) -> None:
-    print(CursorOperations.HEAVY_CLEAR)
+    print(move_cursor(0, 0))
 
     emojis: tuple[SmallIcons, ...] = (
         SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER,
-        SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR)
+        SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR, SmallIcons.COW,
+        SmallIcons.MILK)
 
     line: str = str(theme.angles.TOP_LEFT)
     line += "".join(
@@ -154,15 +157,9 @@ def print_maze(maze: Maze, theme: Theme) -> None:
     style_print(theme.walls_style, line, "\n")
 
 
-def print_menu(maze: Maze, theme: Theme) -> None:
-    pass
-
-
-def print_interface(maze: Maze, theme: Theme) -> None:
+def print_maze_generation(maze: Maze, theme: Theme) -> None:
+    print(CursorOperations.HEAVY_CLEAR, end="")
     if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
-        print_maze(maze, theme)
-    else:
-        print(
-            "The maze requested is too big to be displayed in terminal,"
-            "see output file for generation.")
-    print_menu(maze, theme)
+        for _ in maze.stepped_generation():
+            print_maze(maze, theme)
+            sleep(0.005)
