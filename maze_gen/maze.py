@@ -1,11 +1,12 @@
 from pydantic import BaseModel, Field, model_validator
+from functools import singledispatch
 from typing import Annotated
 from collections.abc import Generator, Callable
 from enum import IntEnum, Enum
 from random import seed as set_seed, choice, randint, shuffle
 
 
-MazeDimension = Annotated[int, Field(ge=2)]
+MazeDimension = Annotated[int, Field(ge=3)]
 CellCoordinates = Annotated[
     tuple[
         Annotated[int, Field(ge=0)],
@@ -79,11 +80,11 @@ class Maze:
                 error_message += (
                     "Generating a maze with dimensions inferior to 7 by 7 is "
                     "impossible when integrating the central pattern.")
-            if self.ENTRY[0] >= self.HEIGHT or self.ENTRY[1] >= self.WIDTH:
+            if self.ENTRY[0] >= self.WIDTH or self.ENTRY[1] >= self.HEIGHT:
                 error_message += (
                     "Entry coordinates (x, y) "
                     "cannot exceed the maze's dimensions")
-            if self.EXIT[0] >= self.HEIGHT or self.EXIT[1] >= self.WIDTH:
+            if self.EXIT[0] >= self.WIDTH or self.EXIT[1] >= self.HEIGHT:
                 error_message += (
                     "Exit coordinates (x, y) "
                     "cannot exceed the maze's dimensions")
@@ -114,7 +115,7 @@ class Maze:
             self.pattern = False
             self.is_visited = False
 
-    def generation(self) -> None:
+    def generation(self, walled: bool) -> None:
         """Method to generate all the cells in the maze grid in a
         list[list[Maze.Cell]] Only the outer walls are set to True.
         Entry and Exit cells are memorized.
@@ -122,7 +123,7 @@ class Maze:
         for x in range(self.config.WIDTH):
             self.cells.append([])
             for y in range(self.config.HEIGHT):
-                self.cells[x].append(Maze.Cell((x, y), True))
+                self.cells[x].append(Maze.Cell((x, y), walled))
         for cell in self.cells[0]:
             cell.walls[Directions.WEST] = True
         for cell in self.cells[-1]:
@@ -133,10 +134,79 @@ class Maze:
         self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
         self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
 
+    def open_wall(self, cell_coords: CellCoordinates, step: Movements) -> None:
+        self.cells[cell_coords[0]][cell_coords[1]].walls[step] = False
+        self.cells[cell_coords[0] + step[0]][cell_coords[1] + step[1]].walls[
+            Directions[Movements((-step[0], -step[1])).name]] = False
+
+    def is_neighbor_in_maze(self, cell_coords: CellCoordinates, step: Movements) -> bool:
+        potential_coords: CellCoordinates = (
+            cell_coords[0] + step[0], cell_coords[1] + step[1])
+        if potential_coords[0] < 0 or potential_coords[1] < 0\
+            or potential_coords[0] >= self.config.WIDTH\
+                or potential_coords[1] >= self.config.HEIGHT:
+            return False
+        return True
+
+    def dead_end_opener(self) -> None:
+        """"""
+        dead_end: list[CellCoordinates] = []
+        for y in range(0, (self.config.HEIGHT)):
+            for x in range(0, (self.config.WIDTH)):
+                if sum(self.cells[x][y].walls) == 3:
+                    dead_end.append((x, y))
+        shuffle(dead_end)
+        for coord in dead_end:
+            direction: int = self.cells[coord[0]][coord[1]].walls.index(False)
+            opposite: Movements = Movements((direction + 2) % 4)
+            if self.is_neighbor_in_maze(coord, opposite) is False:
+                continue
+            self.open_wall(coord, opposite)
+            break
+        else:
+            for coord in dead_end:
+                direction: int = self.cells[coord[0]][coord[1]].walls.index(False)
+                for potential_turn in (1, 3):
+                    turn: Movements = Movements((direction + potential_turn) % 4)
+
+    def wall_breaker(self) -> None:
+        """Method for breaking a wall. If there are three consecutive walls,
+        the one in the middle has a 33% chance of being broken.
+        """
+        broken_wall: int = 0
+        consecutive_wall: int = 0
+        for y in range(0, (self.config.HEIGHT - 1)):
+            for x in range(0, (self.config.WIDTH)):
+                if self.cells[x][y].walls[1] is True:
+                    consecutive_wall += 1
+                    if consecutive_wall >= 3:
+                        if randint(0, 100) < 70:
+                            self.cells[x-1][y].walls[1] = False
+                            self.cells[x-1][y+1].walls[3] = False
+                            consecutive_wall = 1
+                            broken_wall += 1
+                else:
+                    consecutive_wall = 0
+        consecutive_wall = 0
+        for x in range(0, (self.config.WIDTH - 1)):
+            for y in range(0, (self.config.HEIGHT)):
+                if self.cells[x][y].walls[2] is True:
+                    consecutive_wall += 1
+                    if consecutive_wall >= 3:
+                        if randint(0, 100) < 70:
+                            self.cells[x][y-1].walls[2] = False
+                            self.cells[x+1][y-1].walls[0] = False
+                            consecutive_wall = 1
+                            broken_wall += 1
+                else:
+                    consecutive_wall = 0
+        if broken_wall == 0:
+            self.dead_end_opener()
+
     def backtracking_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a backtraking algorithm."""
-        start: CellCoordinates = (randint(0, self.config.WIDTH),
-                                  randint(0, self.config.HEIGHT))
+        start: CellCoordinates = (randint(0, self.config.WIDTH - 1),
+                                  randint(0, self.config.HEIGHT - 1))
         self.cells[start[0]][start[1]].is_visited = True
 
         def access_next_cell(coords: CellCoordinates) -> CellCoordinates:
@@ -147,9 +217,9 @@ class Maze:
             for x, y in possibilities:
                 potential_coords: CellCoordinates = (
                     coords[0] + x, coords[1] + y)
-                if potential_coords[0] < 0 or potential_coords[1] < 0\
-                    or potential_coords[0] >= self.config.WIDTH\
-                        or potential_coords[1] >= self.config.HEIGHT:
+                if (potential_coords[0] < 0 or potential_coords[1] < 0
+                        or potential_coords[0] >= self.config.WIDTH
+                        or potential_coords[1] >= self.config.HEIGHT):
                     continue
                 if self.cells[potential_coords[0]][
                     potential_coords[1]].is_visited is False\
@@ -226,20 +296,24 @@ class Maze:
             find_frontiers()
 
     def generate_maze(self) -> None:
-        self.generation()
+        self.generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             pass
+        if self.config.PERFECT is False:
+            self.wall_breaker()
 
     def stepped_generation(self) -> Generator[None]:
-        self.generation()
+        self.generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             yield None
+        if self.config.PERFECT is False:
+            self.wall_breaker()
 
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
@@ -260,12 +334,12 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=20,
-        height=20,
+        width=52,
+        height=52,
         entry=(0, 0),
-        exit=(2, 2),
+        exit=(0, 1),
         perfect=True,
-        gen_algorithm="Prim",
+        gen_algorithm="Backtracking",
         seed=randint(0, 99999999),
         central_icon=False
     )
@@ -274,3 +348,4 @@ if __name__ == "__main__":
         print("\033[3J\033[1;0H\033[0J")
         print(maze)
         sleep(0.01)
+    print(maze)
