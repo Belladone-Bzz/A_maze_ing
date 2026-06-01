@@ -138,6 +138,11 @@ class Styling(StyleEnum):
     BLINKING = "5"
 
 
+def move_cursor(y: int, x: int = 0) -> str:
+    coordinate = "\033[" + str(y) + ";" + str(x) + "H"
+    return coordinate
+
+
 class CursorOperations(StyleEnum):
     ESC = "\033["
 
@@ -145,6 +150,7 @@ class CursorOperations(StyleEnum):
     HIDE_CURSOR = "\033[25l"
     SAVE_POSITION = "\033[s"
     LOAD_POSITION = "\033[u"
+    MOVE_CURSOR = move_cursor
 
     LINE_CLEAR = "\033[2K"
     LIGHT_LINE_CLEAR = "\033[0K"
@@ -163,11 +169,6 @@ def styling(
 
 def bold_style(color: Colors = Colors.DEFAULT) -> str:
     return f"\033[3{color};1m"
-
-
-def move_cursor(y: int, x: int = 0) -> str:
-    coordinate = "\033[" + str(y) + ";" + str(x) + "H"
-    return coordinate
 
 
 def style_print(style: Styling | str, content: str, end: str = "") -> None:

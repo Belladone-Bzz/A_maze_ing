@@ -32,6 +32,8 @@ class Theme:
 
 
 def get_themes() -> dict[str, Theme]:
+    """Returns a dictionary of Theme objects with pre-entered values
+    for maze visualization"""
     return {
         "Default": Theme(
             walls=BoldBasicWalls,

@@ -1,54 +1,42 @@
 
 from maze_gen import Maze
+from maze_io import write_out_maze, generate_config, get_boolean
+from pydantic import ValidationError
+from sys import argv, stdin
+from os import name
+from typing import cast
+from collections.abc import Callable
+from maze_display import (
+    print_error, print_maze, Theme, get_themes, print_maze_generation,
+    instantiate_menues, ProgramQuit)
 
 
-def parse_config_file(
-        file_name: str, entries: dict[str, str],
-        mandatory_values: tuple[str, ...]) -> str:
-    print(f"Reading configuration from file {file_name}...")
+if name != "nt":
+    from termios import (
+        tcgetattr, tcsetattr, ICANON, ECHO, TCSAFLUSH)
+    from atexit import register
+    fd: int = stdin.fileno()
+    new_term: list[int | list[int]] = tcgetattr(fd)
+    old_term: list[int | list[int]] = tcgetattr(fd)
+    new_term[3] = (cast(int, new_term[3]) & ~ICANON & ~ECHO)
+    tcsetattr(fd, TCSAFLUSH, new_term)
+
+    def set_normal_term() -> None:
+        tcsetattr(fd, TCSAFLUSH, old_term)
+    register(set_normal_term)
+else:
     try:
-        with open(file_name, 'r') as file:
-            lines: list[str] = file.readlines()
-    except FileNotFoundError:
-        return f" - File '{file_name}' was not found or does not exist"
-    except PermissionError:
-        return (
-            f" - File '{file_name}' has access restrictions "
-            "and could not be read")
-    error_message: list[str] = []
-    for number, line in enumerate(lines):
-        line = line.strip("\n")
-        if line.startswith("#") or line == "":
-            continue
-        entry: list[str] = line.split("=")
-        if len(entry) == 2:
-            if entry[0] not in (
-                    *mandatory_values, "SEED", "CENTRAL_ICON", "THEME"):
-                error_message.append(
-                    f" - unknown value key on line {number}: "
-                    f"'{entry[0][:15]}={entry[1][:20]}'")
-                continue
-            entries.update({entry[0].lower(): entry[1]})
-        else:
-            error_message.append(
-                f" - unknown entry on line {number}: '{line[:35]}'")
-    return "\n".join(error_message)
-
-
-def get_boolean(value: str | bool) -> bool:
-    if str(value) == "True":
-        return True
-    elif str(value) == "False":
-        return False
-    raise TypeError(
-        f"invalid boolean value '{value}', must be 'True or 'False'")
+        from msvcrt import getch
+    except (ImportError, AttributeError):
+        print_error(
+            "A_maze_ing program error:\n - msvcrt.getch could not be imported "
+            "from your python package.")
 
 
 def instantiate_maze(
         config: dict[str, str],
         mandatory_values: tuple[str, ...]) -> str | Maze:
     try:
-        from pydantic import ValidationError
         maze = Maze(
             width=int(config["width"]),
             height=int(config["height"]),
@@ -79,27 +67,7 @@ def instantiate_maze(
         return message
 
 
-def write_out_maze(maze: Maze, config: dict[str, str]) -> str:
-    maze_str: str = ""
-    for y in range(maze.config.HEIGHT):
-        for x in range(maze.config.WIDTH):
-            maze_str += hex(int("".join([str(
-                int(wall)) for wall in maze.cells[x][y].walls]), 2))[2].upper()
-        maze_str += "\n"
-    maze_str += f"\n{config["entry"]}\n{config["exit"]}\n"
-    try:
-        with open(config["output_file"], 'w') as file:
-            print(maze_str, end="", file=file)
-    except FileNotFoundError:
-        return f"- Output file {config["output_file"]} not found"
-    except PermissionError:
-        return f"- Output file {config["output_file"]} could not be accessed"
-    return ""
-
-
 def main() -> int:
-    from sys import argv
-    from maze_display import print_error
     if len(argv) != 2:
         print_error(
             "\nIncorrect number of argument; execute the program using "
@@ -111,7 +79,7 @@ def main() -> int:
     mandatory_values: tuple[str, ...] = (
         "WIDTH", "HEIGHT", "ENTRY", "EXIT", "PERFECT", "GEN_ALGORITHM",
         "SOL_ALGORITHM", "OUTPUT_FILE")
-    parsing_output: str = parse_config_file(
+    parsing_output: str = generate_config(
         argv[1], config, mandatory_values)
     if parsing_output != "":
         print_error(
@@ -119,50 +87,36 @@ def main() -> int:
             f"'{argv[1]}':\n{parsing_output}")
         return 2
 
-    from random import randint
-    try:
-        if "seed" not in config.keys():
-            config.update({"seed": str(randint(0, 1000000000000))})
-        int(config["seed"])
-        if config.get("central_icon", "True") not in ("True", "False"):
-            raise ValueError
-        config.update({"central_icon": config.get("central_icon", "True")})
-        if config.get("theme", "Default") not in (
-                "Default", "Bees", "Metamorphosis"):
-            raise ValueError
-        config.update({"theme": config.get("theme", "Default")})
-    except ValueError as error:
-        print_error("\nOne or multiple errors caught during reading of"
-                    "optional configuration values:\n" + str(error))
-    config.update({"show_path": "True"})
-
     maze: str | Maze = instantiate_maze(config, mandatory_values)
     if isinstance(maze, str):
         print_error(
             "\nOne or multiple errors caught during configuration reading:\n"
             + maze)
         return 3
-    from collections.abc import Callable
-    from terminedia import getch
-    from maze_display import (
-        print_maze, Theme, get_themes, print_maze_generation,
-        instantiate_menues)
+
     input(
-        "\nCorrect configuration found and loaded."
-        "\nStarting A_maze_ing program... ⏎ ")
+        "\nCorrect configuration found and loaded. "
+        "Starting A_maze_ing program... ⏎ ")
     user_input: str
     menu_output: str
-    menu_module: Callable[[str, str | Theme], str]
+    menu_module: Callable[[str, str | Theme], str] = instantiate_menues(config)
+    themes: dict[str, Theme] = get_themes()
     while True:
-        print_maze_generation(maze, get_themes()[config["theme"]])
-        menu_module = instantiate_menues(config)
+        print_maze_generation(maze, themes[config["theme"]])
         while True:
             if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
-                print_maze(maze, get_themes()[config["theme"]])
+                print_maze(maze, themes[config["theme"]])
             else:
                 print("too small")
-            menu_module("print_menu", get_themes()[config["theme"]])
-            user_input = getch()
+            menu_module("print_menu", themes[config["theme"]])
+            if name != "nt":
+                user_input = stdin.read(1)
+                if user_input == "\x1b" and stdin.read(1) == "[":
+                    user_input = stdin.read(1)
+                else:
+                    user_input = user_input.lower()
+            else:
+                user_input = getch()
             menu_output = menu_module("browse_menu", user_input)
             if menu_output == "maze_gen":
                 new_maze: str | Maze = instantiate_maze(
@@ -172,6 +126,13 @@ def main() -> int:
                 else:
                     maze = new_maze
                     break
+            elif menu_output == "file_rename":
+                if name != "nt":
+                    tcsetattr(fd, TCSAFLUSH, old_term)
+                config["output_file"] = input(
+                    "Enter new file name for maze output: ")
+                if name != "nt":
+                    tcsetattr(fd, TCSAFLUSH, new_term)
             elif menu_output == "save_maze":
                 menu_output = write_out_maze(maze, config)
                 if menu_output != "":
@@ -180,10 +141,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    exits: tuple[str, ...] = (
-        "Success", "Not enough argument", "File parsing error",
-        "Config parsing error", "Keyboard interrupt")
-    from maze_display import ProgramQuit
     output: int
     try:
         output = main()
@@ -191,4 +148,7 @@ if __name__ == "__main__":
         output = 4
     except ProgramQuit:
         output = 0
-    print(f"\rEnding program with code : {output} ({exits[output]})")
+    exits: tuple[str, ...] = (
+        "Success", "Not enough argument", "File parsing error",
+        "Config parsing error", "Keyboard interrupt")
+    print(f"\r\nEnding program with code : {output} ({exits[output]})")
