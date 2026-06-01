@@ -80,11 +80,11 @@ class Maze:
                 error_message += (
                     "Generating a maze with dimensions inferior to 7 by 7 is "
                     "impossible when integrating the central pattern.")
-            if self.ENTRY[0] >= self.HEIGHT or self.ENTRY[1] >= self.WIDTH:
+            if self.ENTRY[0] >= self.WIDTH or self.ENTRY[1] >= self.HEIGHT:
                 error_message += (
                     "Entry coordinates (x, y) "
                     "cannot exceed the maze's dimensions")
-            if self.EXIT[0] >= self.HEIGHT or self.EXIT[1] >= self.WIDTH:
+            if self.EXIT[0] >= self.WIDTH or self.EXIT[1] >= self.HEIGHT:
                 error_message += (
                     "Exit coordinates (x, y) "
                     "cannot exceed the maze's dimensions")
