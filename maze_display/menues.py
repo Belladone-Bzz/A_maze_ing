@@ -16,10 +16,11 @@ class ProgramQuit(Exception):
 
 class Keyboard(Enum):
     ESCAPE = "\x1b"
-    UP = "\x1b[A"
-    DOWN = "\x1b[B"
-    RIGHT = "\x1b[C"
-    LEFT = "\x1b[D"
+    CONFIRM = ("\r", "\n")
+    UP = ("w", "A", "\x1b[A", "\x1b", "\xe0H")
+    DOWN = ("s", "B", "\x1b[B", "\x1b", "\xe0P")
+    RIGHT = ("d", "C", "\x1b[C", "\x1b", "\xe0M")
+    LEFT = ("a", "D", "\x1b[D", "\x1b", "\xe0K")
 
 
 def instantiate_menues(
@@ -64,9 +65,7 @@ def instantiate_menues(
         return ""
 
     def update_output_file(_: str) -> str:
-        config["output_file"] = input(
-            "Enter desired output destination: ".center(int(config["width"])))
-        return ""
+        return "file_rename"
 
     class Option:
         def __init__(
@@ -152,15 +151,15 @@ def instantiate_menues(
                     % len(self.options)]
 
         def browse_option(self, user_input: str) -> None:
-            if user_input in ("s", Keyboard.DOWN.value):
+            if user_input in Keyboard.DOWN.value:
                 self.value_down(1)
-            elif user_input in ("w", Keyboard.UP.value):
+            elif user_input in Keyboard.UP.value:
                 self.value_up(1)
-            elif user_input in ("a", Keyboard.LEFT.value):
+            elif user_input in Keyboard.LEFT.value:
                 self.value_left()
-            elif user_input in ("w", Keyboard.RIGHT.value):
+            elif user_input in Keyboard.RIGHT.value:
                 self.value_right()
-            elif user_input == "\r":
+            elif user_input in Keyboard.CONFIRM.value:
                 if (
                         self.option_type == "double_slider"
                         and self.current_option == 0):
@@ -273,15 +272,15 @@ def instantiate_menues(
                 current_menu = "main"
         elif focused_option is not None:
             focused_option.browse_option(user_input)
-        elif user_input in ("s", Keyboard.DOWN.value):
+        elif user_input in Keyboard.DOWN.value:
             current_index += 1
             if current_index > len(menues[current_menu]) - 1:
                 current_index = 0
-        elif user_input in ("w", Keyboard.UP.value):
+        elif user_input in Keyboard.UP.value:
             current_index -= 1
             if current_index < 0:
                 current_index = len(menues[current_menu]) - 1
-        elif user_input == "\r":
+        elif user_input in Keyboard.CONFIRM.value:
             if menues[current_menu][current_index].option_type == "validate":
                 return menues[current_menu][current_index].exec()
             elif menues[current_menu][current_index].option_type == "toggle":
@@ -330,7 +329,7 @@ def instantiate_menues(
                 theme.walls_style, theme.walls.VERTICAL.rjust(
                     int((int(config_save["width"]) * 4 - menu_width) / 2)))
             style_print(
-                theme.icon_style, line.center(menu_width))
+                theme.walls_style, line.center(menu_width))
             style_print(theme.walls_style, theme.walls.VERTICAL, "\n")
         line = (
             theme.angles.BOTTOM_LEFT + (theme.walls.HORIZONTAL * menu_width)

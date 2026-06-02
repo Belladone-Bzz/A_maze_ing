@@ -2,13 +2,13 @@
 
 # Positive numerical values (may exceed terminal maximum display size)
 
-WIDTH=10
-HEIGHT=10
+WIDTH=6
+HEIGHT=6
 
 # Positive numerical coordinates separated by a comma (may not exceed maze size)
 
 ENTRY=0,0
-EXIT=9,9
+EXIT=5,5
 
 # File to overwrite with hexadecimal maze layout and more
 
@@ -21,7 +21,7 @@ OUTPUT_FILE=output_file
 
 PERFECT=True
 SEED=702999800310
-# CENTRAL_ICON=False
+CENTRAL_ICON=False
 
 # Color, characters and styling theme to apply when printing the generated maze.
 
