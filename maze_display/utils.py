@@ -118,6 +118,21 @@ class SmallIcons(StyleEnum):
     RIGHT_ARROW = "⏵"
 
 
+class Patterns(Enum):
+    NONE = ()
+    FORTY_TWO = (
+        (0, 0, 1, 0, 1, 1, 1),
+        (0, 1, 0, 0, 0, 0, 1),
+        (1, 1, 1, 0, 1, 1, 1),
+        (0, 0, 1, 0, 1, 0, 0),
+        (0, 0, 1, 0, 1, 1, 1))
+    HEART = (
+        (0, 1, 0, 1, 0),
+        (1, 0, 1, 0, 1),
+        (0, 1, 0, 1, 0),
+        (0, 0, 1, 0, 0))
+
+
 class Colors(StyleEnum):
     DEFAULT = "-1"
     BLACK = "16"

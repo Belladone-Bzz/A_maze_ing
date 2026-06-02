@@ -56,7 +56,7 @@ def generate_config(
         int(config["seed"])
         if config.get("central_icon", "True") not in ("True", "False"):
             raise ValueError
-        config.update({"central_icon": config.get("central_icon", "True")})
+        config.update({"central_icon": config.get("central_icon", "False")})
         if config.get("theme", "Default") not in (
                 "Default", "Bees", "Metamorphosis", "Meuuh"):
             raise ValueError
