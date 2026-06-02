@@ -300,9 +300,6 @@ class Maze:
 
     def prim_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a Prim algorithm."""
-        frontiers: set[CellCoordinates] = set()
-        possibilities: list[tuple[int, int]] = list(
-            move.value for move in Movements)
         starts: tuple[CellCoordinates, ...] = (
             (int((self.config.WIDTH - 1)/2), 0),
             (self.config.WIDTH - 1, int((self.config.HEIGHT - 1)/2)),
@@ -310,36 +307,27 @@ class Maze:
             (0, int((self.config.HEIGHT - 1)/2)),
             (int((self.config.WIDTH - 1)/2), int((self.config.HEIGHT - 1)/2)))
         start: CellCoordinates = choice(starts)
-        self.cells[start[0]][start[1]].is_visited = True
+        self.is_visited(start)
+        frontiers: set[CellCoordinates] = set(self.get_neighbors(start, False))
+        maze_cells: list[CellCoordinates] = [start, start]
+        print(start)
+        print(frontiers)
 
-        def find_frontiers() -> None:
-            """Method to find all frontier's cell."""
-            for movement in possibilities:
-                frontier_test: CellCoordinates = self.try_breaking_wall(
-                    start, movement, False)
-                if frontier_test == start:
-                    continue
-                else:
-                    frontiers.add(frontier_test)
-
-        maze_cell: list[CellCoordinates] = [start, start]
-        find_frontiers()
         while frontiers:
-            start = choice(list(frontiers))
-            self.cells[start[0]][start[1]].is_visited = True
-            frontiers.remove(start)
-            maze_cell.append(start)
-            for cell in reversed(maze_cell):
+            next_cell = choice(list(frontiers))
+            maze_cells.append(next_cell)
+            frontiers.remove(next_cell)
+            for cell in reversed(maze_cells):
                 direction: tuple[int, int] = (
                     cell[0] - start[0], cell[1] - start[1])
                 if direction in Movements:
-                    self.cells[cell[0]][cell[1]].walls[Directions[Movements(
-                        (-direction[0], -direction[1])).name]] = False
-                    self.cells[start[0]][start[1]].walls[Directions[Movements(
-                        direction).name]] = False
+                    self.break_wall(start, cell)
+                    self.is_visited(cell)
+                    frontiers.update(self.get_neighbors(cell, False))
+                    next_cell = cell
                     break
-            yield None
-            find_frontiers()
+        yield None
+
 
     def generate_maze(self) -> None:
         self.generation(True)
@@ -385,7 +373,7 @@ if __name__ == "__main__":
         entry=(0, 0),
         exit=(0, 1),
         perfect=True,
-        gen_algorithm="Backtracking",
+        gen_algorithm="Prim",
         seed=randint(0, 99999999),
         central_icon=False
     )
