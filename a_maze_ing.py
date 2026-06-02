@@ -7,8 +7,8 @@ from os import name
 from typing import cast
 from collections.abc import Callable
 from maze_display import (
-    print_error, print_maze, Theme, get_themes, print_maze_generation,
-    instantiate_menues, ProgramQuit)
+    print_error, instantiate_maze_display, Theme, get_themes,
+    print_maze_generation, instantiate_menues, ProgramQuit)
 
 
 if name != "nt":
@@ -99,15 +99,14 @@ def main() -> int:
         "Starting A_maze_ing program... ⏎ ")
     user_input: str
     menu_output: str
-    menu_module: Callable[[str, str | Theme], str] = instantiate_menues(config)
     themes: dict[str, Theme] = get_themes()
+    menu_module: Callable[[str, str | Theme], str] = instantiate_menues(config)
+    maze_display: Callable[[Maze], None] = instantiate_maze_display(
+        config, themes)
     while True:
         print_maze_generation(maze, themes[config["theme"]])
         while True:
-            if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
-                print_maze(maze, themes[config["theme"]])
-            else:
-                print("too small")
+            maze_display(maze)
             menu_module("print_menu", themes[config["theme"]])
             if name != "nt":
                 user_input = stdin.read(1)
@@ -137,7 +136,6 @@ def main() -> int:
                 menu_output = write_out_maze(maze, config)
                 if menu_output != "":
                     menu_module("maze_error", menu_output)
-    return 0
 
 
 if __name__ == "__main__":

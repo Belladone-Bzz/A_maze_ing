@@ -329,7 +329,7 @@ def instantiate_menues(
                 theme.walls_style, theme.walls.VERTICAL.rjust(
                     int((int(config_save["width"]) * 4 - menu_width) / 2)))
             style_print(
-                theme.icon_style, line.center(menu_width))
+                theme.walls_style, line.center(menu_width))
             style_print(theme.walls_style, theme.walls.VERTICAL, "\n")
         line = (
             theme.angles.BOTTOM_LEFT + (theme.walls.HORIZONTAL * menu_width)

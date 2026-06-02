@@ -4,6 +4,8 @@ from .utils import (
     move_cursor)
 from .themes import Theme
 from maze_gen import Maze, Directions
+from collections.abc import Callable
+from os import get_terminal_size, terminal_size
 from time import sleep
 
 
@@ -31,19 +33,20 @@ def print_maze(maze: Maze, theme: Theme) -> None:
             else str(theme.walls.HORIZONTAL))
         for cell in (maze.cells[x][0] for x in range(maze.config.WIDTH)))
     line += str(theme.angles.TOP_RIGHT)
-    style_print(theme.walls_style, line, "\n")
+    style_print(
+        theme.walls_style, line, f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
 
     for y in range(maze.config.HEIGHT):
         line = str(theme.walls.VERTICAL)
         for x in range(maze.config.WIDTH):
             if maze.cells[x][y].entry is True:
                 line += (
-                    f" {theme.start} " if theme.start not in emojis
-                    else f" {theme.start}")
+                    f" {theme.start_style}{theme.start}{theme.walls_style} "
+                    if theme.start not in emojis else f" {theme.start}")
             elif maze.cells[x][y].exit is True:
                 line += (
-                    f" {theme.exit} " if theme.exit not in emojis
-                    else f" {theme.exit}")
+                    f" {theme.exit_style}{theme.exit}{theme.walls_style} "
+                    if theme.exit not in emojis else f" {theme.exit}")
             else:
                 line += "   "
             if x == maze.config.WIDTH - 1:
@@ -53,7 +56,8 @@ def print_maze(maze: Maze, theme: Theme) -> None:
                     if maze.cells[x][y].walls[Directions.EAST] is True
                     else " ")
         line += str(theme.walls.VERTICAL)
-        style_print(theme.walls_style, line, "\n")
+        style_print(
+            theme.walls_style, line, f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
 
         if y == maze.config.HEIGHT - 1:
             break
@@ -72,7 +76,9 @@ def print_maze(maze: Maze, theme: Theme) -> None:
                     str(theme.walls.VERTICAL_L)
                     if maze.cells[x][y].walls[Directions.SOUTH] is True
                     else str(theme.walls.VERTICAL))
-                style_print(theme.walls_style, line, "\n")
+                style_print(
+                    theme.walls_style, line,
+                    f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
                 continue
             line += (
                 str(theme.walls.CROSS)
@@ -159,7 +165,28 @@ def print_maze(maze: Maze, theme: Theme) -> None:
 
 def print_maze_generation(maze: Maze, theme: Theme) -> None:
     print(CursorOperations.HEAVY_CLEAR, end="")
-    if maze.config.WIDTH < 51 and maze.config.HEIGHT < 40:
+    window_size: terminal_size = get_terminal_size()
+    if (
+            maze.config.WIDTH * 4 < window_size.columns
+            and maze.config.HEIGHT * 2 < window_size.lines):
         for _ in maze.stepped_generation():
             print_maze(maze, theme)
             sleep(0.005)
+    else:
+        maze.generate_maze()
+
+
+def instantiate_maze_display(
+        config: dict[str, str],
+        themes: dict[str, Theme]) -> Callable[[Maze], None]:
+
+    def maze_display(maze: Maze) -> None:
+        window_size: terminal_size = get_terminal_size()
+        if (
+                maze.config.WIDTH * 4 < window_size.columns
+                and maze.config.HEIGHT * 2 < window_size.lines):
+            print_maze(maze, themes[config["theme"]])
+        else:
+            style_print(themes[config["theme"]].walls_style, "too small")
+
+    return maze_display

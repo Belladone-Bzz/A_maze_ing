@@ -119,15 +119,16 @@ class SmallIcons(StyleEnum):
 
 
 class Colors(StyleEnum):
-    BLACK = "0"
-    RED = "1"
-    GREEN = "2"
-    YELLOW = "3"
-    BLUE = "4"
-    MAGENTA = "5"
-    CYAN = "6"
-    WHITE = "7"
-    DEFAULT = "9"
+    DEFAULT = "-1"
+    BLACK = "16"
+    RED = "196"
+    LIGHT_GREEN = "153"
+    GREEN = "28"
+    YELLOW = "220"
+    BLUE = "27"
+    MAGENTA = "141"
+    CYAN = "81"
+    WHITE = "231"
 
 
 class Styling(StyleEnum):
@@ -164,7 +165,9 @@ def styling(
         fg_color: Colors = Colors.DEFAULT,
         bg_color: Colors = Colors.DEFAULT) -> str:
     return (f"\033[0;{";".join([
-        *(str(st) for st in style), f"3{fg_color}", f"4{bg_color}"])}m")
+        *(str(st) for st in style),
+        (f"38:5:{fg_color}" if fg_color is not Colors.DEFAULT else "39"),
+        (f"48:5:{bg_color}" if bg_color is not Colors.DEFAULT else "49")])}m")
 
 
 def bold_style(color: Colors = Colors.DEFAULT) -> str:
@@ -173,5 +176,5 @@ def bold_style(color: Colors = Colors.DEFAULT) -> str:
 
 def style_print(style: Styling | str, content: str, end: str = "") -> None:
     print(
-        style, content, end, CursorOperations.STYLE_CLEAR,
+        style, content, CursorOperations.STYLE_CLEAR, end,
         flush=True, sep="", end="")

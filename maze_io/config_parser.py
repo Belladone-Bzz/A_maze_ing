@@ -44,8 +44,9 @@ def get_boolean(value: str | bool) -> bool:
         f"invalid boolean value '{value}', must be 'True or 'False'")
 
 
-def generate_config(config_file: str, config: dict[str, str],
-        mandatory_values: tuple[str,...]) -> str:
+def generate_config(
+        config_file: str, config: dict[str, str],
+        mandatory_values: tuple[str, ...]) -> str:
     output: str = parse_config_file(config_file, config, mandatory_values)
     if output != "":
         return output
