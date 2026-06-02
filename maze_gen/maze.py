@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field, model_validator
-from functools import singledispatch
 from typing import Annotated
 from collections.abc import Generator, Callable
 from enum import IntEnum, Enum
@@ -139,42 +138,66 @@ class Maze:
         self.cells[cell_coords[0] + step[0]][cell_coords[1] + step[1]].walls[
             Directions[Movements((-step[0], -step[1])).name]] = False
 
-    def is_neighbor_in_maze(self, potential_coords: CellCoordinates,
-            should_be_visited: bool | None = None) -> bool:
-        """Method to check if next cell is in the maze and if it has the
-        expected config is_visited. Return True if its the case and False
-        if not."""
+    # _________________________________________________________________________
+    #                                   TOOLS
+    # _________________________________________________________________________
+
+    def get_neighbor_coords(self, coords: CellCoordinates, movement: tuple[int, int]) -> CellCoordinates:
+        """Return the coordinates of the neighboring cell in the specified direction."""
+        neighbor: CellCoordinates = (coords[0] + movement[0], coords[1] + movement[1])
+        return neighbor
+    
+    def is_available(self, coords: CellCoordinates) -> bool:
+        "Check that a cell is accessible: within the grid and not reserved for the central pattern."
         if (
-                potential_coords[0] < 0 or potential_coords[1] < 0
-                or potential_coords[0] >= self.config.WIDTH
-                or potential_coords[1] >= self.config.HEIGHT):
+                coords[0] < 0 or coords[1] < 0
+                or coords[0] >= self.config.WIDTH
+                or coords[1] >= self.config.HEIGHT):
             return False
         if (
-                self.config.CENTRAL_ICON is True and 
-                self.cells[potential_coords[0]][
-                potential_coords[1]].pattern is True):
-            return False
-        if should_be_visited is not None and self.cells[potential_coords[0]][
-                potential_coords[1]].is_visited is not should_be_visited:
+                self.config.CENTRAL_ICON is True and
+                self.cells[coords[0]][
+                coords[1]].pattern is True):
             return False
         return True
+    
+    def is_visited(self, coords: CellCoordinates) -> bool:
+        """Check whether a cell is visited or not."""
+        return self.cells[coords[0]][coords[1]].is_visited
+    
+    def get_neighbors(self, coords: CellCoordinates, visited: bool | None) -> list[CellCoordinates]:
+        """Return a list of available neighbors. The list can be filtered to include only neighbors that have been visited, those that aren't, or all of them without distinction."""
+        neighbors: list[CellCoordinates] = []
+        for movement in Movements:
+            potential_neighbor = self.get_neighbor_coords(coords, movement.value)
+            if self.is_available(potential_neighbor) is False:
+                continue
+            if visited is not None and self.is_visited(potential_neighbor) is not visited:
+                continue
+            neighbors.append(potential_neighbor)
+        return neighbors
+    
+    def break_wall(self, coords: CellCoordinates, neighbor: CellCoordinates) -> None:
+        """Break down the wall between two cells. They must be directly adjacent to each other."""
+        direction = Movements((neighbor[0] - coords[0]), (neighbor[1] - coords[1]))
+        opposite = Movements(-(neighbor[0] - coords[0]), -(neighbor[1] - coords[1]))
+        self.cells[coords[0]][coords[1]].walls[Directions[direction.name]] = False
+        self.cells[neighbor[0]][neighbor[1]].walls[Directions[opposite.name]] = False
 
-    def try_breaking_wall(self, coords: CellCoordinates, movement: Movements, broke: bool) -> CellCoordinates:
-        """Method to check if next cell is in the maze. Break the walls between them\
-            if its the case, config herit to is_visited=True and return it CellCoordinate.
-            """
-        potential_coords: CellCoordinates = (
-                    coords[0] + movement[0], coords[1] + movement[1])
-        if self.is_neighbor_in_maze(potential_coords, False) is False:
-            return coords
-        if broke is True:
-            self.cells[potential_coords[0]][potential_coords[1]].\
-                is_visited = True
-            self.cells[coords[0]][coords[1]].walls[Directions[Movements(
-                (movement[0], movement[1])).name]] = False
-            self.cells[potential_coords[0]][potential_coords[
-                1]].walls[Directions[Movements((-movement[0], -movement[1])).name]] = False
-        return potential_coords
+    def become_visited(self, coords: CellCoordinates) -> None:
+        """Set the cell to is_visited = True."""
+        self.cells[coords[0]][coords[1]].is_visited = True
+    
+    def path_to_unvisited(self, coords: CellCoordinates) -> CellCoordinates | None:
+        """"""
+        neighbors: list[CellCoordinates] = self.get_neighbors(coords, False)
+        if neighbors == []:
+            return None
+        shuffle(neighbors)
+        next_cell = neighbors[0]
+        self.break_wall(coords, next_cell)
+        self.become_visited(next_cell)
+        return next_cell
 
     def dead_end_opener(self) -> None:
         """"""
@@ -193,9 +216,11 @@ class Maze:
             break
         else:
             for coord in dead_end:
-                direction: int = self.cells[coord[0]][coord[1]].walls.index(False)
+                direction: int = self.cells[
+                    coord[0]][coord[1]].walls.index(False)
                 for potential_turn in (1, 3):
-                    turn: Movements = Movements((direction + potential_turn) % 4)
+                    turn: Movements = Movements(
+                        (direction + potential_turn) % 4)
 
     def random_wall_breaker(self) -> None:
         """Method for breaking a wall. If there are three consecutive walls,
@@ -231,44 +256,33 @@ class Maze:
         if broken_wall == 0:
             self.dead_end_opener()
 
+    # _________________________________________________________________________
+    #                                  ALGORITHMS
+    # _________________________________________________________________________
+
     def backtracking_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a backtraking algorithm.
         Return a Generator to display a dynamic maze.
         """
         start: CellCoordinates = (randint(0, (self.config.WIDTH - 1)),
                                   randint(0, (self.config.HEIGHT - 1)))
-        self.cells[start[0]][start[1]].is_visited = True
-
-        def access_next_cell(coords: CellCoordinates) -> CellCoordinates:
-            """Method to randomly find and access the next cell."""
-            possibilities: list[tuple[int, int]] =\
-                list(move.value for move in Movements)
-            shuffle(possibilities)
-            for movement in possibilities:
-                cell_test: CellCoordinates = self.try_breaking_wall(coords, movement, True)
-                if cell_test == coords:
-                    continue
-                else:
-                    return cell_test
-            return coords
-
-        current: CellCoordinates = access_next_cell(start)
-        back_track: list[CellCoordinates] = [start, current]
-        while current != start:
-            next_cell = access_next_cell(current)
-            if current != next_cell:
-                current = next_cell
-                back_track.append(current)
-                yield None
+        self.become_visited(start)
+        
+        back_track: list[CellCoordinates] = [start]
+        while back_track:
+            current: CellCoordinates = back_track[-1]
+            next_cell = self.path_to_unvisited(current)
+            if next_cell is not None:
+                back_track.append(next_cell)
             else:
-                current = back_track[-2]
-                del back_track[-1]
+                back_track.pop(-1)
+            yield None
 
     def prim_algo(self) -> Generator[None]:
         """Method to generate a perfect maze with a Prim algorithm."""
         frontiers: set[CellCoordinates] = set()
-        possibilities: list[tuple[int, int]] =\
-                list(move.value for move in Movements)
+        possibilities: list[tuple[int, int]] = list(
+            move.value for move in Movements)
         starts: tuple[CellCoordinates, ...] = (
             (int((self.config.WIDTH - 1)/2), 0),
             (self.config.WIDTH - 1, int((self.config.HEIGHT - 1)/2)),
@@ -281,7 +295,8 @@ class Maze:
         def find_frontiers() -> None:
             """Method to find all frontier's cell."""
             for movement in possibilities:
-                frontier_test: CellCoordinates = self.try_breaking_wall(start, movement, False)
+                frontier_test: CellCoordinates = self.try_breaking_wall(
+                    start, movement, False)
                 if frontier_test == start:
                     continue
                 else:
@@ -350,7 +365,7 @@ if __name__ == "__main__":
         entry=(0, 0),
         exit=(0, 1),
         perfect=True,
-        gen_algorithm="Prim",
+        gen_algorithm="Backtracking",
         seed=randint(0, 99999999),
         central_icon=False
     )
