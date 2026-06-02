@@ -142,13 +142,19 @@ class Maze:
     #                                   TOOLS
     # _________________________________________________________________________
 
-    def get_neighbor_coords(self, coords: CellCoordinates, movement: tuple[int, int]) -> CellCoordinates:
-        """Return the coordinates of the neighboring cell in the specified direction."""
-        neighbor: CellCoordinates = (coords[0] + movement[0], coords[1] + movement[1])
+    def get_neighbor_coords(self, coords: CellCoordinates,
+                            movement: tuple[int, int]) -> CellCoordinates:
+        """Return the coordinates of the neighboring cell in the specified
+        direction.
+        """
+        neighbor: CellCoordinates = (coords[0] + movement[0],
+                                     coords[1] + movement[1])
         return neighbor
-    
+
     def is_available(self, coords: CellCoordinates) -> bool:
-        "Check that a cell is accessible: within the grid and not reserved for the central pattern."
+        """Check that a cell is accessible: within the grid and not reserved
+        for the central pattern.
+        """
         if (
                 coords[0] < 0 or coords[1] < 0
                 or coords[0] >= self.config.WIDTH
@@ -160,35 +166,49 @@ class Maze:
                 coords[1]].pattern is True):
             return False
         return True
-    
+
     def is_visited(self, coords: CellCoordinates) -> bool:
         """Check whether a cell is visited or not."""
         return self.cells[coords[0]][coords[1]].is_visited
-    
-    def get_neighbors(self, coords: CellCoordinates, visited: bool | None) -> list[CellCoordinates]:
-        """Return a list of available neighbors. The list can be filtered to include only neighbors that have been visited, those that aren't, or all of them without distinction."""
+
+    def get_neighbors(self, coords: CellCoordinates,
+                      visited: bool | None) -> list[CellCoordinates]:
+        """Return a list of available neighbors. The list can be filtered to
+        include only neighbors that have been visited, those that aren't, or
+        all of them without distinction.
+        """
         neighbors: list[CellCoordinates] = []
         for movement in Movements:
-            potential_neighbor = self.get_neighbor_coords(coords, movement.value)
+            potential_neighbor = self.get_neighbor_coords(
+                coords, movement.value)
             if self.is_available(potential_neighbor) is False:
                 continue
-            if visited is not None and self.is_visited(potential_neighbor) is not visited:
+            if (visited is not None and self.is_visited(potential_neighbor)
+                    is not visited):
                 continue
             neighbors.append(potential_neighbor)
         return neighbors
-    
-    def break_wall(self, coords: CellCoordinates, neighbor: CellCoordinates) -> None:
-        """Break down the wall between two cells. They must be directly adjacent to each other."""
-        direction = Movements((neighbor[0] - coords[0]), (neighbor[1] - coords[1]))
-        opposite = Movements(-(neighbor[0] - coords[0]), -(neighbor[1] - coords[1]))
-        self.cells[coords[0]][coords[1]].walls[Directions[direction.name]] = False
-        self.cells[neighbor[0]][neighbor[1]].walls[Directions[opposite.name]] = False
+
+    def break_wall(self, coords: CellCoordinates,
+                   neighbor: CellCoordinates) -> None:
+        """Break down the wall between two cells. They must be directly
+        adjacent to each other.
+        """
+        direction = Movements((neighbor[0] - coords[0]),
+                              (neighbor[1] - coords[1]))
+        opposite = Movements(-(neighbor[0] - coords[0]),
+                             -(neighbor[1] - coords[1]))
+        self.cells[coords[0]][coords[1]].walls[
+            Directions[direction.name]] = False
+        self.cells[neighbor[0]][neighbor[1]].walls[
+            Directions[opposite.name]] = False
 
     def become_visited(self, coords: CellCoordinates) -> None:
         """Set the cell to is_visited = True."""
         self.cells[coords[0]][coords[1]].is_visited = True
-    
-    def path_to_unvisited(self, coords: CellCoordinates) -> CellCoordinates | None:
+
+    def path_to_unvisited(self,
+                          coords: CellCoordinates) -> CellCoordinates | None:
         """"""
         neighbors: list[CellCoordinates] = self.get_neighbors(coords, False)
         if neighbors == []:
@@ -267,7 +287,7 @@ class Maze:
         start: CellCoordinates = (randint(0, (self.config.WIDTH - 1)),
                                   randint(0, (self.config.HEIGHT - 1)))
         self.become_visited(start)
-        
+
         back_track: list[CellCoordinates] = [start]
         while back_track:
             current: CellCoordinates = back_track[-1]
