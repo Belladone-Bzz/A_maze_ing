@@ -88,27 +88,34 @@ class Maze:
                     error_message += (
                         "Generating a maze when integrating the central "
                         "pattern must be done with appropriate dimensions.")
+                horizontal_offset: int = (
+                    int(self.WIDTH / 2)
+                    - int(len(self.CENTRAL_ICON[0]) / 2))
+                vertical_offset: int = (
+                    int(self.HEIGHT / 2)
+                    - int(len(self.CENTRAL_ICON) / 2))
+                for x in range(len(self.CENTRAL_ICON[0])):
+                    for y in range(len(self.CENTRAL_ICON)):
+                        if self.CENTRAL_ICON[y][x] is True:
+                            in_pattern_coords: CellCoordinates = (
+                                x + horizontal_offset, y + vertical_offset)
+                            if (
+                                    in_pattern_coords == self.ENTRY
+                                    or in_pattern_coords == self.EXIT):
+                                error_message += (
+                                    "Entry and Exit coordinates cannot be "
+                                    "placed in pattern cells.")
             if self.ENTRY[0] >= self.WIDTH or self.ENTRY[1] >= self.HEIGHT:
                 error_message += (
                     "Entry coordinates (x, y) "
-                    "cannot exceed the maze's dimensions")
+                    "cannot exceed the maze's dimensions.")
             if self.EXIT[0] >= self.WIDTH or self.EXIT[1] >= self.HEIGHT:
                 error_message += (
                     "Exit coordinates (x, y) "
-                    "cannot exceed the maze's dimensions")
+                    "cannot exceed the maze's dimensions.")
             if error_message != "":
                 raise ValueError(error_message)
             return self
-
-        def __str__(self) -> str:
-            """Method to display configuration of the maze (width, height,
-            entry, exit, icon toggle, perfect toggle and seed).
-            """
-            return (
-                f"WIDTH: {self.WIDTH}, HEIGHT: {self.HEIGHT}\n"
-                f"ENTRY: {self.ENTRY}, EXIT: {self.EXIT}\n"
-                f"ICON TOGGLE: {self.CENTRAL_ICON}, "
-                f"PERFECT TOGGLE: {self.PERFECT}\nSEED: {self.SEED}")
 
     class Cell:
         """Class Cell
@@ -188,7 +195,7 @@ class Maze:
                 or coords[1] >= self.config.HEIGHT):
             return False
         if (
-                self.config.CENTRAL_ICON is True and
+                self.config.CENTRAL_ICON != [] and
                 self.cells[coords[0]][
                 coords[1]].pattern is True):
             return False
@@ -391,12 +398,12 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=20,
-        height=20,
+        width=9,
+        height=7,
         entry=(0, 0),
         exit=(0, 1),
         perfect=True,
-        gen_algorithm="Prim",
+        gen_algorithm="Backtracking",
         seed=randint(0, 99999999),
         central_icon=[
         [False, False, True, False, True, True, True],
