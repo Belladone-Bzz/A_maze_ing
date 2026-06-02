@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field, model_validator
-from functools import singledispatch
 from typing import Annotated
 from collections.abc import Generator, Callable
 from enum import IntEnum, Enum
@@ -41,8 +40,8 @@ class Maze:
     def __init__(
             self, width: int, height: int,
             entry: tuple[int, int], exit: tuple[int, int],
-            perfect: bool, gen_algorithm: str,
-            seed: int, central_icon: bool = False):
+            perfect: bool, gen_algorithm: str, seed: int,
+            central_icon: list[list[bool]] = []):
         self.config = Maze.Config(
             WIDTH=width,
             HEIGHT=height,
@@ -67,7 +66,7 @@ class Maze:
 
         GEN_ALGORITHM: Annotated[str, Field(min_length=1, max_length=15)]
 
-        CENTRAL_ICON: Annotated[bool, Field(default=False)]
+        CENTRAL_ICON: Annotated[list[list[bool]], Field(default=[])]
         PERFECT: Annotated[bool, Field()]
         SEED: Annotated[int, Field()]
 
@@ -75,11 +74,20 @@ class Maze:
         def validate_config(self) -> "Maze.Config":
             """Model validator for maze's configuration."""
             error_message: str = ""
-            if self.CENTRAL_ICON is True and (
-                    self.WIDTH < 7 or self.HEIGHT < 7):
-                error_message += (
-                    "Generating a maze with dimensions inferior to 7 by 7 is "
-                    "impossible when integrating the central pattern.")
+            if self.CENTRAL_ICON != []:
+                if all(
+                        len(line) == len(self.CENTRAL_ICON[0])
+                        for line in self.CENTRAL_ICON) is False:
+                    error_message += (
+                        "The integrated pattern must be a tuple of tuple "
+                        "containing boolean values only, with each line "
+                        "being the same length.")
+                if (
+                        self.WIDTH < len(self.CENTRAL_ICON[0]) + 2
+                        or self.HEIGHT < len(self.CENTRAL_ICON) + 2):
+                    error_message += (
+                        "Generating a maze when integrating the central "
+                        "pattern must be done with appropriate dimensions.")
             if self.ENTRY[0] >= self.WIDTH or self.ENTRY[1] >= self.HEIGHT:
                 error_message += (
                     "Entry coordinates (x, y) "
@@ -115,6 +123,22 @@ class Maze:
             self.pattern = False
             self.is_visited = False
 
+    def integrate_pattern(self) -> None:
+        horizontal_offset: int = (
+            int(self.config.WIDTH / 2)
+            - int(len(self.config.CENTRAL_ICON[0]) / 2))
+        vertical_offset: int = (
+            int(self.config.HEIGHT / 2)
+            - int(len(self.config.CENTRAL_ICON) / 2))
+        for x in range(len(self.config.CENTRAL_ICON[0])):
+            for y in range(len(self.config.CENTRAL_ICON)):
+                if self.config.CENTRAL_ICON[y][x] is False:
+                    continue
+                self.cells[x + horizontal_offset]\
+                    [y + vertical_offset].pattern = True
+                self.cells[x + horizontal_offset]\
+                    [y + vertical_offset].walls = [True, True, True, True]
+
     def generation(self, walled: bool) -> None:
         """Method to generate all the cells in the maze grid in a
         list[list[Maze.Cell]] Only the outer walls are set to True.
@@ -133,6 +157,8 @@ class Maze:
             self.cells[x][-1].walls[Directions.SOUTH] = True
         self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
         self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
+        if self.config.CENTRAL_ICON != []:
+            self.integrate_pattern()
 
     def open_wall(self, cell_coords: CellCoordinates, step: Movements) -> None:
         self.cells[cell_coords[0]][cell_coords[1]].walls[step] = False
@@ -334,14 +360,19 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=52,
-        height=52,
+        width=20,
+        height=20,
         entry=(0, 0),
         exit=(0, 1),
         perfect=True,
         gen_algorithm="Backtracking",
         seed=randint(0, 99999999),
-        central_icon=False
+        central_icon=[
+        [False, False, True, False, True, True, True],
+        [False, True, False, False, False, False, True],
+        [True, True, True, False, True, True, True],
+        [False, False, True, False, True, False, False],
+        [False, False, True, False, True, True, True]]
     )
     print(maze.config)
     for _ in maze.stepped_generation():
