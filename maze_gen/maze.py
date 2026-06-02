@@ -307,27 +307,23 @@ class Maze:
             (0, int((self.config.HEIGHT - 1)/2)),
             (int((self.config.WIDTH - 1)/2), int((self.config.HEIGHT - 1)/2)))
         start: CellCoordinates = choice(starts)
-        self.is_visited(start)
+        self.become_visited(start)
         frontiers: set[CellCoordinates] = set(self.get_neighbors(start, False))
         maze_cells: list[CellCoordinates] = [start, start]
-        print(start)
-        print(frontiers)
 
         while frontiers:
-            next_cell = choice(list(frontiers))
-            maze_cells.append(next_cell)
-            frontiers.remove(next_cell)
+            start = choice(list(frontiers))
+            maze_cells.append(start)
+            self.become_visited(start)
+            frontiers.discard(start)
             for cell in reversed(maze_cells):
                 direction: tuple[int, int] = (
                     cell[0] - start[0], cell[1] - start[1])
                 if direction in Movements:
                     self.break_wall(start, cell)
-                    self.is_visited(cell)
-                    frontiers.update(self.get_neighbors(cell, False))
-                    next_cell = cell
                     break
-        yield None
-
+            yield None
+            frontiers.update(self.get_neighbors(start, False))
 
     def generate_maze(self) -> None:
         self.generation(True)
