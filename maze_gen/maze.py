@@ -114,7 +114,7 @@ class Maze:
             self.pattern = False
             self.is_visited = False
 
-    def generation(self, walled: bool) -> None:
+    def grid_generation(self, walled: bool) -> None:
         """Method to generate all the cells in the maze grid in a
         list[list[Maze.Cell]] Only the outer walls are set to True.
         Entry and Exit cells are memorized.
@@ -139,7 +139,7 @@ class Maze:
             Directions[Movements((-step[0], -step[1])).name]] = False
 
     # _________________________________________________________________________
-    #                                   TOOLS
+    #                       GENERATION/SOLVING TOOLS
     # _________________________________________________________________________
 
     def get_neighbor_coords(self, coords: CellCoordinates,
@@ -209,7 +209,11 @@ class Maze:
 
     def path_to_unvisited(self,
                           coords: CellCoordinates) -> CellCoordinates | None:
-        """"""
+        """Find the neighbors of the cell with the coordinates passed as an
+        argument. Break down the walls between that cell and one of its
+        randomly selected neighbors. Return the coordinate of the new cell in
+        the maze, or None if the initial cell has no neighbors.
+        """
         neighbors: list[CellCoordinates] = self.get_neighbors(coords, False)
         if neighbors == []:
             return None
@@ -218,6 +222,37 @@ class Maze:
         self.break_wall(coords, next_cell)
         self.become_visited(next_cell)
         return next_cell
+
+    def check_consec_walls(self, axes: str) -> list[CellCoordinates]:
+        """Check if a wall is part of a sequence of 3+ consecutive walls
+        along the horizontal or vertical axes of the grid. If it's the case
+        it has 80% chance to be added to the lis of walls to be broken.
+        Return the list of these walls."""
+        walls_to_broke: list[CellCoordinates] = []
+        consecutive_walls: int = 0
+        if axes == "horizontal":
+            for y in range(0, (self.config.HEIGHT - 1)):
+                for x in range(0, (self.config.WIDTH)):
+                    if self.cells[x][y].walls[1] is True:
+                        consecutive_walls += 1
+                        if consecutive_walls >= 3 and randint(0, 100) < 80:
+                            walls_to_broke.append((x - 1, y))
+                            consecutive_walls = 1
+                    else:
+                        consecutive_walls = 0
+                consecutive_walls = 0
+        if axes == "vertical":
+            for x in range(0, (self.config.WIDTH - 1)):
+                for y in range(0, (self.config.HEIGHT)):
+                    if self.cells[x][y].walls[2] is True:
+                        consecutive_walls += 1
+                        if consecutive_walls >= 3 and randint(0, 100) < 80:
+                            walls_to_broke.append((x, y - 1))
+                            consecutive_walls = 1
+                    else:
+                        consecutive_walls = 0
+                consecutive_walls = 0
+        return walls_to_broke
 
     def dead_end_opener(self) -> None:
         """"""
@@ -242,46 +277,12 @@ class Maze:
                     turn: Movements = Movements(
                         (direction + potential_turn) % 4)
 
-    def random_wall_breaker(self) -> None:
-        """Method for breaking a wall. If there are three consecutive walls,
-        the one in the middle has a 33% chance of being broken.
-        """
-        broken_wall: int = 0
-        consecutive_wall: int = 0
-        for y in range(0, (self.config.HEIGHT - 1)):
-            for x in range(0, (self.config.WIDTH)):
-                if self.cells[x][y].walls[1] is True:
-                    consecutive_wall += 1
-                    if consecutive_wall >= 3:
-                        if randint(0, 100) < 70:
-                            self.cells[x-1][y].walls[1] = False
-                            self.cells[x-1][y+1].walls[3] = False
-                            consecutive_wall = 1
-                            broken_wall += 1
-                else:
-                    consecutive_wall = 0
-        consecutive_wall = 0
-        for x in range(0, (self.config.WIDTH - 1)):
-            for y in range(0, (self.config.HEIGHT)):
-                if self.cells[x][y].walls[2] is True:
-                    consecutive_wall += 1
-                    if consecutive_wall >= 3:
-                        if randint(0, 100) < 70:
-                            self.cells[x][y-1].walls[2] = False
-                            self.cells[x+1][y-1].walls[0] = False
-                            consecutive_wall = 1
-                            broken_wall += 1
-                else:
-                    consecutive_wall = 0
-        if broken_wall == 0:
-            self.dead_end_opener()
-
     # _________________________________________________________________________
-    #                                  ALGORITHMS
+    #                         GENERATION ALGORITHMS
     # _________________________________________________________________________
 
     def backtracking_algo(self) -> Generator[None]:
-        """Method to generate a perfect maze with a backtraking algorithm.
+        """Generate a perfect maze with a backtraking algorithm.
         Return a Generator to display a dynamic maze.
         """
         start: CellCoordinates = (randint(0, (self.config.WIDTH - 1)),
@@ -299,7 +300,9 @@ class Maze:
             yield None
 
     def prim_algo(self) -> Generator[None]:
-        """Method to generate a perfect maze with a Prim algorithm."""
+        """Generate a perfect maze with a Prim algorithm.
+        Return a Generator to display a dynamic maze.
+        """
         starts: tuple[CellCoordinates, ...] = (
             (int((self.config.WIDTH - 1)/2), 0),
             (self.config.WIDTH - 1, int((self.config.HEIGHT - 1)/2)),
@@ -325,25 +328,55 @@ class Maze:
             yield None
             frontiers.update(self.get_neighbors(start, False))
 
+    def make_maze_imperfect(self) -> None:
+        """Make an imperfect maze from a perfect one. Use check_consec_walls()
+        method to have all the walls to broke. If there is none, use
+        dead_end_opener() method.
+        """
+        def break_east_wall(coords: CellCoordinates) -> None:
+            """Break the wall between a cell and her right neighbor."""
+            self.cells[coords[0]][coords[1]].walls[Directions.EAST] = False
+            self.cells[coords[0] + 1][coords[1]].walls[Directions.WEST] = False
+
+        def break_south_wall(coords: CellCoordinates) -> None:
+            """Break the wall between a cell and her down neighbor."""
+            self.cells[coords[0]][coords[1]].walls[
+                Directions.SOUTH] = False
+            self.cells[coords[0]][coords[1] + 1].walls[
+                Directions.NORTH] = False
+
+        v_walls: list[CellCoordinates] = self.check_consec_walls("vertical")
+        h_walls: list[CellCoordinates] = self.check_consec_walls("horizontal")
+        for wall in v_walls:
+            break_east_wall(wall)
+        for wall in h_walls:
+            break_south_wall(wall)
+        if v_walls == [] and h_walls == []:
+            self.dead_end_opener()
+
+    # _________________________________________________________________________
+    #                         MAZE GENERATION AND DISPLAY
+    # _________________________________________________________________________
+
     def generate_maze(self) -> None:
-        self.generation(True)
+        self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             pass
         if self.config.PERFECT is False:
-            self.wall_breaker()
+            self.make_maze_imperfect()
 
     def stepped_generation(self) -> Generator[None]:
-        self.generation(True)
+        self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             yield None
         if self.config.PERFECT is False:
-            self.wall_breaker()
+            self.make_maze_imperfect()
 
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
@@ -364,11 +397,11 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=12,
-        height=12,
+        width=20,
+        height=20,
         entry=(0, 0),
         exit=(0, 1),
-        perfect=True,
+        perfect=False,
         gen_algorithm="Prim",
         seed=randint(0, 99999999),
         central_icon=False
@@ -378,3 +411,4 @@ if __name__ == "__main__":
         print("\033[3J\033[1;0H\033[0J")
         print(maze)
         sleep(0.01)
+    print(maze)
