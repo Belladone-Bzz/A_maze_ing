@@ -254,28 +254,48 @@ class Maze:
                 consecutive_walls = 0
         return walls_to_broke
 
-    def dead_end_opener(self) -> None:
-        """"""
+    def find_dead_end(self) -> list[CellCoordinates]:
+        """Search all dead end in the maze, make a list of their coordinate
+        and return it.
+        """
         dead_end: list[CellCoordinates] = []
         for y in range(0, (self.config.HEIGHT)):
             for x in range(0, (self.config.WIDTH)):
                 if sum(self.cells[x][y].walls) == 3:
                     dead_end.append((x, y))
         shuffle(dead_end)
+        return dead_end
+
+    def dead_end_opener(self) -> None:
+        """Search dead end and make a path in an optimal way to avoid chambers
+        in the maze."""
+        dead_end: list[CellCoordinates] = self.find_dead_end()
         for coord in dead_end:
-            direction: int = self.cells[coord[0]][coord[1]].walls.index(False)
-            opposite: Movements = Movements((direction + 2) % 4)
-            if self.is_neighbor_in_maze(coord, opposite, True) is False:
+            entry_direction: int = self.cells[
+                coord[0]][coord[1]].walls.index(False)
+            opposite_direction: int = ((entry_direction + 2) % 4)
+            opposite_movement: Movements = Movements[
+                Directions(opposite_direction).name].value
+            ideal_cell: CellCoordinates = ((coord[0] + opposite_movement[0]),
+                                           (coord[1] + opposite_movement[1]))
+            if self.is_available(ideal_cell) is False:
                 continue
-            self.open_wall(coord, opposite)
+            self.break_wall(coord, ideal_cell)
             break
         else:
             for coord in dead_end:
-                direction: int = self.cells[
-                    coord[0]][coord[1]].walls.index(False)
-                for potential_turn in (1, 3):
-                    turn: Movements = Movements(
-                        (direction + potential_turn) % 4)
+                side_directions: list[int] = [((entry_direction + 1) % 4),
+                                              ((entry_direction + 3) % 4)]
+                for side in side_directions:
+                    side_movement: Movements = Movements[
+                        Directions(side).name].value
+                    side_cell: CellCoordinates = (
+                        (coord[0] + side_movement[0]),
+                        (coord[1] + side_movement[1]))
+                    if self.is_available(side_cell) is False:
+                        continue
+                    self.break_wall(coord, side_cell)
+                    break
 
     # _________________________________________________________________________
     #                         GENERATION ALGORITHMS
@@ -313,7 +333,6 @@ class Maze:
         self.become_visited(start)
         frontiers: set[CellCoordinates] = set(self.get_neighbors(start, False))
         maze_cells: list[CellCoordinates] = [start, start]
-
         while frontiers:
             start = choice(list(frontiers))
             maze_cells.append(start)
@@ -397,8 +416,8 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=20,
-        height=20,
+        width=4,
+        height=4,
         entry=(0, 0),
         exit=(0, 1),
         perfect=False,
