@@ -123,7 +123,7 @@ class Patterns(Enum):
     FORTY_TWO = (
         (0, 0, 1, 0, 1, 1, 1),
         (0, 1, 0, 0, 0, 0, 1),
-        (1, 1, 1, 0, 1, 1, 1),
+        (1, 1, 1, 0, 0, 1, 0),
         (0, 0, 1, 0, 1, 0, 0),
         (0, 0, 1, 0, 1, 1, 1))
     HEART = (
@@ -187,6 +187,13 @@ def styling(
 
 def bold_style(color: Colors = Colors.DEFAULT) -> str:
     return f"\033[3{color};1m"
+
+
+def print_error(
+        content: str,
+        end: str = "\n\nRefer to the provided README file for guidance.\n\n"
+        ) -> None:
+    style_print(styling([Styling.BOLD], Colors.RED), content, end)
 
 
 def style_print(style: Styling | str, content: str, end: str = "") -> None:

@@ -1,8 +1,8 @@
 
-from .config_parser import generate_config, get_boolean
+from .config_parser import generate_config
 from .maze_output import write_out_maze
 
 
 __all__ = [
-    "generate_config", "get_boolean",
+    "generate_config",
     "write_out_maze"]

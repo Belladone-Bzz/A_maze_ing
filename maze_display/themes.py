@@ -1,4 +1,6 @@
 
+from enum import Enum
+from typing import cast
 from .utils import Styling, styling, Colors, Walls, Angles
 from .utils import (
     BasicWalls, BoldBasicWalls, DoubleWalls,
@@ -30,75 +32,76 @@ class Theme:
         self.icon_style: str = icon_style
 
 
-def get_themes() -> dict[str, Theme]:
-    """Returns a dictionary of Theme objects with pre-entered values
-    for maze visualization"""
-    return {
-        "Default": Theme(
-            walls=BoldBasicWalls,
-            angles=BoldBasicAngles,
-            start=SmallIcons.EMPTY_SQUARE,
-            exit=SmallIcons.FULL_SQUARE,
-            progress_line=(BasicWalls, RoundedAngles),
+class Themes(Enum):
+    DEFAULT = Theme(
+        walls=BoldBasicWalls,
+        angles=BoldBasicAngles,
+        start=SmallIcons.EMPTY_SQUARE,
+        exit=SmallIcons.FULL_SQUARE,
+        progress_line=(BasicWalls, RoundedAngles),
 
-            walls_style=styling(),
-            path_style=styling([Styling.BOLD], Colors.YELLOW),
-            start_style=styling([Styling.BOLD], Colors.YELLOW),
-            exit_style=styling([Styling.BOLD], Colors.RED),
+        walls_style=styling(),
+        path_style=styling([Styling.BOLD], Colors.YELLOW),
+        start_style=styling([Styling.BOLD], Colors.YELLOW),
+        exit_style=styling([Styling.BOLD], Colors.RED),
 
-            icon_walls=DoubleWalls,
-            icon_angles=DoubleAngles,
-            icon_content="   ",
+        icon_walls=DoubleWalls,
+        icon_angles=DoubleAngles,
+        icon_content="   ",
 
-            icon_style=styling([Styling.BOLD], Colors.YELLOW)),
-        "Bees": Theme(
-            walls=BasicWalls,
-            angles=RoundedAngles,
-            start=SmallIcons.BEE,
-            exit=SmallIcons.FLOWER,
-            progress_line=(BasicWalls, RoundedAngles),
+        icon_style=styling([Styling.BOLD], Colors.YELLOW))
+    BEES = Theme(
+        walls=BasicWalls,
+        angles=RoundedAngles,
+        start=SmallIcons.BEE,
+        exit=SmallIcons.FLOWER,
+        progress_line=(BasicWalls, RoundedAngles),
 
-            walls_style=styling([], Colors.BLACK, Colors.YELLOW),
-            path_style=styling([], Colors.BLACK, Colors.YELLOW),
-            start_style=styling([], Colors.BLACK, Colors.YELLOW),
-            exit_style=styling([], Colors.BLACK, Colors.YELLOW),
+        walls_style=styling([], Colors.BLACK, Colors.YELLOW),
+        path_style=styling([], Colors.BLACK, Colors.YELLOW),
+        start_style=styling([], Colors.BLACK, Colors.YELLOW),
+        exit_style=styling([], Colors.BLACK, Colors.YELLOW),
 
-            icon_walls=DoubleWalls,
-            icon_angles=DoubleAngles,
-            icon_content=str(SmallIcons.DARK_SHADE) * 3,
+        icon_walls=DoubleWalls,
+        icon_angles=DoubleAngles,
+        icon_content=str(SmallIcons.DARK_SHADE) * 3,
 
-            icon_style=styling([], Colors.BLACK, Colors.YELLOW)),
-        "Metamorphosis": Theme(
-            walls=BasicWalls,
-            angles=RoundedAngles,
-            start=SmallIcons.CATERPILLAR,
-            exit=SmallIcons.BUTTERFLY,
-            progress_line=(BasicWalls, RoundedAngles),
+        icon_style=styling([], Colors.BLACK, Colors.YELLOW))
+    METAMORPHOSIS = Theme(
+        walls=BasicWalls,
+        angles=RoundedAngles,
+        start=SmallIcons.CATERPILLAR,
+        exit=SmallIcons.BUTTERFLY,
+        progress_line=(BasicWalls, RoundedAngles),
 
-            walls_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
-            path_style=styling([], Colors.LIGHT_GREEN, Colors.YELLOW),
-            start_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
-            exit_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
+        walls_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
+        path_style=styling([], Colors.LIGHT_GREEN, Colors.YELLOW),
+        start_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
+        exit_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
 
-            icon_walls=DoubleWalls,
-            icon_angles=DoubleAngles,
-            icon_content="   ",
+        icon_walls=DoubleWalls,
+        icon_angles=DoubleAngles,
+        icon_content="   ",
 
-            icon_style=styling([Styling.BOLD], Colors.MAGENTA)),
-        "Meuuh": Theme(
-            walls=DoubleWalls,
-            angles=DoubleAngles,
-            start=SmallIcons.MILK,
-            exit=SmallIcons.COW,
-            progress_line=(DoubleWalls, DoubleAngles),
+        icon_style=styling([Styling.BOLD], Colors.MAGENTA))
+    MEUUH = Theme(
+        walls=DoubleWalls,
+        angles=DoubleAngles,
+        start=SmallIcons.MILK,
+        exit=SmallIcons.COW,
+        progress_line=(DoubleWalls, DoubleAngles),
 
-            walls_style=styling([Styling.BLINKING], Colors.YELLOW),
-            path_style=styling([Styling.BLINKING], Colors.GREEN),
-            start_style=styling([], Colors.YELLOW),
-            exit_style=styling([], Colors.YELLOW),
+        walls_style=styling([Styling.BLINKING], Colors.YELLOW),
+        path_style=styling([Styling.BLINKING], Colors.GREEN),
+        start_style=styling([], Colors.YELLOW),
+        exit_style=styling([], Colors.YELLOW),
 
-            icon_walls=BoldBasicWalls,
-            icon_angles=BoldBasicAngles,
-            icon_content="   ",
+        icon_walls=BoldBasicWalls,
+        icon_angles=BoldBasicAngles,
+        icon_content="   ",
 
-            icon_style=styling([Styling.ITALIC], Colors.WHITE))}
+        icon_style=styling([Styling.ITALIC], Colors.WHITE))
+
+
+def get_theme(theme: str) -> Theme:
+    return cast(Theme, getattr(Themes, theme.upper()).value)

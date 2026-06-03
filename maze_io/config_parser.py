@@ -1,5 +1,7 @@
 
 from random import randint
+from maze_display import Patterns
+from maze_display import Themes
 
 
 def parse_config_file(
@@ -23,7 +25,7 @@ def parse_config_file(
         entry: list[str] = line.split("=")
         if len(entry) == 2:
             if entry[0] not in (
-                    *mandatory_values, "SEED", "CENTRAL_ICON", "THEME"):
+                    *mandatory_values, "SEED", "PATTERN", "THEME"):
                 error_message.append(
                     f" - unknown value key on line {number}: "
                     f"'{entry[0][:15]}={entry[1][:20]}'")
@@ -33,15 +35,6 @@ def parse_config_file(
             error_message.append(
                 f" - unknown entry on line {number}: '{line[:35]}'")
     return "\n".join(error_message)
-
-
-def get_boolean(value: str | bool) -> bool:
-    if str(value) == "True":
-        return True
-    elif str(value) == "False":
-        return False
-    raise TypeError(
-        f"invalid boolean value '{value}', must be 'True or 'False'")
 
 
 def generate_config(
@@ -54,12 +47,13 @@ def generate_config(
         if "seed" not in config.keys():
             config.update({"seed": str(randint(0, 1000000000000))})
         int(config["seed"])
-        if config.get("central_icon", "True") not in ("True", "False"):
-            raise ValueError
-        config.update({"central_icon": config.get("central_icon", "False")})
-        if config.get("theme", "Default") not in (
-                "Default", "Bees", "Metamorphosis", "Meuuh"):
-            raise ValueError
+        if config.get("pattern", "None").upper() not in (
+                pattern.name for pattern in Patterns):
+            raise ValueError("Unknown value attributed to pattern parameter.")
+        config.update({"pattern": config.get("pattern", "None")})
+        if config.get("theme", "Default").upper() not in (
+                theme.name for theme in Themes):
+            raise ValueError("Unknown value attributed to theme parameter.")
         config.update({"theme": config.get("theme", "Default")})
     except ValueError as error:
         output = f"- {str(error)}"

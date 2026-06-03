@@ -1,14 +1,14 @@
 
 from maze_gen import Maze
-from maze_io import write_out_maze, generate_config, get_boolean
+from maze_io import write_out_maze, generate_config
 from pydantic import ValidationError
 from sys import argv, stdin
 from os import name
 from typing import cast
 from collections.abc import Callable
 from maze_display import (
-    print_error, instantiate_maze_display, Theme, get_themes,
-    print_maze_generation, instantiate_menues, ProgramQuit)
+    print_error, instantiate_maze_display,
+    instantiate_menues, ProgramQuit, Patterns)
 
 
 if name != "nt":
@@ -46,10 +46,10 @@ def instantiate_maze(
             exit=(
                 int(config["exit"].split(",")[0]),
                 int(config["exit"].split(",")[1])),
-            perfect=get_boolean(config["perfect"]),
+            perfect=(True if config["perfect"] == "True" else False),
             gen_algorithm=config["gen_algorithm"],
             seed=int(config["seed"]),
-            central_icon=get_boolean(config["central_icon"]))
+            pattern=getattr(Patterns, config["pattern"].upper()).value)
         return maze
     except (KeyError, TypeError, IndexError,
             ValueError, ValidationError) as error:
@@ -79,12 +79,11 @@ def main() -> int:
     mandatory_values: tuple[str, ...] = (
         "WIDTH", "HEIGHT", "ENTRY", "EXIT", "PERFECT", "GEN_ALGORITHM",
         "SOL_ALGORITHM", "OUTPUT_FILE")
-    parsing_output: str = generate_config(
-        argv[1], config, mandatory_values)
-    if parsing_output != "":
+    function_output: str = generate_config(argv[1], config, mandatory_values)
+    if function_output != "":
         print_error(
             "\nOne or multiple errors caught during parsing of file "
-            f"'{argv[1]}':\n{parsing_output}")
+            f"'{argv[1]}':\n{function_output}")
         return 2
 
     maze: str | Maze = instantiate_maze(config, mandatory_values)
@@ -98,16 +97,15 @@ def main() -> int:
         "\nCorrect configuration found and loaded. "
         "Starting A_maze_ing program... ⏎ ")
     user_input: str
-    menu_output: str
-    themes: dict[str, Theme] = get_themes()
-    menu_module: Callable[[str, str | Theme], str] = instantiate_menues(config)
-    maze_display: Callable[[Maze], None] = instantiate_maze_display(
-        config, themes)
+    function_output = ""
+    menu_module: Callable[[str, str], str] = instantiate_menues(config)
+    maze_display: Callable[[str, Maze], None] =\
+        instantiate_maze_display(config)
     while True:
-        print_maze_generation(maze, themes[config["theme"]])
+        maze_display("display_maze_generation", maze)
         while True:
-            maze_display(maze)
-            menu_module("print_menu", themes[config["theme"]])
+            maze_display("display_maze", maze)
+            menu_module("print_menu", "")
             if name != "nt":
                 user_input = stdin.read(1)
                 if user_input == "\x1b" and stdin.read(1) == "[":
@@ -116,8 +114,8 @@ def main() -> int:
                     user_input = user_input.lower()
             else:
                 user_input = getch()
-            menu_output = menu_module("browse_menu", user_input)
-            if menu_output == "maze_gen":
+            function_output = menu_module("browse_menu", user_input)
+            if function_output == "maze_gen":
                 new_maze: str | Maze = instantiate_maze(
                     config, mandatory_values)
                 if isinstance(new_maze, str):
@@ -125,17 +123,17 @@ def main() -> int:
                 else:
                     maze = new_maze
                     break
-            elif menu_output == "file_rename":
+            elif function_output == "file_rename":
                 if name != "nt":
                     tcsetattr(fd, TCSAFLUSH, old_term)
                 config["output_file"] = input(
                     "Enter new file name for maze output: ")
                 if name != "nt":
                     tcsetattr(fd, TCSAFLUSH, new_term)
-            elif menu_output == "save_maze":
-                menu_output = write_out_maze(maze, config)
-                if menu_output != "":
-                    menu_module("maze_error", menu_output)
+            elif function_output == "save_maze":
+                function_output = write_out_maze(maze, config)
+                if function_output != "":
+                    menu_module("maze_error", function_output)
 
 
 if __name__ == "__main__":

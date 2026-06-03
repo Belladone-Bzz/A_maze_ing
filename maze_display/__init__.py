@@ -1,11 +1,12 @@
 
-from .display import (
-    instantiate_maze_display, print_error, print_maze_generation)
-from .themes import Theme, get_themes
+from .display import instantiate_maze_display
+from .themes import Theme, Themes, get_theme
 from .menues import instantiate_menues, ProgramQuit
+from .utils import print_error, Patterns
 
 
 __all__ = [
-    "instantiate_maze_display", "print_error", "print_maze_generation",
-    "Theme", "get_themes",
-    "instantiate_menues", "ProgramQuit"]
+    "instantiate_maze_display",
+    "Theme", "Themes", "get_theme",
+    "instantiate_menues", "ProgramQuit",
+    "print_error", "Patterns"]

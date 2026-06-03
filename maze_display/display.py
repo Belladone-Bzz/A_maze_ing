@@ -1,192 +1,203 @@
 
-from .utils import (
-    style_print, Styling, styling, Colors, CursorOperations, SmallIcons,
-    move_cursor)
-from .themes import Theme
+from .utils import style_print, CursorOperations, SmallIcons, move_cursor
+from .themes import Theme, get_theme
 from maze_gen import Maze, Directions
 from collections.abc import Callable
 from os import get_terminal_size, terminal_size
 from time import sleep
 
 
-def print_error(
-        content: str,
-        end: str = "\n\nRefer to the provided README file for guidance.\n\n"
-        ) -> None:
-    style_print(styling([Styling.BOLD], Colors.RED), content, end)
-
-
-def print_maze(maze: Maze, theme: Theme) -> None:
-    print(move_cursor(0, 0))
-
-    emojis: tuple[SmallIcons, ...] = (
-        SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER,
-        SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR, SmallIcons.COW,
-        SmallIcons.MILK)
-
-    line: str = str(theme.angles.TOP_LEFT)
-    line += "".join(
-        str(theme.walls.HORIZONTAL) * 3 + (
-            "" if cell.coordinates[0] == maze.config.WIDTH - 1
-            else str(theme.walls.HORIZONTAL_D)
-            if cell.walls[Directions.EAST] is True
-            else str(theme.walls.HORIZONTAL))
-        for cell in (maze.cells[x][0] for x in range(maze.config.WIDTH)))
-    line += str(theme.angles.TOP_RIGHT)
-    style_print(
-        theme.walls_style, line, f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
-
-    for y in range(maze.config.HEIGHT):
-        line = str(theme.walls.VERTICAL)
-        for x in range(maze.config.WIDTH):
-            if maze.cells[x][y].entry is True:
-                line += (
-                    f" {theme.start_style}{theme.start}{theme.walls_style} "
-                    if theme.start not in emojis else f" {theme.start}")
-            elif maze.cells[x][y].exit is True:
-                line += (
-                    f" {theme.exit_style}{theme.exit}{theme.walls_style} "
-                    if theme.exit not in emojis else f" {theme.exit}")
-            else:
-                line += "   "
-            if x == maze.config.WIDTH - 1:
-                break
-            line += (
-                    str(theme.walls.VERTICAL)
-                    if maze.cells[x][y].walls[Directions.EAST] is True
-                    else " ")
-        line += str(theme.walls.VERTICAL)
-        style_print(
-            theme.walls_style, line, f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
-
-        if y == maze.config.HEIGHT - 1:
-            break
-
-        line = (
-            str(theme.walls.VERTICAL_R)
-            if maze.cells[0][y].walls[Directions.SOUTH] is True
-            else str(theme.walls.VERTICAL))
-        for x in range(maze.config.WIDTH):
-            line += (
-                str(theme.walls.HORIZONTAL) * 3
-                if maze.cells[x][y].walls[Directions.SOUTH] is True
-                else "   ")
-            if x == maze.config.WIDTH - 1:
-                line += (
-                    str(theme.walls.VERTICAL_L)
-                    if maze.cells[x][y].walls[Directions.SOUTH] is True
-                    else str(theme.walls.VERTICAL))
-                style_print(
-                    theme.walls_style, line,
-                    f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
-                continue
-            line += (
-                str(theme.walls.CROSS)
-                if maze.cells[x][y].walls[Directions.SOUTH] is True
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
-                and maze.cells[x][y].walls[Directions.EAST] is True
-                and maze.cells[x][y + 1].walls[Directions.EAST] is True
-
-                else str(theme.walls.VERTICAL)
-                if maze.cells[x][y].walls[Directions.SOUTH] is False
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
-                and (
-                    maze.cells[x][y].walls[Directions.EAST] is True
-                    or maze.cells[x][y + 1].walls[Directions.EAST] is True)
-
-                else str(theme.walls.HORIZONTAL)
-                if (
-                    maze.cells[x][y].walls[Directions.SOUTH] is True
-                    or maze.cells[x + 1][y].walls[Directions.SOUTH] is True)
-                and maze.cells[x][y].walls[Directions.EAST] is False
-                and maze.cells[x][y + 1].walls[Directions.EAST] is False
-
-                else str(theme.walls.VERTICAL_L)
-                if maze.cells[x][y].walls[Directions.SOUTH] is True
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
-                and maze.cells[x][y].walls[Directions.EAST] is True
-                and maze.cells[x][y + 1].walls[Directions.EAST] is True
-
-                else str(theme.walls.VERTICAL_R)
-                if maze.cells[x][y].walls[Directions.SOUTH] is False
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
-                and maze.cells[x][y].walls[Directions.EAST] is True
-                and maze.cells[x][y + 1].walls[Directions.EAST] is True
-
-                else str(theme.walls.HORIZONTAL_U)
-                if maze.cells[x][y].walls[Directions.SOUTH] is True
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
-                and maze.cells[x][y].walls[Directions.EAST] is True
-                and maze.cells[x][y + 1].walls[Directions.EAST] is False
-
-                else str(theme.walls.HORIZONTAL_D)
-                if maze.cells[x][y].walls[Directions.SOUTH] is True
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
-                and maze.cells[x][y].walls[Directions.EAST] is False
-                and maze.cells[x][y + 1].walls[Directions.EAST] is True
-
-                else str(theme.angles.TOP_LEFT)
-                if maze.cells[x][y].walls[Directions.SOUTH] is False
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
-                and maze.cells[x][y].walls[Directions.EAST] is False
-                and maze.cells[x][y + 1].walls[Directions.EAST] is True
-
-                else str(theme.angles.TOP_RIGHT)
-                if maze.cells[x][y].walls[Directions.SOUTH] is True
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
-                and maze.cells[x][y].walls[Directions.EAST] is False
-                and maze.cells[x][y + 1].walls[Directions.EAST] is True
-
-                else str(theme.angles.BOTTOM_LEFT)
-                if maze.cells[x][y].walls[Directions.SOUTH] is False
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
-                and maze.cells[x][y].walls[Directions.EAST] is True
-                and maze.cells[x][y + 1].walls[Directions.EAST] is False
-
-                else str(theme.angles.BOTTOM_RIGHT)
-                if maze.cells[x][y].walls[Directions.SOUTH] is True
-                and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
-                and maze.cells[x][y].walls[Directions.EAST] is True
-                and maze.cells[x][y + 1].walls[Directions.EAST] is False
-
-                else " ")
-
-    line = str(theme.angles.BOTTOM_LEFT)
-    line += "".join(
-        str(theme.walls.HORIZONTAL) * 3 + (
-            "" if cell.coordinates[0] == maze.config.WIDTH - 1
-            else str(theme.walls.HORIZONTAL_U)
-            if cell.walls[Directions.EAST] is True
-            else str(theme.walls.HORIZONTAL))
-        for cell in (maze.cells[x][-1] for x in range(maze.config.WIDTH)))
-    line += str(theme.angles.BOTTOM_RIGHT)
-    style_print(theme.walls_style, line, "\n")
-
-
-def print_maze_generation(maze: Maze, theme: Theme) -> None:
-    print(CursorOperations.HEAVY_CLEAR, end="")
-    window_size: terminal_size = get_terminal_size()
-    if (
-            maze.config.WIDTH * 4 < window_size.columns
-            and maze.config.HEIGHT * 2 < window_size.lines):
-        for _ in maze.stepped_generation():
-            print_maze(maze, theme)
-            sleep(0.005)
-    else:
-        maze.generate_maze()
-
-
 def instantiate_maze_display(
-        config: dict[str, str],
-        themes: dict[str, Theme]) -> Callable[[Maze], None]:
+        config: dict[str, str]) -> Callable[[str, Maze], None]:
 
-    def maze_display(maze: Maze) -> None:
+    current_theme: Theme = get_theme(config["theme"])
+
+    def print_maze(maze: Maze) -> None:
+        print(move_cursor(0, 0))
+
+        emojis: tuple[SmallIcons, ...] = (
+            SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER,
+            SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR, SmallIcons.COW,
+            SmallIcons.MILK)
+
+        line: str = str(current_theme.angles.TOP_LEFT)
+        line += "".join(
+            str(current_theme.walls.HORIZONTAL) * 3 + (
+                "" if cell.coordinates[0] == maze.config.WIDTH - 1
+                else str(current_theme.walls.HORIZONTAL_D)
+                if cell.walls[Directions.EAST] is True
+                else str(current_theme.walls.HORIZONTAL))
+            for cell in (maze.cells[x][0] for x in range(maze.config.WIDTH)))
+        line += str(current_theme.angles.TOP_RIGHT)
+        style_print(
+            current_theme.walls_style, line,
+            f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
+
+        for y in range(maze.config.HEIGHT):
+            line = str(current_theme.walls.VERTICAL)
+            for x in range(maze.config.WIDTH):
+                if maze.cells[x][y].entry is True:
+                    line += (
+                        f" {current_theme.start_style}{current_theme.start}"
+                        "{current_theme.walls_style} "
+                        if current_theme.start not in emojis
+                        else f" {current_theme.start}")
+                elif maze.cells[x][y].exit is True:
+                    line += (
+                        f" {current_theme.exit_style}{current_theme.exit}"
+                        "{current_theme.walls_style} "
+                        if current_theme.exit not in emojis
+                        else f" {current_theme.exit}")
+                else:
+                    line += "   "
+                if x == maze.config.WIDTH - 1:
+                    break
+                line += (
+                        str(current_theme.walls.VERTICAL)
+                        if maze.cells[x][y].walls[Directions.EAST] is True
+                        else " ")
+            line += str(current_theme.walls.VERTICAL)
+            style_print(
+                current_theme.walls_style, line,
+                f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
+
+            if y == maze.config.HEIGHT - 1:
+                break
+
+            line = (
+                str(current_theme.walls.VERTICAL_R)
+                if maze.cells[0][y].walls[Directions.SOUTH] is True
+                else str(current_theme.walls.VERTICAL))
+            for x in range(maze.config.WIDTH):
+                line += (
+                    str(current_theme.walls.HORIZONTAL) * 3
+                    if maze.cells[x][y].walls[Directions.SOUTH] is True
+                    else "   ")
+                if x == maze.config.WIDTH - 1:
+                    line += (
+                        str(current_theme.walls.VERTICAL_L)
+                        if maze.cells[x][y].walls[Directions.SOUTH] is True
+                        else str(current_theme.walls.VERTICAL))
+                    style_print(
+                        current_theme.walls_style, line,
+                        f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
+                    continue
+                line += (
+                    str(current_theme.walls.CROSS)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x][y].walls[Directions.EAST] is True
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is True
+
+                    else str(current_theme.walls.VERTICAL)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is False
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
+                    and (
+                        maze.cells[x][y].walls[Directions.EAST] is True
+                        or maze.cells[x][y + 1].walls[Directions.EAST] is True)
+
+                    else str(current_theme.walls.HORIZONTAL)
+                    if (
+                        maze.cells[x][y].walls[Directions.SOUTH] is True
+                        or maze.cells[x + 1][y].walls[Directions.SOUTH]
+                        is True)
+                    and maze.cells[x][y].walls[Directions.EAST] is False
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is False
+
+                    else str(current_theme.walls.VERTICAL_L)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
+                    and maze.cells[x][y].walls[Directions.EAST] is True
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is True
+
+                    else str(current_theme.walls.VERTICAL_R)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is False
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x][y].walls[Directions.EAST] is True
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is True
+
+                    else str(current_theme.walls.HORIZONTAL_U)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x][y].walls[Directions.EAST] is True
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is False
+
+                    else str(current_theme.walls.HORIZONTAL_D)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x][y].walls[Directions.EAST] is False
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is True
+
+                    else str(current_theme.angles.TOP_LEFT)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is False
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x][y].walls[Directions.EAST] is False
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is True
+
+                    else str(current_theme.angles.TOP_RIGHT)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
+                    and maze.cells[x][y].walls[Directions.EAST] is False
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is True
+
+                    else str(current_theme.angles.BOTTOM_LEFT)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is False
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x][y].walls[Directions.EAST] is True
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is False
+
+                    else str(current_theme.angles.BOTTOM_RIGHT)
+                    if maze.cells[x][y].walls[Directions.SOUTH] is True
+                    and maze.cells[x + 1][y].walls[Directions.SOUTH] is False
+                    and maze.cells[x][y].walls[Directions.EAST] is True
+                    and maze.cells[x][y + 1].walls[Directions.EAST] is False
+
+                    else " ")
+
+        line = str(current_theme.angles.BOTTOM_LEFT)
+        line += "".join(
+            str(current_theme.walls.HORIZONTAL) * 3 + (
+                "" if cell.coordinates[0] == maze.config.WIDTH - 1
+                else str(current_theme.walls.HORIZONTAL_U)
+                if cell.walls[Directions.EAST] is True
+                else str(current_theme.walls.HORIZONTAL))
+            for cell in (maze.cells[x][-1] for x in range(maze.config.WIDTH)))
+        line += str(current_theme.angles.BOTTOM_RIGHT)
+        style_print(current_theme.walls_style, line, "\n")
+
+    def integrate_pattern_design(maze: Maze) -> None:
+        pass
+
+    def display_maze(maze: Maze) -> None:
         window_size: terminal_size = get_terminal_size()
         if (
                 maze.config.WIDTH * 4 < window_size.columns
                 and maze.config.HEIGHT * 2 < window_size.lines):
-            print_maze(maze, themes[config["theme"]])
+            print_maze(maze)
+            integrate_pattern_design(maze)
         else:
-            style_print(themes[config["theme"]].walls_style, "too small")
+            style_print(current_theme.walls_style, "too small")
+
+    def display_maze_generation(maze: Maze) -> None:
+        print(CursorOperations.HEAVY_CLEAR, end="")
+        window_size: terminal_size = get_terminal_size()
+        if (
+                maze.config.WIDTH * 4 < window_size.columns
+                and maze.config.HEIGHT * 2 < window_size.lines):
+            for _ in maze.stepped_generation():
+                print_maze(maze)
+                integrate_pattern_design(maze)
+                sleep(0.005)
+        else:
+            maze.generate_maze()
+
+    prints: dict[str, Callable[[Maze], None]] = {
+        "display_maze": display_maze,
+        "display_maze_generation": display_maze_generation}
+
+    def maze_display(current_display: str, maze: Maze) -> None:
+        nonlocal current_theme
+        current_theme = get_theme(config["theme"])
+        prints.get(current_display, display_maze)(maze)
 
     return maze_display

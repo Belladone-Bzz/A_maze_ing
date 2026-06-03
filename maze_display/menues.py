@@ -1,7 +1,6 @@
 
-from .utils import style_print, SmallIcons, CursorOperations
-from .display import print_error
-from .themes import Theme
+from .utils import style_print, print_error, SmallIcons, CursorOperations
+from .themes import Theme, get_theme
 from random import randint
 from typing import cast
 from enum import Enum
@@ -24,7 +23,7 @@ class Keyboard(Enum):
 
 
 def instantiate_menues(
-        config: dict[str, str]) -> Callable[[str, str | Theme], str]:
+        config: dict[str, str]) -> Callable[[str, str], str]:
 
     config_save: dict[str, str] = config.copy()
     current_menu: str = "main"
@@ -218,9 +217,10 @@ def instantiate_menues(
                 option_type="toggle",
                 text=f"{"Perfect:":<22}""{value:>13}"),
             Option(
-                name="central_icon",
-                option_type="toggle",
-                text=f"{"Central icon:":<22}""{value:>13}"),
+                name="pattern",
+                option_type="selection",
+                options=["None", "Forty_Two", "Heart"],
+                text=f"{"Central pattern:":<22}""{value:>13}"),
             Option(
                 name="gen_algorithm",
                 option_type="selection",
@@ -338,14 +338,14 @@ def instantiate_menues(
             int(config_save["width"]) * 4), "\n")
 
     def menues_module(
-            current_action: str, user_input: str | Theme) -> str:
+            current_action: str, user_input: str) -> str:
         if current_action == "browse_menu":
-            return browse_menu(cast(str, user_input))
+            return browse_menu(user_input)
         elif current_action == "print_menu":
-            print_menu(cast(Theme, user_input))
+            print_menu(get_theme(config["theme"]))
         elif current_action == "maze_error":
             nonlocal current_error
-            current_error = cast(str, user_input)
+            current_error = user_input
         return ""
 
     return menues_module
