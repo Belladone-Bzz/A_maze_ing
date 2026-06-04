@@ -49,20 +49,20 @@ def instantiate_menues(
         nonlocal current_error
         nonlocal config_save
         if current_menu == "maze_config":
-            for key, value in config.items():
-                config_save[key] = value
+            for key, value in config_save.items():
+                config[key] = value
         current_menu = new_menu
         current_index = 0
         current_error = ""
         if current_menu == "maze_config":
-            for key, value in config_save.items():
-                config[key] = value
+            for key, value in config.items():
+                config_save[key] = value
         return ""
 
     def generate_maze(_: str) -> str:
         nonlocal config_save
-        for key, value in config_save.items():
-            config[key] = value
+        for key, value in config.items():
+                config_save[key] = value
         return "maze_gen"
 
     def leave_program(_: str) -> str:
@@ -193,7 +193,7 @@ def instantiate_menues(
                 name="save maze",
                 option_type="validate",
                 text="Save maze to output file",
-                exec=partial(generate_maze, "")),
+                exec=partial(lambda _: "save_maze", "")),
             Option(
                 name="generate",
                 option_type="validate",
@@ -262,7 +262,7 @@ def instantiate_menues(
                 name="generate maze",
                 option_type="validate",
                 text="- Generate maze -",
-                exec=partial(lambda _: "maze_gen", "")),
+                exec=partial(generate_maze, "")),
             Option(
                 name="back",
                 option_type="validate",
