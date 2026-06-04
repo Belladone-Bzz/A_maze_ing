@@ -270,32 +270,61 @@ class Maze:
         """Search dead end and make a path in an optimal way to avoid chambers
         in the maze."""
         dead_end: list[CellCoordinates] = self.find_dead_end()
+
         for coord in dead_end:
-            entry_direction: int = self.cells[
+            entry_dir: int = self.cells[
                 coord[0]][coord[1]].walls.index(False)
-            opposite_direction: int = ((entry_direction + 2) % 4)
-            opposite_movement: Movements = Movements[
-                Directions(opposite_direction).name].value
-            ideal_cell: CellCoordinates = ((coord[0] + opposite_movement[0]),
-                                           (coord[1] + opposite_movement[1]))
+            opposite_dir: int = ((entry_dir + 2) % 4)
+            opposite_mov: Movements = Movements[
+                Directions(opposite_dir).name].value
+            ideal_cell: CellCoordinates = ((coord[0] + opposite_mov[0]),
+                                           (coord[1] + opposite_mov[1]))
             if self.is_available(ideal_cell) is False:
                 continue
             self.break_wall(coord, ideal_cell)
-            break
+            return
+
         else:
             for coord in dead_end:
-                side_directions: list[int] = [((entry_direction + 1) % 4),
-                                              ((entry_direction + 3) % 4)]
-                for side in side_directions:
-                    side_movement: Movements = Movements[
+                entry_dir: int = self.cells[
+                    coord[0]][coord[1]].walls.index(False)
+                entry_mov: Movements = Movements[
+                    Directions(entry_dir).name].value
+                cell_before_entry: CellCoordinates = (
+                        (coord[0] + entry_mov[0]),
+                        (coord[1] + entry_mov[1]))
+                side_dir: list[int] = [((entry_dir + 1) % 4),
+                                       ((entry_dir + 3) % 4)]
+                for side in side_dir:
+                    dead_end_walled: bool = self.cells[
+                        coord[0]][coord[1]].walls[side]
+                    before_walled: bool = self.cells[
+                        cell_before_entry[0]][cell_before_entry[1]].walls[side]
+                    if before_walled != dead_end_walled:
+                        continue
+                    side_mov: CellCoordinates = Movements[
+                        Directions(side).name].value
+                    side_cell: CellCoordinates = ((coord[0] + side_mov[0]),
+                                                  (coord[1] + side_mov[1]))
+                    if self.is_available(side_cell) is True:
+                        self.break_wall(coord, side_cell)
+                        return
+            else:
+                for coord in dead_end:
+                    entry_dir: int = self.cells[
+                        coord[0]][coord[1]].walls.index(False)
+                    side_dir: list[int] = [((entry_dir + 1) % 4),
+                                           ((entry_dir + 3) % 4)]
+                for side in side_dir:
+                    side_mov: Movements = Movements[
                         Directions(side).name].value
                     side_cell: CellCoordinates = (
-                        (coord[0] + side_movement[0]),
-                        (coord[1] + side_movement[1]))
+                        (coord[0] + side_mov[0]),
+                        (coord[1] + side_mov[1]))
                     if self.is_available(side_cell) is False:
                         continue
                     self.break_wall(coord, side_cell)
-                    break
+                    return
 
     # _________________________________________________________________________
     #                         GENERATION ALGORITHMS
@@ -416,8 +445,8 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=4,
-        height=4,
+        width=3,
+        height=3,
         entry=(0, 0),
         exit=(0, 1),
         perfect=False,
