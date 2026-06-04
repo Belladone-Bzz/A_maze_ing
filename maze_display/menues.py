@@ -1,6 +1,7 @@
 
-from .utils import style_print, print_error, SmallIcons, CursorOperations
-from .themes import Theme, get_theme
+from .utils import (
+    style_print, print_error, SmallIcons, CursorOperations, Patterns)
+from .themes import Theme, Themes, get_theme
 from random import randint
 from typing import cast
 from enum import Enum
@@ -46,15 +47,23 @@ def instantiate_menues(
         nonlocal current_menu
         nonlocal current_index
         nonlocal current_error
-        if (current_menu == "maze_config"
-                and current_index == len(menues["maze_config"]) - 1):
-            config.update(config_save)
+        nonlocal config_save
+        if current_menu == "maze_config":
+            for key, value in config.items():
+                config_save[key] = value
         current_menu = new_menu
         current_index = 0
         current_error = ""
         if current_menu == "maze_config":
-            config_save.update(config)
+            for key, value in config_save.items():
+                config[key] = value
         return ""
+
+    def generate_maze(_: str) -> str:
+        nonlocal config_save
+        for key, value in config_save.items():
+            config[key] = value
+        return "maze_gen"
 
     def leave_program(_: str) -> str:
         raise ProgramQuit
@@ -178,13 +187,13 @@ def instantiate_menues(
             Option(
                 name="theme",
                 option_type="selection",
-                options=["Default", "Bees", "Metamorphosis", "Meuuh"],
+                options=[theme.name.capitalize() for theme in Themes],
                 text="Current theme: {value}"),
             Option(
                 name="save maze",
                 option_type="validate",
                 text="Save maze to output file",
-                exec=partial(lambda _: "save_maze", "")),
+                exec=partial(generate_maze, "")),
             Option(
                 name="generate",
                 option_type="validate",
@@ -219,7 +228,7 @@ def instantiate_menues(
             Option(
                 name="pattern",
                 option_type="selection",
-                options=["None", "Forty_Two", "Heart"],
+                options=[pattern.name.capitalize() for pattern in Patterns],
                 text=f"{"Central pattern:":<22}""{value:>13}"),
             Option(
                 name="gen_algorithm",
@@ -302,19 +311,19 @@ def instantiate_menues(
             theme.angles.TOP_LEFT + (theme.walls.HORIZONTAL * menu_width)
             + theme.angles.TOP_RIGHT)
         style_print(theme.walls_style, line.center(
-            int(config_save["width"]) * 4), "\n")
+            int(config_save["width"]) * 4 + 1), "\n")
         for index, entry in enumerate(menues[current_menu]):
             if index == len(menues[current_menu]) - 1 and current_error == "":
                 style_print(theme.walls_style, (
                     f"{theme.walls.VERTICAL}{" " * menu_width}"
                     f"{theme.walls.VERTICAL}").center(
-                        int(config_save["width"]) * 4),
+                        int(config_save["width"]) * 4 + 1),
                     "\n")
             elif index == len(menues[current_menu]) - 1:
                 for errors in current_error.split("\n"):
                     style_print(
-                        theme.walls_style, theme.walls.VERTICAL.rjust(int(
-                            (int(config_save["width"]) * 4 - menu_width) / 2)))
+                        theme.walls_style, theme.walls.VERTICAL.rjust(int((int(
+                            config_save["width"]) * 4 - menu_width) / 2 + 1)))
                     print_error(errors.center(menu_width),  end="")
                     style_print(theme.walls_style, theme.walls.VERTICAL, "\n")
             if index == current_index:
@@ -327,15 +336,17 @@ def instantiate_menues(
                 line = (str(entry).center(menu_width))
             style_print(
                 theme.walls_style, theme.walls.VERTICAL.rjust(
-                    int((int(config_save["width"]) * 4 - menu_width) / 2)))
+                    int((int(config_save["width"]) * 4 - menu_width) / 2 + 1)))
             style_print(
                 theme.walls_style, line.center(menu_width))
-            style_print(theme.walls_style, theme.walls.VERTICAL, "\n")
+            style_print(theme.walls_style, theme.walls.VERTICAL.ljust(
+                    int((int(config_save["width"]) * 4 - menu_width + 1) / 2)),
+                    "\n")
         line = (
             theme.angles.BOTTOM_LEFT + (theme.walls.HORIZONTAL * menu_width)
             + theme.angles.BOTTOM_RIGHT)
         style_print(theme.walls_style, line.center(
-            int(config_save["width"]) * 4), "\n")
+            int(config_save["width"]) * 4 + 1), "\n")
 
     def menues_module(
             current_action: str, user_input: str) -> str:

@@ -47,12 +47,12 @@ def generate_config(
         if "seed" not in config.keys():
             config.update({"seed": str(randint(0, 1000000000000))})
         int(config["seed"])
-        if config.get("pattern", "None").upper() not in (
-                pattern.name for pattern in Patterns):
+        if config.get("pattern", "None") not in (
+                pattern.name.capitalize() for pattern in Patterns):
             raise ValueError("Unknown value attributed to pattern parameter.")
         config.update({"pattern": config.get("pattern", "None")})
-        if config.get("theme", "Default").upper() not in (
-                theme.name for theme in Themes):
+        if config.get("theme", "Default") not in (
+                theme.name.capitalize() for theme in Themes):
             raise ValueError("Unknown value attributed to theme parameter.")
         config.update({"theme": config.get("theme", "Default")})
     except ValueError as error:

@@ -18,7 +18,7 @@ def instantiate_maze_display(
         emojis: tuple[SmallIcons, ...] = (
             SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER,
             SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR, SmallIcons.COW,
-            SmallIcons.MILK)
+            SmallIcons.MILK, SmallIcons.TONGUE, SmallIcons.BIKINI)
 
         line: str = str(current_theme.angles.TOP_LEFT)
         line += "".join(
@@ -39,13 +39,13 @@ def instantiate_maze_display(
                 if maze.cells[x][y].entry is True:
                     line += (
                         f" {current_theme.start_style}{current_theme.start}"
-                        "{current_theme.walls_style} "
+                        f"{current_theme.walls_style} "
                         if current_theme.start not in emojis
                         else f" {current_theme.start}")
                 elif maze.cells[x][y].exit is True:
                     line += (
                         f" {current_theme.exit_style}{current_theme.exit}"
-                        "{current_theme.walls_style} "
+                        f"{current_theme.walls_style} "
                         if current_theme.exit not in emojis
                         else f" {current_theme.exit}")
                 else:
@@ -166,7 +166,134 @@ def instantiate_maze_display(
         style_print(current_theme.walls_style, line, "\n")
 
     def integrate_pattern_design(maze: Maze) -> None:
-        pass
+        pattern: list[list[bool]] = maze.config.PATTERN
+        lines : str = ""
+        horizontal_offset: int = (
+            int(maze.config.WIDTH / 2)
+            - int(len(pattern[0]) / 2))
+        vertical_offset: int = (
+            int(maze.config.HEIGHT / 2)
+            - int(len(pattern) / 2))
+
+        for y in range(len(pattern)):
+            for x in range(len(pattern[0])):
+                if pattern[y][x] is True:
+                    lines += (
+                        current_theme.icon_angles.TOP_LEFT
+                        if (x == 0 and y == 0)
+                        or (x == 0 and pattern[y - 1][x] is False)
+                        or (y == 0 and pattern[y][x - 1] is False)
+                        or (
+                            x != 0 and y != 0
+                            and pattern[y - 1][x - 1] is False
+                            and pattern[y - 1][x] is False
+                            and pattern[y][x - 1] is False)
+                        else current_theme.icon_walls.HORIZONTAL_D
+                        if x != 0 and pattern[y][x - 1] is True and (
+                            y == 0 or (
+                                pattern[y - 1][x - 1] is False
+                                and pattern[y - 1][x] is False))
+                        else current_theme.icon_walls.VERTICAL_R
+                        if y != 0 and pattern[y - 1][x] is True and (
+                            x == 0 or (
+                                pattern[y - 1][x - 1] is False
+                                and pattern[y][x - 1] is False))
+                        else current_theme.icon_walls.CROSS)
+                    lines += current_theme.icon_walls.HORIZONTAL * 3
+                else:
+                    lines += (
+                        current_theme.icon_angles.TOP_RIGHT
+                        if x != 0 and pattern[y][x - 1] is True and (
+                            y == 0 or (
+                                pattern[y - 1][x] is False
+                                and pattern[y - 1][x - 1] is False))
+                        else current_theme.icon_angles.BOTTOM_LEFT
+                        if y != 0 and pattern[y - 1][x] is True and (
+                            x == 0 or (
+                                pattern[y][x - 1] is False
+                                and pattern[y - 1][x - 1] is False))
+                        else current_theme.icon_angles.BOTTOM_RIGHT
+                        if y != 0 and x != 0
+                        and pattern[y][x - 1] is False
+                        and pattern[y - 1][x] is False
+                        and pattern[y - 1][x - 1] is True
+                        else current_theme.icon_walls.HORIZONTAL_U
+                        if y != 0 and x != 0
+                        and pattern[y][x - 1] is False
+                        and pattern[y - 1][x] is True
+                        and pattern[y - 1][x - 1] is True
+                        else current_theme.icon_walls.VERTICAL_L
+                        if y != 0 and x != 0
+                        and pattern[y][x - 1] is True
+                        and pattern[y - 1][x] is False
+                        and pattern[y - 1][x - 1] is True
+                        else current_theme.icon_walls.CROSS
+                        if y != 0 and x != 0
+                        and pattern[y][x - 1] is True
+                        and pattern[y - 1][x] is True
+                        else str(CursorOperations.MOVE_RIGHT))
+                    lines += (
+                        str(CursorOperations.MOVE_RIGHT) * 3
+                        if y == 0 or pattern[y - 1][x] is False
+                        else current_theme.icon_walls.HORIZONTAL * 3)
+                if x == len(pattern[0]) - 1:
+                    lines += (
+                        current_theme.icon_angles.TOP_RIGHT
+                        if pattern[y][x] is True and (
+                            y == 0 or pattern[y - 1][x] is False)
+                        else current_theme.icon_walls.VERTICAL_L
+                        if pattern[y][x] is True and y != 0
+                        and pattern[y - 1][x] is True
+                        else current_theme.icon_angles.BOTTOM_RIGHT
+                        if pattern[y][x] is False and y != 0
+                        and pattern[y - 1][x] is True
+                        else str(CursorOperations.MOVE_RIGHT)
+                    ) + "\n"
+            for x in range(len(pattern[0])):
+                if pattern[y][x] is True:
+                    lines += (
+                        current_theme.icon_walls.VERTICAL
+                        + current_theme.icon_content)
+                else:
+                    lines += (
+                        current_theme.icon_walls.VERTICAL
+                        if x != 0 and pattern[y][x - 1] is True
+                        else str(CursorOperations.MOVE_RIGHT))
+                    lines += str(CursorOperations.MOVE_RIGHT) * 3
+                if x == len(pattern[0]) - 1:
+                    lines += (
+                        current_theme.icon_walls.VERTICAL
+                        if pattern[y][x] is True
+                        else str(CursorOperations.MOVE_RIGHT)) + "\n"
+            if y == len(pattern) - 1:
+                for x in range(len(pattern[0])):
+                    lines += (
+                        current_theme.icon_angles.BOTTOM_LEFT
+                        if pattern[y][x] is True and (
+                            x == 0 or pattern[y][x - 1] is False)
+                        else current_theme.icon_walls.HORIZONTAL_U
+                        if pattern[y][x] is True
+                        and x != 0 and pattern[y][x - 1] is True
+                        else current_theme.icon_angles.BOTTOM_RIGHT
+                        if pattern [y][x] is False
+                        and x != 0 and pattern[y][x - 1] is True
+                        else str(CursorOperations.MOVE_RIGHT))
+                    lines += (
+                        current_theme.icon_walls.HORIZONTAL * 3
+                        if pattern[y][x] is True else
+                        str(CursorOperations.MOVE_RIGHT) * 3)
+                lines += (
+                    current_theme.icon_angles.BOTTOM_RIGHT
+                    if pattern[y][len(pattern[0]) - 1] is True
+                    else str(CursorOperations.MOVE_RIGHT)
+                )
+        print(CursorOperations.SAVE_CURSOR, end="")
+        for index, line in enumerate(lines.split("\n")):
+            print(CursorOperations.MOVE_CURSOR(
+                (vertical_offset * 2 + index + 2),
+                horizontal_offset * 4 + 1), end="")
+            style_print(current_theme.icon_style, line)
+        print(CursorOperations.LOAD_CURSOR, end="")
 
     def display_maze(maze: Maze) -> None:
         window_size: terminal_size = get_terminal_size()

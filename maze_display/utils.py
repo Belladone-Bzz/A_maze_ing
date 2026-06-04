@@ -87,6 +87,7 @@ class RoundedAngles(Angles):
 
 
 class SmallIcons(StyleEnum):
+    BLOCK = "█"
     DARK_SHADE = "▓"
     MEDIUM_SHADE = "▒"
     LIGHT_SHADE = "░"
@@ -104,6 +105,8 @@ class SmallIcons(StyleEnum):
     COOKIE = "🍪"
     BEE = "🐝"
     FLOWER = "🌸"
+    TONGUE = "👅"
+    BIKINI = "👙"
     CATERPILLAR = "🐛"
     COW = "🐄"
     MILK = "🥛"
@@ -131,6 +134,17 @@ class Patterns(Enum):
         (1, 0, 1, 0, 1),
         (0, 1, 0, 1, 0),
         (0, 0, 1, 0, 0))
+    BEE = (
+        (0, 0, 1, 1, 0, 1, 1, 0, 0, 0),
+        (0, 1, 0, 0, 1, 0, 0, 1, 0, 0),
+        (0, 0, 1, 0, 0, 1, 0, 1, 0, 0),
+        (0, 0, 0, 1, 1, 1, 1, 1, 0, 0),
+        (0, 0, 1, 1, 0, 1, 0, 0, 1, 0),
+        (0, 1, 0, 1, 0, 1, 0, 0, 0, 1),
+        (1, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+        (0, 1, 0, 1, 0, 1, 0, 0, 0, 1),
+        (0, 0, 1, 1, 0, 1, 0, 0, 1, 0),
+        (0, 0, 0, 1, 1, 1, 1, 1, 0, 0))
 
 
 class Colors(StyleEnum):
@@ -164,9 +178,14 @@ class CursorOperations(StyleEnum):
 
     SHOW_CURSOR = "\033[25h"
     HIDE_CURSOR = "\033[25l"
-    SAVE_POSITION = "\033[s"
-    LOAD_POSITION = "\033[u"
+    SAVE_CURSOR = "\033[s"
+    LOAD_CURSOR = "\033[u"
     MOVE_CURSOR = move_cursor
+
+    MOVE_UP = "\033[A"
+    MOVE_DOWN = "\033[B"
+    MOVE_RIGHT = "\033[C"
+    MOVE_LEFT = "\033[D"
 
     LINE_CLEAR = "\033[2K"
     LIGHT_LINE_CLEAR = "\033[0K"

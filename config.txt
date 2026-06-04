@@ -18,11 +18,11 @@ OUTPUT_FILE=output_file
 # - perfect, for a perfect maze (literally True or False),
 # - seed, for maze reproducibility (whole number)
 # - central icon, to display a predesigned pattern on the center of the maze,
-#     available: Forty_Two, Heart, None
+#     available: Forty_two, Heart, None
 
 PERFECT=True
 SEED=702999800310
-PATTERN=Forty_Two
+PATTERN=Forty_two
 
 # Color, characters and styling theme to apply when printing the generated maze. Themes available: Default, Bee, Metamorphosis, Meuuh
 

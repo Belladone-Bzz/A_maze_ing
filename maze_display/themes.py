@@ -64,7 +64,7 @@ class Themes(Enum):
 
         icon_walls=DoubleWalls,
         icon_angles=DoubleAngles,
-        icon_content=str(SmallIcons.DARK_SHADE) * 3,
+        icon_content=str(SmallIcons.BLOCK) * 3,
 
         icon_style=styling([], Colors.BLACK, Colors.YELLOW))
     METAMORPHOSIS = Theme(
@@ -101,6 +101,25 @@ class Themes(Enum):
         icon_content="   ",
 
         icon_style=styling([Styling.ITALIC], Colors.WHITE))
+    BOSS_LADY = Theme(
+        walls=DoubleWalls,
+        angles=DoubleAngles,
+        start=SmallIcons.TONGUE,
+        exit=SmallIcons.BIKINI,
+        progress_line=(BasicWalls, RoundedAngles),
+
+        walls_style=styling([], Colors.MAGENTA, Colors.BLACK),
+        path_style=styling([], Colors.MAGENTA, Colors.BLACK),
+        start_style=styling([]),
+        exit_style=styling([]),
+
+        icon_walls=BoldBasicWalls,
+        icon_angles=BoldBasicAngles,
+        icon_content="BBL",
+
+        icon_style=styling(
+            [Styling.ITALIC, Styling.BOLD], Colors.WHITE, Colors.BLACK)
+    )
 
 
 def get_theme(theme: str) -> Theme:
