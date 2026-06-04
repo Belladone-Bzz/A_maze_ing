@@ -62,7 +62,7 @@ def instantiate_menues(
     def generate_maze(_: str) -> str:
         nonlocal config_save
         for key, value in config.items():
-                config_save[key] = value
+            config_save[key] = value
         return "maze_gen"
 
     def leave_program(_: str) -> str:

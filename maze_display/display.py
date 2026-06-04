@@ -167,7 +167,7 @@ def instantiate_maze_display(
 
     def integrate_pattern_design(maze: Maze) -> None:
         pattern: list[list[bool]] = maze.config.PATTERN
-        lines : str = ""
+        lines: str = ""
         horizontal_offset: int = (
             int(maze.config.WIDTH / 2)
             - int(len(pattern[0]) / 2))
@@ -275,7 +275,7 @@ def instantiate_maze_display(
                         if pattern[y][x] is True
                         and x != 0 and pattern[y][x - 1] is True
                         else current_theme.icon_angles.BOTTOM_RIGHT
-                        if pattern [y][x] is False
+                        if pattern[y][x] is False
                         and x != 0 and pattern[y][x - 1] is True
                         else str(CursorOperations.MOVE_RIGHT))
                     lines += (
