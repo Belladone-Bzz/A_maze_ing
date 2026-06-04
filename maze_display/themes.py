@@ -91,16 +91,16 @@ class Themes(Enum):
         exit=SmallIcons.COW,
         progress_line=(DoubleWalls, DoubleAngles),
 
-        walls_style=styling([Styling.BLINKING], Colors.YELLOW),
-        path_style=styling([Styling.BLINKING], Colors.GREEN),
+        walls_style=styling([], Colors.YELLOW),
+        path_style=styling([], Colors.GREEN),
         start_style=styling([], Colors.YELLOW),
         exit_style=styling([], Colors.YELLOW),
 
         icon_walls=BoldBasicWalls,
         icon_angles=BoldBasicAngles,
-        icon_content="   ",
+        icon_content="▞▞▞",
 
-        icon_style=styling([Styling.ITALIC], Colors.WHITE))
+        icon_style=styling([Styling.BLINKING], Colors.WHITE))
     BOSS_LADY = Theme(
         walls=DoubleWalls,
         angles=DoubleAngles,
@@ -118,7 +118,8 @@ class Themes(Enum):
         icon_content="BBL",
 
         icon_style=styling(
-            [Styling.ITALIC, Styling.BOLD], Colors.WHITE, Colors.BLACK)
+            [Styling.ITALIC, Styling.BOLD, Styling.BLINKING],
+            Colors.WHITE, Colors.BLACK)
     )
 
 

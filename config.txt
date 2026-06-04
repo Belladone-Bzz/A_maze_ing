@@ -17,14 +17,15 @@ OUTPUT_FILE=output_file
 # Maze generation factors:
 # - perfect, for a perfect maze (literally True or False),
 # - seed, for maze reproducibility (whole number)
-# - central icon, to display a predesigned pattern on the center of the maze,
-#     available: Forty_two, Heart, None
+# - central pattern, to display a predesigned pattern on the center of the maze,
+#     Patterns available: Forty_two, Heart, Bee, Bbl, Six_seven, None
 
 PERFECT=True
 SEED=702999800310
 PATTERN=Forty_two
 
-# Color, characters and styling theme to apply when printing the generated maze. Themes available: Default, Bee, Metamorphosis, Meuuh
+# Color, characters and styling theme to apply when printing the generated maze.
+#     Themes available: Default, Bee, Metamorphosis, Meuuh, Boss_lady
 
 THEME=Bees
 
