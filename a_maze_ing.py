@@ -137,6 +137,7 @@ def main() -> int:
                     menu_module("maze_error", new_maze)
                 else:
                     maze = new_maze
+                    menu_module("back_to_main", "")
                     break
             elif function_output == "file_rename":
                 tcsetattr(fd, TCSAFLUSH, old_term)

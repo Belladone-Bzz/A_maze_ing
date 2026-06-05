@@ -84,7 +84,7 @@ def instantiate_menues(
         a config_save is used to update or updated with the shared
         config dict.
 
-        Returns a string to respect Callable typing.
+        Returns an empty string to respect Callable typing.
         """
         nonlocal current_menu
         nonlocal current_index
@@ -105,10 +105,9 @@ def instantiate_menues(
         """Execution function called to return a string to the main program
         to call for a new Maze instantiation. Updates the config_save dict
         with the new config to instantly update menues displayed info.
+        Takes a string and returns one to respect Callable typing, but
+        does nothing of them.
         """
-        nonlocal config_save
-        for key, value in config.items():
-            config_save[key] = value
         return "maze_gen"
 
     def leave_program(_: str) -> str:
@@ -460,6 +459,10 @@ def instantiate_menues(
         elif current_action == "maze_error":
             nonlocal current_error
             current_error = user_input
+        elif current_action == "back_to_main":
+            for key, value in config.items():
+                config_save[key] = value
+            change_menu("main")
         return ""
 
     return menues_module
