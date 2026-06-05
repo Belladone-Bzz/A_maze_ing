@@ -103,10 +103,10 @@ class Themes(Enum):
         exit=SmallIcons.COW,
         progress_line=(DoubleWalls, DoubleAngles),
 
-        walls_style=styling([], Colors.YELLOW),
+        walls_style=styling([], Colors.GREEN),
         path_style=styling([], Colors.GREEN),
-        start_style=styling([], Colors.YELLOW),
-        exit_style=styling([], Colors.YELLOW),
+        start_style=styling([], Colors.GREEN),
+        exit_style=styling([], Colors.GREEN),
 
         icon_walls=BoldBasicWalls,
         icon_angles=BoldBasicAngles,

@@ -156,10 +156,10 @@ class Maze:
             for y in range(len(self.config.PATTERN)):
                 if self.config.PATTERN[y][x] is False:
                     continue
-                self.cells[x + self.pattern_h_offset][y\
-                    + self.pattern_v_offset].pattern = True
-                self.cells[x + self.pattern_h_offset][y\
-                    + self.pattern_v_offset].walls = [True, True, True, True]
+                self.cells[x + self.pattern_h_offset][
+                    y + self.pattern_v_offset].pattern = True
+                self.cells[x + self.pattern_h_offset][
+                    y + self.pattern_v_offset].walls = [True, True, True, True]
 
     def add_enclosed_cells_to_pattern(self) -> None:
         """Method to add every cells that weren't visited by the generating
@@ -169,10 +169,10 @@ class Maze:
         """
         for x in range(len(self.config.PATTERN[0])):
             for y in range(len(self.config.PATTERN)):
-                if self.cells[x + self.pattern_h_offset][y\
-                        + self.pattern_v_offset].is_in_maze is False:
-                    self.cells[x + self.pattern_h_offset][y\
-                        + self.pattern_v_offset].pattern = True
+                if self.cells[x + self.pattern_h_offset][
+                        y + self.pattern_v_offset].is_in_maze is False:
+                    self.cells[x + self.pattern_h_offset][
+                        y + self.pattern_v_offset].pattern = True
 
     def grid_generation(self, walled: bool) -> None:
         """Method to generate all the cells in the maze grid in a
@@ -526,8 +526,6 @@ class Maze:
     #                         MAZE GENERATION AND DISPLAY
     # _________________________________________________________________________
 
-
-
     def generate_maze(self) -> None:
         self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
@@ -580,12 +578,12 @@ if __name__ == "__main__":
         perfect=False,
         gen_algorithm="Prim",
         seed=randint(0, 99999999),
-        pattern=(
-        (0, 0, 1, 0, 1, 1, 1),
-        (0, 1, 0, 0, 0, 0, 1),
-        (1, 1, 1, 0, 0, 1, 0),
-        (0, 0, 1, 0, 1, 0, 0),
-        (0, 0, 1, 0, 1, 1, 1))
+        pattern=[
+            [False, False, True, False, True, True, True],
+            [False, True, False, False, False, False, True],
+            [True, True, True, False, False, True, False],
+            [False, False, True, False, True, False, False],
+            [False, False, True, False, True, True, True]]
     )
     print(maze.config)
     for _ in maze.stepped_generation():

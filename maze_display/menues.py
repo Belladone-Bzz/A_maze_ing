@@ -154,11 +154,9 @@ def instantiate_menues(
             """Returns self.text formatted with the corresponding value from
             the config dict if appropriate.
             """
-            if (
-                    config is not None
-                    and config.get(self.name) is not None):
+            if config is not None and config.get(self.name) is not None:
                 return self.text.format(
-                    value=config.get(self.name).replace("_", " "))
+                    value=cast(str, config.get(self.name)).replace("_", " "))
             return self.text
 
         def toggle(self) -> None:
@@ -405,6 +403,19 @@ def instantiate_menues(
         nonlocal current_index
         nonlocal current_error
         nonlocal focused_option
+        quote: str = (
+            "A labyrinth is not a place to be lost, but a path to be found.")
+        if len(quote) > int(config_save["width"]) * 4 + 1:
+            style_print(
+                theme.walls_style,
+                quote[:38].center(int(config_save["width"]) * 4 + 1), "\n")
+            style_print(
+                theme.walls_style,
+                quote[39:].center(int(config_save["width"]) * 4 + 1), "\n")
+        else:
+            style_print(
+                theme.walls_style,
+                quote.center(int(config_save["width"]) * 4 + 1), "\n")
         menu_width: int = max(
             len(str(entry)) for entry in chain(
                 menues[current_menu], current_error.split("\n"))) + 6
