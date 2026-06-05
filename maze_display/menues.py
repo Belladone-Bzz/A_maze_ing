@@ -11,10 +11,19 @@ from itertools import chain
 
 
 class ProgramQuit(Exception):
+    """
+        Custom exception caught by the a_maze_ing program in case the quit
+        option is selected.
+    """
     pass
 
 
 class Keyboard(Enum):
+    """
+        Stores in lists of strings the different keyboard keys available to
+        navigate menues. Contains characters or escape sequences for
+        ESCAPE, CONFIRM, UP, DOWN, RIGHT and LEFT.
+    """
     ESCAPE = "\x1b"
     CONFIRM = ("\r", "\n")
     UP = ("w", "A", "\x1b[A", "\x1b", "\xe0H")
@@ -25,6 +34,30 @@ class Keyboard(Enum):
 
 def instantiate_menues(
         config: dict[str, str]) -> Callable[[str, str], str]:
+    """
+        Exposed function of the menues file, enclosing all menues-displaying
+        and browsing functions. Takes a config dict to keep access to updated
+        Maze infos.
+
+        Returns a menu_module function, which takes as arguments an
+        action to execute as a string, and a user_input to give out to
+        pertinent functions.
+
+        This function's enclosure contains the Option class to manage
+        menues actions contained in dicts for each menu
+        ("main", "maze_config"), and nonlocal current_menu, index, error and
+        option to keep track of the user's actions.
+
+        Can:
+        "browse_menu": takes the user_input as argument and moves up and down
+        in menues depending on navigation keys from the Keyboard Enum,
+        or adjust config values with Option methods. Can return a string.
+        "print_menu": based on the current_menu nonlocal string, displays the
+        viewed menu with arrows to indicate the selected option, underline
+        to indicate which option is being modified and potential error
+        messages.
+        "maze_error": Update the current error messages with the input.
+    """
 
     config_save: dict[str, str] = config.copy()
     current_menu: str = "main"
@@ -33,6 +66,11 @@ def instantiate_menues(
     focused_option: "Option" | None = None
 
     def get_config_ranges(option: str) -> range | tuple[range, range]:
+        """
+            Returns set values as range of tuple of ranges for each
+            available config parameter to handle minimum and maximum
+            values to cycle through them from the maze config menu.
+        """
         match option:
             case "height" | "width" | "seed":
                 return range(0, 1000000000000)
@@ -44,6 +82,15 @@ def instantiate_menues(
                 return range(0)
 
     def change_menu(new_menu: str) -> str:
+        """
+            Execution function used to navigate to a new menu, updating
+            the current_menu nonlocal string with the menu given as
+            argument. If the user enters or leaves the maze_config menu,
+            a config_save is used to update or updated with the shared
+            config dict.
+
+            Returns a string to respect Callable typing.
+        """
         nonlocal current_menu
         nonlocal current_index
         nonlocal current_error
@@ -60,22 +107,45 @@ def instantiate_menues(
         return ""
 
     def generate_maze(_: str) -> str:
+        """
+            Execution function called to return a string to the main program
+            to call for a new Maze instantiation. Updates the config_save dict
+            with the new config to instantly update menues displayed info.
+        """
         nonlocal config_save
         for key, value in config.items():
             config_save[key] = value
         return "maze_gen"
 
     def leave_program(_: str) -> str:
+        """
+            Execution function called to raise ProgramQuit Exception.
+            Takes a string and returns one to respect Callable typing, but
+            does nothing of them.
+        """
         raise ProgramQuit
 
     def randomize_seed(_: str) -> str:
+        """
+            Execution function called to randomize the Maze config's seed.
+            Takes a string and returns one to respect Callable typing, but
+            does nothing of them.
+        """
         config["seed"] = str(randint(0, 1000000000000))
         return ""
 
-    def update_output_file(_: str) -> str:
-        return "file_rename"
-
     class Option:
+        """
+            Option class: takes various string, list of strings and sometimes
+            an execution function to handle different type of menu options.
+
+            Attributes: takes a mandatory name, option_type and text
+            argument to init, while options and exec are only necessary
+            to "selection" and "validation" respectively.
+
+            Methods: value_up, value_down, value_left, value_right, toggle,
+            browse_options.
+        """
         def __init__(
                 self, name: str, option_type: str, text: str,
                 options: list[str] = [],
@@ -88,6 +158,10 @@ def instantiate_menues(
             self.exec: partial[str] = exec
 
         def __str__(self) -> str:
+            """
+                Returns self.text formatted with the corresponding value from
+                the config dict if appropriate.
+            """
             if (
                     config is not None
                     and config.get(self.name) is not None):
@@ -95,13 +169,21 @@ def instantiate_menues(
             return self.text
 
         def toggle(self) -> None:
-
+            """
+                Switch to "True" or "False" the corresponding config entry
+                if the Option object is of type "toggle".
+            """
             if config[self.name] == "True":
                 config[self.name] = "False"
             else:
                 config[self.name] = "True"
 
         def value_up(self, factor: int) -> None:
+            """
+                Handles the modification of slider values upward, checking
+                if the upper limit is reached and updating the corresponding
+                config entry accordingly.
+            """
             value_range: range
             if self.option_type == "slider":
                 value: int = int(config[self.name])
@@ -123,6 +205,11 @@ def instantiate_menues(
                     [str(value) for value in values])
 
         def value_down(self, factor: int) -> None:
+            """
+                Handles the modification of slider values downward, checking
+                if the upper limit is reached and updating the corresponding
+                config entry accordingly.
+            """
             value_range: range
             if self.option_type == "slider":
                 value: int = int(config[self.name])
@@ -144,6 +231,11 @@ def instantiate_menues(
                     [str(value) for value in values])
 
         def value_left(self) -> None:
+            """
+                Updates the pertinent config dict entry, either by calling
+                value down for slider and double_slider option types,
+                or switching the selected value for selection option type.
+            """
             if self.option_type in ("slider, double_slider"):
                 self.value_down(10)
             elif self.option_type == "selection":
@@ -151,6 +243,11 @@ def instantiate_menues(
                     self.options.index(config[self.name]) - 1]
 
         def value_right(self) -> None:
+            """
+                Updates the pertinent config dict entry, either by calling
+                value up for slider and double_slider option types,
+                or switching the selected value for selection option type.
+            """
             if self.option_type in ("slider, double_slider"):
                 self.value_up(10)
             elif self.option_type == "selection":
@@ -159,6 +256,12 @@ def instantiate_menues(
                     % len(self.options)]
 
         def browse_option(self, user_input: str) -> None:
+            """
+                Takes the user_input to handle navigating option by option.
+                For directions, calls the associated method, and for
+                confirm, calls toggle method or reinitialize the current_option
+                nonlocal string.
+            """
             if user_input in Keyboard.DOWN.value:
                 self.value_down(1)
             elif user_input in Keyboard.UP.value:
@@ -257,7 +360,7 @@ def instantiate_menues(
                 name="output_file",
                 option_type="validate",
                 text=f"{'Output file:':<15}""{value:>20.20}",
-                exec=partial(update_output_file, "")),
+                exec=partial(lambda _: "file_rename", "")),
             Option(
                 name="generate maze",
                 option_type="validate",
@@ -271,6 +374,16 @@ def instantiate_menues(
     }
 
     def browse_menu(user_input: str) -> str:
+        """
+            Takes the user input as argument.
+
+            Updates menues current informations depending on the pressed key
+            to navigate menues and pass on the input to an Option object
+            browse method if necessary.
+
+            Returns a string corresponding to the execution function of
+            validate Options.
+        """
         nonlocal current_index
         nonlocal current_menu
         nonlocal focused_option
@@ -299,6 +412,10 @@ def instantiate_menues(
         return ""
 
     def print_menu(theme: Theme) -> None:
+        """
+            Displays the current menu, navigation index and errors applying
+            the selected theme.
+        """
         nonlocal current_menu
         nonlocal current_index
         nonlocal current_error
@@ -350,6 +467,11 @@ def instantiate_menues(
 
     def menues_module(
             current_action: str, user_input: str) -> str:
+        """
+            Function returned by the instantiate function, handling the
+            selected action and user input to browse, display and update
+            menues.
+        """
         if current_action == "browse_menu":
             return browse_menu(user_input)
         elif current_action == "print_menu":

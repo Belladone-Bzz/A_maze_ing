@@ -25,17 +25,26 @@ if name != "nt":
         tcsetattr(fd, TCSAFLUSH, old_term)
     register(set_normal_term)
 else:
-    try:
-        from msvcrt import getch
-    except (ImportError, AttributeError):
-        print_error(
-            "A_maze_ing program error:\n - msvcrt.getch could not be imported "
-            "from your python package.")
+    print_error(
+        "A_maze_ing program error:\n - Program navigation does not"
+        "support Windows setups.")
+    exit()
 
 
 def instantiate_maze(
         config: dict[str, str],
         mandatory_values: tuple[str, ...]) -> str | Maze:
+    """
+        Receives a config dict containing all parsed arguments as strings,
+        as well as a list of mandatory values.
+
+        Tries converting every
+        argument into their respective final type and instantiating a
+        Maze object, catching any exception.
+
+        Returns either the successfully created Maze instance,
+        or an error message.
+    """
     try:
         maze = Maze(
             width=int(config["width"]),
@@ -68,6 +77,17 @@ def instantiate_maze(
 
 
 def main() -> int:
+    """
+        Brings the a_maze_ing program together parsing the given configuration
+        file, instantiating a first maze and entering the menues loop.
+        Queries user input by modifying the current terminal (TTY) session
+        and sends it to the menues module, receives back selection options
+        and updates the display accordingly.
+
+        Returns an int corresponding to errors, print out before leaving.
+        Possible returns: "Success", "Not enough argument",
+        "File parsing error", "Config parsing error", "Keyboard interrupt"
+    """
     if len(argv) != 2:
         print_error(
             "\nIncorrect number of argument; execute the program using "
@@ -106,14 +126,11 @@ def main() -> int:
         while True:
             maze_display("display_maze", maze)
             menu_module("print_menu", "")
-            if name != "nt":
+            user_input = stdin.read(1)
+            if user_input == "\x1b" and stdin.read(1) == "[":
                 user_input = stdin.read(1)
-                if user_input == "\x1b" and stdin.read(1) == "[":
-                    user_input = stdin.read(1)
-                else:
-                    user_input = user_input.lower()
             else:
-                user_input = getch()
+                user_input = user_input.lower()
             function_output = menu_module("browse_menu", user_input)
             if function_output == "maze_gen":
                 new_maze: str | Maze = instantiate_maze(
@@ -124,12 +141,10 @@ def main() -> int:
                     maze = new_maze
                     break
             elif function_output == "file_rename":
-                if name != "nt":
-                    tcsetattr(fd, TCSAFLUSH, old_term)
+                tcsetattr(fd, TCSAFLUSH, old_term)
                 config["output_file"] = input(
                     "Enter new file name for maze output: ")
-                if name != "nt":
-                    tcsetattr(fd, TCSAFLUSH, new_term)
+                tcsetattr(fd, TCSAFLUSH, new_term)
             elif function_output == "save_maze":
                 function_output = write_out_maze(maze, config)
                 if function_output != "":

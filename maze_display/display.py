@@ -9,10 +9,36 @@ from time import sleep
 
 def instantiate_maze_display(
         config: dict[str, str]) -> Callable[[str, Maze], None]:
+    """
+        Exposed function of the display file, enclosing all maze-displaying
+        functions. Takes a config dict to keep access to updated Maze infos.
+
+        Returns a maze_display function, which takes as arguments an
+        action to execute as a string, and a Maze object to display, returning
+        None.
+
+        Can:
+        "display_maze": display the entire maze after it is generated;
+        "display_maze_generation": display the maze at every loop of its
+        generation if the terminal is big enough, otherwise generates
+        the maze  directly.
+    """
 
     current_theme: Theme = get_theme(config["theme"])
 
     def print_maze(maze: Maze) -> None:
+        """
+            Takes a Maze object to display. Works with utils file, containing
+            custom and special characters, as well as Themes, applying
+            colors and styling.
+
+            Displays the maze cell by cell, surrounding them with wall
+            characters depending on which of their walls are open or not.
+            Displays each angle based on open walls, outputting an adaptive
+            and clear display.
+
+            Returns None
+        """
         print(move_cursor(0, 0))
 
         emojis: tuple[SmallIcons, ...] = (
@@ -166,6 +192,16 @@ def instantiate_maze_display(
         style_print(current_theme.walls_style, line, "\n")
 
     def integrate_pattern_design(maze: Maze) -> None:
+        """
+            Function called after print_maze, going back on the print to
+            integrate the selected pattern design. Works with Patterns enum,
+            and takes a Maze object as parameter.
+
+            Prints out the central pattern adapatively, checking line by line
+            which angle or interception should be printed out.
+
+            Returns None
+        """
         pattern: list[list[bool]] = maze.config.PATTERN
         lines: str = ""
         horizontal_offset: int = (
@@ -296,6 +332,15 @@ def instantiate_maze_display(
         print(CursorOperations.LOAD_CURSOR, end="")
 
     def display_maze(maze: Maze) -> None:
+        """
+            Function called to display the Maze given as argument.
+
+            Checks the size of the terminal session using termios and either
+            displays the full by calling print_maze function, or a custom
+            message.
+
+            Returns None
+        """
         window_size: terminal_size = get_terminal_size()
         if (
                 maze.config.WIDTH * 4 < window_size.columns
@@ -303,9 +348,21 @@ def instantiate_maze_display(
             print_maze(maze)
             integrate_pattern_design(maze)
         else:
-            style_print(current_theme.walls_style, "too small")
+            style_print(
+                current_theme.walls_style,
+                "The window is too small to display the Maze.\n"
+                "Save it to an output file or increase the window's size to "
+                "preview it.")
 
     def display_maze_generation(maze: Maze) -> None:
+        """
+            Function called to trigger the given Maze's generation using its
+            Generator method to call print_maze every time a new cell is
+            accessed. Also checks the terminal window size using termios
+            to only trigger the generation and not display it.
+
+            Returns None
+        """
         print(CursorOperations.HEAVY_CLEAR, end="")
         window_size: terminal_size = get_terminal_size()
         if (
@@ -323,6 +380,14 @@ def instantiate_maze_display(
         "display_maze_generation": display_maze_generation}
 
     def maze_display(current_display: str, maze: Maze) -> None:
+        """
+            Function returned by instantiate_maze_display to give access to all
+            enclosed functions. Takes an action as a string and a Maze object
+            to display either generating or generated, applying a Theme
+            using the current configuration.
+
+            Returns None
+        """
         nonlocal current_theme
         current_theme = get_theme(config["theme"])
         prints.get(current_display, display_maze)(maze)
