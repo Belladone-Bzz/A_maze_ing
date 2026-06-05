@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, Field, model_validator
 from typing import Annotated
 from collections.abc import Generator, Callable
@@ -133,11 +134,6 @@ class Maze:
         self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
         self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
 
-    def open_wall(self, cell_coords: CellCoordinates, step: Movements) -> None:
-        self.cells[cell_coords[0]][cell_coords[1]].walls[step] = False
-        self.cells[cell_coords[0] + step[0]][cell_coords[1] + step[1]].walls[
-            Directions[Movements((-step[0], -step[1])).name]] = False
-
     # _________________________________________________________________________
     #                       GENERATION/SOLVING TOOLS
     # _________________________________________________________________________
@@ -194,10 +190,10 @@ class Maze:
         """Break down the wall between two cells. They must be directly
         adjacent to each other.
         """
-        direction = Movements((neighbor[0] - coords[0]),
-                              (neighbor[1] - coords[1]))
-        opposite = Movements(-(neighbor[0] - coords[0]),
-                             -(neighbor[1] - coords[1]))
+        direction = Movements(((neighbor[0] - coords[0]),
+                               (neighbor[1] - coords[1])))
+        opposite = Movements((-(neighbor[0] - coords[0]),
+                              -(neighbor[1] - coords[1])))
         self.cells[coords[0]][coords[1]].walls[
             Directions[direction.name]] = False
         self.cells[neighbor[0]][neighbor[1]].walls[
@@ -275,8 +271,8 @@ class Maze:
             entry_dir: int = self.cells[
                 coord[0]][coord[1]].walls.index(False)
             opposite_dir: int = ((entry_dir + 2) % 4)
-            opposite_mov: Movements = Movements[
-                Directions(opposite_dir).name].value
+            opposite_mov: tuple[int, int] = Movements(
+                Directions(opposite_dir).name).value
             ideal_cell: CellCoordinates = ((coord[0] + opposite_mov[0]),
                                            (coord[1] + opposite_mov[1]))
             if self.is_available(ideal_cell) is False:
@@ -284,47 +280,46 @@ class Maze:
             self.break_wall(coord, ideal_cell)
             return
 
-        else:
-            for coord in dead_end:
-                entry_dir: int = self.cells[
-                    coord[0]][coord[1]].walls.index(False)
-                entry_mov: Movements = Movements[
-                    Directions(entry_dir).name].value
-                cell_before_entry: CellCoordinates = (
-                        (coord[0] + entry_mov[0]),
-                        (coord[1] + entry_mov[1]))
-                side_dir: list[int] = [((entry_dir + 1) % 4),
-                                       ((entry_dir + 3) % 4)]
-                for side in side_dir:
-                    dead_end_walled: bool = self.cells[
-                        coord[0]][coord[1]].walls[side]
-                    before_walled: bool = self.cells[
-                        cell_before_entry[0]][cell_before_entry[1]].walls[side]
-                    if before_walled != dead_end_walled:
-                        continue
-                    side_mov: CellCoordinates = Movements[
-                        Directions(side).name].value
-                    side_cell: CellCoordinates = ((coord[0] + side_mov[0]),
-                                                  (coord[1] + side_mov[1]))
-                    if self.is_available(side_cell) is True:
-                        self.break_wall(coord, side_cell)
-                        return
-            else:
-                for coord in dead_end:
-                    entry_dir: int = self.cells[
-                        coord[0]][coord[1]].walls.index(False)
-                    side_dir: list[int] = [((entry_dir + 1) % 4),
-                                           ((entry_dir + 3) % 4)]
-                for side in side_dir:
-                    side_mov: Movements = Movements[
-                        Directions(side).name].value
-                    side_cell: CellCoordinates = (
-                        (coord[0] + side_mov[0]),
-                        (coord[1] + side_mov[1]))
-                    if self.is_available(side_cell) is False:
-                        continue
+        for coord in dead_end:
+            entry_dir = self.cells[
+                coord[0]][coord[1]].walls.index(False)
+            entry_mov: tuple[int, int] = Movements(
+                Directions(entry_dir).name).value
+            cell_before_entry: CellCoordinates = (
+                    (coord[0] + entry_mov[0]),
+                    (coord[1] + entry_mov[1]))
+            side_dir: list[int] = [((entry_dir + 1) % 4),
+                                   ((entry_dir + 3) % 4)]
+            for side in side_dir:
+                dead_end_walled: bool = self.cells[
+                    coord[0]][coord[1]].walls[side]
+                before_walled: bool = self.cells[
+                    cell_before_entry[0]][cell_before_entry[1]].walls[side]
+                if before_walled != dead_end_walled:
+                    continue
+                side_mov: CellCoordinates = Movements[
+                    Directions(side).name].value
+                side_cell: CellCoordinates = ((coord[0] + side_mov[0]),
+                                              (coord[1] + side_mov[1]))
+                if self.is_available(side_cell) is True:
                     self.break_wall(coord, side_cell)
                     return
+
+        for coord in dead_end:
+            entry_dir = self.cells[
+                coord[0]][coord[1]].walls.index(False)
+            side_dir = [((entry_dir + 1) % 4),
+                        ((entry_dir + 3) % 4)]
+        for side in side_dir:
+            side_mov = Movements[
+                Directions(side).name].value
+            side_cell = (
+                (coord[0] + side_mov[0]),
+                (coord[1] + side_mov[1]))
+            if self.is_available(side_cell) is False:
+                continue
+            self.break_wall(coord, side_cell)
+            return
 
     # _________________________________________________________________________
     #                         GENERATION ALGORITHMS
@@ -336,6 +331,9 @@ class Maze:
         """
         start: CellCoordinates = (randint(0, (self.config.WIDTH - 1)),
                                   randint(0, (self.config.HEIGHT - 1)))
+        while self.is_available(start) is False:
+            start = (randint(0, (self.config.WIDTH - 1)),
+                     randint(0, (self.config.HEIGHT - 1)))
         self.become_visited(start)
 
         back_track: list[CellCoordinates] = [start]
@@ -356,8 +354,7 @@ class Maze:
             (int((self.config.WIDTH - 1)/2), 0),
             (self.config.WIDTH - 1, int((self.config.HEIGHT - 1)/2)),
             (int((self.config.WIDTH - 1)/2), self.config.HEIGHT - 1),
-            (0, int((self.config.HEIGHT - 1)/2)),
-            (int((self.config.WIDTH - 1)/2), int((self.config.HEIGHT - 1)/2)))
+            (0, int((self.config.HEIGHT - 1)/2)))
         start: CellCoordinates = choice(starts)
         self.become_visited(start)
         frontiers: set[CellCoordinates] = set(self.get_neighbors(start, False))
@@ -375,23 +372,49 @@ class Maze:
                     break
             yield None
             frontiers.update(self.get_neighbors(start, False))
-    
+
     def hunt_and_kill_algo(self) -> Generator[None]:
         """Generate a perfect maze with a Hunt and Kill algorithm.
         Return a Generator to display a dynamic maze.
         """
-        start: CellCoordinates = (randint(0, (self.config.WIDTH - 1)),
-                                  randint(0, (self.config.HEIGHT - 1)))
+        starts: tuple[CellCoordinates, ...] = (
+            (self.config.WIDTH - 1, int((self.config.HEIGHT - 1)/2)),
+            (int((self.config.WIDTH - 1)/2), self.config.HEIGHT - 1),
+            (0, int((self.config.HEIGHT - 1)/2)))
+        start: CellCoordinates = choice(starts)
         self.become_visited(start)
 
-        while self.get_neighbors(start, False) != []:
+        def hunt_mode() -> CellCoordinates | None:
+            """Function to hunt cell by cell from (0,0) to (width, height) and
+            find the first cell who is unvisited and has at leat one neighbor
+            which is visited. Return that cell or None if no cell is found."""
+            for y in range(0, (self.config.HEIGHT)):
+                for x in range(0, (self.config.WIDTH)):
+                    current: CellCoordinates = (x, y)
+                    neighbors: list[CellCoordinates] = self.get_neighbors(
+                        current, True)
+                    if self.is_visited(current) is False and neighbors != []:
+                        print(neighbors)
+                        cell_to_connect: CellCoordinates = choice(neighbors)
+                        self.become_visited(current)
+                        self.break_wall(current, cell_to_connect)
+                        return current
+                    continue
+            return None
+
+        new_start: CellCoordinates | None
+        while True:
             next_cell = self.path_to_unvisited(start)
             if next_cell is not None:
                 self.become_visited(next_cell)
                 self.break_wall(start, next_cell)
                 start = next_cell
             else:
-                break
+                new_start = hunt_mode()
+                if new_start is None:
+                    return
+                else:
+                    start = new_start
             yield None
 
     def make_maze_imperfect(self) -> None:
@@ -445,7 +468,7 @@ class Maze:
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo,
-            "Hunt and kill": self.hunt_and_kill_algo}
+            "Hunt_and_kill": self.hunt_and_kill_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             pass
         if self.config.PERFECT is False:
@@ -456,7 +479,7 @@ class Maze:
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo,
-            "Hunt and kill": self.hunt_and_kill_algo}
+            "Hunt_and_kill": self.hunt_and_kill_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             yield None
         if self.config.PERFECT is False:
@@ -481,12 +504,12 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=12,
-        height=12,
+        width=25,
+        height=25,
         entry=(0, 0),
         exit=(0, 1),
-        perfect=True,
-        gen_algorithm="Hunt and kill",
+        perfect=False,
+        gen_algorithm="Hunt_and_kill",
         seed=randint(0, 99999999),
         central_icon=False
     )
