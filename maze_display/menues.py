@@ -54,6 +54,8 @@ def instantiate_menues(
     to indicate which option is being modified and potential error
     messages.
     "maze_error": Update the current error messages with the input.
+    "back_to_main": change the menu back to main but overrides the config_save
+    dict with that of config, to use when the Maze generation is successful.
     """
 
     config_save: dict[str, str] = config.copy()
