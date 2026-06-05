@@ -29,7 +29,7 @@ PATTERN=Forty_two
 
 THEME=Bees
 
-# Generation algorithms available: Backtracking, Prim
+# Generation algorithms available: Backtracking, Prim, Hunt_and_kill
 
 GEN_ALGORITHM=Prim
 

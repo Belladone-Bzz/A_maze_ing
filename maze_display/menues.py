@@ -2,6 +2,7 @@
 from .utils import (
     style_print, print_error, SmallIcons, CursorOperations, Patterns)
 from .themes import Theme, Themes, get_theme
+from maze_gen import Maze
 from random import randint
 from typing import cast
 from enum import Enum
@@ -156,7 +157,8 @@ def instantiate_menues(
             if (
                     config is not None
                     and config.get(self.name) is not None):
-                return self.text.format(value=config.get(self.name))
+                return self.text.format(
+                    value=config.get(self.name).replace("_", " "))
             return self.text
 
         def toggle(self) -> None:
@@ -321,7 +323,7 @@ def instantiate_menues(
             Option(
                 name="gen_algorithm",
                 option_type="selection",
-                options=["Backtracking", "Prim"],
+                options=list(Maze.generation_algorithms),
                 text=(
                     f"{"Generation algorithm:":<22}"
                     "{value:>13}")),
