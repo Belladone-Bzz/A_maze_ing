@@ -61,6 +61,13 @@ class Maze:
             PATTERN=pattern)
         set_seed(self.config.SEED)
         self.cells: list[list[Maze.Cell]] = []
+        if self.config.PATTERN != []:
+            self.pattern_h_offset: int = (
+                int(self.config.WIDTH / 2)
+                - int(len(self.config.PATTERN[0]) / 2))
+            self.pattern_v_offset: int = (
+                int(self.config.HEIGHT / 2)
+                - int(len(self.config.PATTERN) / 2))
 
     class Config(BaseModel):
         """Class Config
@@ -96,17 +103,18 @@ class Maze:
                     error_message += (
                         "Generating a maze when integrating the central "
                         "pattern must be done with appropriate dimensions.")
-                horizontal_offset: int = (
-                    int(self.WIDTH / 2)
-                    - int(len(self.PATTERN[0]) / 2))
-                vertical_offset: int = (
-                    int(self.HEIGHT / 2)
-                    - int(len(self.PATTERN) / 2))
                 for x in range(len(self.PATTERN[0])):
                     for y in range(len(self.PATTERN)):
                         if self.PATTERN[y][x] is True:
+                            pattern_h_offset: int = (
+                                int(self.WIDTH / 2)
+                                - int(len(self.PATTERN[0]) / 2))
+                            pattern_v_offset: int = (
+                                int(self.HEIGHT / 2)
+                                - int(len(self.PATTERN) / 2))
                             in_pattern_coords: CellCoordinates = (
-                                x + horizontal_offset, y + vertical_offset)
+                                x + pattern_h_offset,
+                                y + pattern_v_offset)
                             if (
                                     in_pattern_coords == self.ENTRY
                                     or in_pattern_coords == self.EXIT):
@@ -133,32 +141,44 @@ class Maze:
         def __init__(self, coordinates: CellCoordinates, walled: bool):
             self.coordinates: CellCoordinates = coordinates
             self.walls: list[bool] = [walled, walled, walled, walled]
-            self.entry = False
-            self.exit = False
-            self.pattern = False
-            self.is_visited = False
+            self.entry: bool = False
+            self.exit: bool = False
+            self.pattern: bool = False
+            self.is_in_maze: bool = False
+            self.is_visited: bool = False
 
     def integrate_pattern(self) -> None:
-        horizontal_offset: int = (
-            int(self.config.WIDTH / 2)
-            - int(len(self.config.PATTERN[0]) / 2))
-        vertical_offset: int = (
-            int(self.config.HEIGHT / 2)
-            - int(len(self.config.PATTERN) / 2))
+        """Method that reads the given PATTERN and applies it to the current
+        Maze, marking all concerned cells as pattern (attribute set to True),
+        and marking up all their walls.
+        """
         for x in range(len(self.config.PATTERN[0])):
             for y in range(len(self.config.PATTERN)):
                 if self.config.PATTERN[y][x] is False:
                     continue
-                self.cells[x + horizontal_offset][y + vertical_offset]\
-                    .pattern = True
-                self.cells[x + horizontal_offset][y + vertical_offset]\
-                    .walls = [True, True, True, True]
+                self.cells[x + self.pattern_h_offset][y\
+                    + self.pattern_v_offset].pattern = True
+                self.cells[x + self.pattern_h_offset][y\
+                    + self.pattern_v_offset].walls = [True, True, True, True]
+
+    def add_enclosed_cells_to_pattern(self) -> None:
+        """Method to add every cells that weren't visited by the generating
+        algorithm to the pattern, so they won't be selected during the
+        making of an imperfect maze. This concerns cells enclosed by the
+        pattern but not part of its drawing.
+        """
+        for x in range(len(self.config.PATTERN[0])):
+            for y in range(len(self.config.PATTERN)):
+                if self.cells[x + self.pattern_h_offset][y\
+                        + self.pattern_v_offset].is_in_maze is False:
+                    self.cells[x + self.pattern_h_offset][y\
+                        + self.pattern_v_offset].pattern = True
 
     def grid_generation(self, walled: bool) -> None:
         """Method to generate all the cells in the maze grid in a
         list[list[Maze.Cell]] Only the outer walls are set to True.
         Entry and Exit cells are memorized.
-         """
+        """
         for x in range(self.config.WIDTH):
             self.cells.append([])
             for y in range(self.config.HEIGHT):
@@ -204,15 +224,15 @@ class Maze:
             return False
         return True
 
-    def is_visited(self, coords: CellCoordinates) -> bool:
-        """Check whether a cell is visited or not."""
-        return self.cells[coords[0]][coords[1]].is_visited
+    def is_in_maze(self, coords: CellCoordinates) -> bool:
+        """Check whether a cell is in the maze or not."""
+        return self.cells[coords[0]][coords[1]].is_in_maze
 
     def get_neighbors(self, coords: CellCoordinates,
-                      visited: bool | None) -> list[CellCoordinates]:
+                      in_maze: bool | None) -> list[CellCoordinates]:
         """Return a list of available neighbors. The list can be filtered to
-        include only neighbors that have been visited, those that aren't, or
-        all of them without distinction.
+        include only neighbors that have been added to maze, those that aren't,
+        or all of them without distinction.
         """
         neighbors: list[CellCoordinates] = []
         for movement in Movements:
@@ -220,8 +240,8 @@ class Maze:
                 coords, movement.value)
             if self.is_available(potential_neighbor) is False:
                 continue
-            if (visited is not None and self.is_visited(potential_neighbor)
-                    is not visited):
+            if (in_maze is not None and self.is_in_maze(potential_neighbor)
+                    is not in_maze):
                 continue
             neighbors.append(potential_neighbor)
         return neighbors
@@ -240,9 +260,9 @@ class Maze:
         self.cells[neighbor[0]][neighbor[1]].walls[
             Directions[opposite.name]] = False
 
-    def become_visited(self, coords: CellCoordinates) -> None:
-        """Set the cell to is_visited = True."""
-        self.cells[coords[0]][coords[1]].is_visited = True
+    def add_to_maze(self, coords: CellCoordinates) -> None:
+        """Set the cell to is_in_maze = True."""
+        self.cells[coords[0]][coords[1]].is_in_maze = True
 
     def path_to_unvisited(self,
                           coords: CellCoordinates) -> CellCoordinates | None:
@@ -257,7 +277,7 @@ class Maze:
         shuffle(neighbors)
         next_cell = neighbors[0]
         self.break_wall(coords, next_cell)
-        self.become_visited(next_cell)
+        self.add_to_maze(next_cell)
         return next_cell
 
     def check_consec_walls(self, axes: str) -> list[CellCoordinates]:
@@ -270,7 +290,7 @@ class Maze:
         if axes == "horizontal":
             for y in range(0, (self.config.HEIGHT - 1)):
                 for x in range(0, (self.config.WIDTH)):
-                    if self.cells[x][y].walls[1] is True:
+                    if self.cells[x][y].walls[Directions.SOUTH] is True:
                         consecutive_walls += 1
                         if consecutive_walls >= 3 and randint(0, 100) < 80:
                             walls_to_broke.append((x - 1, y))
@@ -281,7 +301,7 @@ class Maze:
         if axes == "vertical":
             for x in range(0, (self.config.WIDTH - 1)):
                 for y in range(0, (self.config.HEIGHT)):
-                    if self.cells[x][y].walls[2] is True:
+                    if self.cells[x][y].walls[Directions.EAST] is True:
                         consecutive_walls += 1
                         if consecutive_walls >= 3 and randint(0, 100) < 80:
                             walls_to_broke.append((x, y - 1))
@@ -375,7 +395,7 @@ class Maze:
         while self.is_available(start) is False:
             start = (randint(0, (self.config.WIDTH - 1)),
                      randint(0, (self.config.HEIGHT - 1)))
-        self.become_visited(start)
+        self.add_to_maze(start)
 
         back_track: list[CellCoordinates] = [start]
         while back_track:
@@ -397,13 +417,13 @@ class Maze:
             (int((self.config.WIDTH - 1)/2), self.config.HEIGHT - 1),
             (0, int((self.config.HEIGHT - 1)/2)))
         start: CellCoordinates = choice(starts)
-        self.become_visited(start)
+        self.add_to_maze(start)
         frontiers: set[CellCoordinates] = set(self.get_neighbors(start, False))
         maze_cells: list[CellCoordinates] = [start, start]
         while frontiers:
             start = choice(list(frontiers))
             maze_cells.append(start)
-            self.become_visited(start)
+            self.add_to_maze(start)
             frontiers.discard(start)
             for cell in reversed(maze_cells):
                 direction: tuple[int, int] = (
@@ -423,20 +443,21 @@ class Maze:
             (int((self.config.WIDTH - 1)/2), self.config.HEIGHT - 1),
             (0, int((self.config.HEIGHT - 1)/2)))
         start: CellCoordinates = choice(starts)
-        self.become_visited(start)
+        self.add_to_maze(start)
 
         def hunt_mode() -> CellCoordinates | None:
             """Function to hunt cell by cell from (0,0) to (width, height) and
-            find the first cell who is unvisited and has at leat one neighbor
-            which is visited. Return that cell or None if no cell is found."""
+            find the first cell who is not in maze and has at leat one neighbor
+            which is in maze. Return that cell or None if no cell is found.
+            """
             for y in range(0, (self.config.HEIGHT)):
                 for x in range(0, (self.config.WIDTH)):
                     current: CellCoordinates = (x, y)
                     neighbors: list[CellCoordinates] = self.get_neighbors(
                         current, True)
-                    if self.is_visited(current) is False and neighbors != []:
+                    if self.is_in_maze(current) is False and neighbors != []:
                         cell_to_connect: CellCoordinates = choice(neighbors)
-                        self.become_visited(current)
+                        self.add_to_maze(current)
                         self.break_wall(current, cell_to_connect)
                         return current
                     continue
@@ -446,7 +467,7 @@ class Maze:
         while True:
             next_cell = self.path_to_unvisited(start)
             if next_cell is not None:
-                self.become_visited(next_cell)
+                self.add_to_maze(next_cell)
                 self.break_wall(start, next_cell)
                 start = next_cell
             else:
@@ -457,7 +478,7 @@ class Maze:
                     start = new_start
             yield None
 
-    def make_maze_imperfect(self) -> None:
+    def make_maze_imperfect(self) -> Generator[None]:
         """Make an imperfect maze from a perfect one. Use check_consec_walls()
         method to have all the walls to broke. If there is none, use
         dead_end_opener() method.
@@ -478,8 +499,10 @@ class Maze:
         h_walls: list[CellCoordinates] = self.check_consec_walls("horizontal")
         for wall in v_walls:
             break_east_wall(wall)
+            yield None
         for wall in h_walls:
             break_south_wall(wall)
+            yield None
         if v_walls == [] and h_walls == []:
             self.dead_end_opener()
 
@@ -513,8 +536,10 @@ class Maze:
             "Hunt_and_kill": self.hunt_and_kill_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             pass
+        self.add_enclosed_cells_to_pattern()
         if self.config.PERFECT is False:
-            self.make_maze_imperfect()
+            for _ in self.make_maze_imperfect():
+                pass
 
     def stepped_generation(self) -> Generator[None]:
         self.grid_generation(True)
@@ -524,8 +549,10 @@ class Maze:
             "Hunt_and_kill": self.hunt_and_kill_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             yield None
+        self.add_enclosed_cells_to_pattern()
         if self.config.PERFECT is False:
-            self.make_maze_imperfect()
+            for _ in self.make_maze_imperfect():
+                yield None
 
     def __repr__(self) -> str:
         """Method to display debug mode of the maze walls."""
@@ -551,14 +578,14 @@ if __name__ == "__main__":
         entry=(0, 0),
         exit=(0, 1),
         perfect=False,
-        gen_algorithm="Hunt_and_kill",
+        gen_algorithm="Prim",
         seed=randint(0, 99999999),
-        pattern=[
-        [False, False, True, False, True, True, True],
-        [False, True, False, False, False, False, True],
-        [True, True, True, False, True, True, True],
-        [False, False, True, False, True, False, False],
-        [False, False, True, False, True, True, True]]
+        pattern=(
+        (0, 0, 1, 0, 1, 1, 1),
+        (0, 1, 0, 0, 0, 0, 1),
+        (1, 1, 1, 0, 0, 1, 0),
+        (0, 0, 1, 0, 1, 0, 0),
+        (0, 0, 1, 0, 1, 1, 1))
     )
     print(maze.config)
     for _ in maze.stepped_generation():
