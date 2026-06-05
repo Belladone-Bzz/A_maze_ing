@@ -375,6 +375,24 @@ class Maze:
                     break
             yield None
             frontiers.update(self.get_neighbors(start, False))
+    
+    def hunt_and_kill_algo(self) -> Generator[None]:
+        """Generate a perfect maze with a Hunt and Kill algorithm.
+        Return a Generator to display a dynamic maze.
+        """
+        start: CellCoordinates = (randint(0, (self.config.WIDTH - 1)),
+                                  randint(0, (self.config.HEIGHT - 1)))
+        self.become_visited(start)
+
+        while self.get_neighbors(start, False) != []:
+            next_cell = self.path_to_unvisited(start)
+            if next_cell is not None:
+                self.become_visited(next_cell)
+                self.break_wall(start, next_cell)
+                start = next_cell
+            else:
+                break
+            yield None
 
     def make_maze_imperfect(self) -> None:
         """Make an imperfect maze from a perfect one. Use check_consec_walls()
@@ -403,6 +421,22 @@ class Maze:
             self.dead_end_opener()
 
     # _________________________________________________________________________
+    #                            SOLVING ALGORITHMS
+    # _________________________________________________________________________
+
+    def breadth_first_search_algorithm(self) -> None:
+        """"""
+
+    def dead_end_filling_algorithm(self) -> None:
+        """"""
+
+    def dijkstra_algorithm(self) -> None:
+        """"""
+
+    def alpha_star_algorithm(self) -> None:
+        """"""
+
+    # _________________________________________________________________________
     #                         MAZE GENERATION AND DISPLAY
     # _________________________________________________________________________
 
@@ -410,7 +444,8 @@ class Maze:
         self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
-            "Prim": self.prim_algo}
+            "Prim": self.prim_algo,
+            "Hunt and kill": self.hunt_and_kill_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             pass
         if self.config.PERFECT is False:
@@ -420,7 +455,8 @@ class Maze:
         self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
-            "Prim": self.prim_algo}
+            "Prim": self.prim_algo,
+            "Hunt and kill": self.hunt_and_kill_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             yield None
         if self.config.PERFECT is False:
@@ -445,12 +481,12 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     maze = Maze(
-        width=3,
-        height=3,
+        width=12,
+        height=12,
         entry=(0, 0),
         exit=(0, 1),
-        perfect=False,
-        gen_algorithm="Prim",
+        perfect=True,
+        gen_algorithm="Hunt and kill",
         seed=randint(0, 99999999),
         central_icon=False
     )
