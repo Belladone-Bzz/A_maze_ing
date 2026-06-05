@@ -7,14 +7,13 @@ from maze_display import Themes
 def parse_config_file(
         file_name: str, entries: dict[str, str],
         mandatory_values: tuple[str, ...]) -> str:
-    """
-        Receives a file_name to open, a config dict to update with found
-        values, and a list of said values names.
+    """Receives a file_name to open, a config dict to update with found
+    values, and a list of said values names.
 
-        Reads config file, ignoring empty lines and comments, and tries
-        reading any line which would contain a Maze parameter.
+    Reads config file, ignoring empty lines and comments, and tries
+    reading any line which would contain a Maze parameter.
 
-        Returns a string containing either an error message or nothing.
+    Returns a string containing either an error message or nothing.
     """
     print(f"Reading configuration from file {file_name}...")
     try:
@@ -49,20 +48,19 @@ def parse_config_file(
 def generate_config(
         config_file: str, config: dict[str, str],
         mandatory_values: tuple[str, ...]) -> str:
-    """
-        Exposed function of the parsing file. Receives a config file_name,
-        a config dict to be updated with the parsed values, and their
-        names in the mandatory list.
+    """Exposed function of the parsing file. Receives a config file_name,
+    a config dict to be updated with the parsed values, and their
+    names in the mandatory list.
 
-        Calls parsing config file function to get values written by the user
-        and complement them with optional parameters with default values.
+    Calls parsing config file function to get values written by the user
+    and complement them with optional parameters with default values.
 
-        Returns a string containing either an error message or nothing.
+    Returns a string containing either an error message or nothing.
 
-        Mandatory config values: WIDTH, HEIGHT, ENTRY, EXIT, PERFECT,
-        GEN_ALGORITHM, SOL_ALGORITHM, OUTPUT_FILE
+    Mandatory config values: WIDTH, HEIGHT, ENTRY, EXIT, PERFECT,
+    GEN_ALGORITHM, SOL_ALGORITHM, OUTPUT_FILE
 
-        Optional config values: SEED, PATTERN, THEME
+    Optional config values: SEED, PATTERN, THEME
     """
     output: str = parse_config_file(config_file, config, mandatory_values)
     if output != "":

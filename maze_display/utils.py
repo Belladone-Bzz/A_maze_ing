@@ -3,25 +3,23 @@ from enum import Enum
 
 
 class StyleEnum(Enum):
-    """
-        Enum containing a single __str__ method to be inherited by other
-        Enums. Useful to directly return the attributes values when the
-        StyleEnums are called in prints functions, rather than their
-        name.
+    """Enum containing a single __str__ method to be inherited by other
+    Enums. Useful to directly return the attributes values when the
+    StyleEnums are called in prints functions, rather than their
+    name.
     """
     def __str__(self) -> str:
         return str(self.value)
 
 
 class Walls:
-    """
-        Parent class of Walls classes declaring attributes to be used in
-        displays, to avoid attributes errors. Contains only attributes
-        as string constants, representing different available special
-        characters to make up the Maze's walls.
+    """Parent class of Walls classes declaring attributes to be used in
+    displays, to avoid attributes errors. Contains only attributes
+    as string constants, representing different available special
+    characters to make up the Maze's walls.
 
-        Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
-        HORIZONTAL_U, HORIZONTAL_D, CROSS
+    Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
+    HORIZONTAL_U, HORIZONTAL_D, CROSS
     """
     VERTICAL: str
     HORIZONTAL: str
@@ -34,12 +32,11 @@ class Walls:
 
 
 class BasicWalls(Walls):
-    """
-        Class child of Walls, assigning values to its declared attributes,
-        to be used in Maze and menues displays.
+    """Class child of Walls, assigning values to its declared attributes,
+    to be used in Maze and menues displays.
 
-        Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
-        HORIZONTAL_U, HORIZONTAL_D, CROSS
+    Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
+    HORIZONTAL_U, HORIZONTAL_D, CROSS
     """
     VERTICAL: str = "│"
     HORIZONTAL: str = "─"
@@ -52,12 +49,11 @@ class BasicWalls(Walls):
 
 
 class BoldBasicWalls(Walls):
-    """
-        Class child of Walls, assigning values to its declared attributes,
-        to be used in Maze and menues displays.
+    """Class child of Walls, assigning values to its declared attributes,
+    to be used in Maze and menues displays.
 
-        Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
-        HORIZONTAL_U, HORIZONTAL_D, CROSS
+    Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
+    HORIZONTAL_U, HORIZONTAL_D, CROSS
     """
     VERTICAL: str = "┃"
     HORIZONTAL: str = "━"
@@ -70,12 +66,11 @@ class BoldBasicWalls(Walls):
 
 
 class DoubleWalls(Walls):
-    """
-        Class child of Walls, assigning values to its declared attributes,
-        to be used in Maze and menues displays.
+    """Class child of Walls, assigning values to its declared attributes,
+    to be used in Maze and menues displays.
 
-        Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
-        HORIZONTAL_U, HORIZONTAL_D, CROSS
+    Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
+    HORIZONTAL_U, HORIZONTAL_D, CROSS
     """
     VERTICAL: str = "║"
     HORIZONTAL: str = "═"
@@ -88,13 +83,12 @@ class DoubleWalls(Walls):
 
 
 class Angles:
-    """
-        Parent class of Angles classes declaring attributes to be used in
-        displays, to avoid attributes errors. Contains only attributes
-        as string constants, representing different available special
-        characters to make up the Maze's angles.
+    """Parent class of Angles classes declaring attributes to be used in
+    displays, to avoid attributes errors. Contains only attributes
+    as string constants, representing different available special
+    characters to make up the Maze's angles.
 
-        Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
+    Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
     """
     TOP_LEFT: str
     TOP_RIGHT: str
@@ -103,11 +97,10 @@ class Angles:
 
 
 class BasicAngles(Angles):
-    """
-        Class child of Angles, assigning values to its declared attributes,
-        to be used in Maze and menues displays.
+    """Class child of Angles, assigning values to its declared attributes,
+    to be used in Maze and menues displays.
 
-        Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
+    Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
     """
     TOP_LEFT: str = "┌"
     TOP_RIGHT: str = "┐"
@@ -116,11 +109,10 @@ class BasicAngles(Angles):
 
 
 class BoldBasicAngles(Angles):
-    """
-        Class child of Angles, assigning values to its declared attributes,
-        to be used in Maze and menues displays.
+    """Class child of Angles, assigning values to its declared attributes,
+    to be used in Maze and menues displays.
 
-        Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
+    Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
     """
     TOP_LEFT: str = "┏"
     TOP_RIGHT: str = "┓"
@@ -129,11 +121,10 @@ class BoldBasicAngles(Angles):
 
 
 class DoubleAngles(Angles):
-    """
-        Class child of Angles, assigning values to its declared attributes,
-        to be used in Maze and menues displays.
+    """Class child of Angles, assigning values to its declared attributes,
+    to be used in Maze and menues displays.
 
-        Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
+    Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
     """
     TOP_LEFT: str = "╔"
     TOP_RIGHT: str = "╗"
@@ -142,11 +133,10 @@ class DoubleAngles(Angles):
 
 
 class RoundedAngles(Angles):
-    """
-        Class child of Angles, assigning values to its declared attributes,
-        to be used in Maze and menues displays.
+    """Class child of Angles, assigning values to its declared attributes,
+    to be used in Maze and menues displays.
 
-        Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
+    Attributes: TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
     """
     TOP_LEFT: str = "╭"
     TOP_RIGHT: str = "╮"
@@ -155,9 +145,8 @@ class RoundedAngles(Angles):
 
 
 class SmallIcons(StyleEnum):
-    """
-        StyleEnum containing single character icons to be used as Maze's
-        start and exit, or Pattern's content.
+    """StyleEnum containing single character icons to be used as Maze's
+    start and exit, or Pattern's content.
     """
     BLOCK = "█"
     DARK_SHADE = "▓"
@@ -194,11 +183,10 @@ class SmallIcons(StyleEnum):
 
 
 class Patterns(Enum):
-    """
-        Enum containing Patterns as tuples of tuples of binary values that
-        will be used a booleans to update the Maze's cells as part of the
-        Pattern. Makes drawings in the Maze's center that will be displayed
-        with a custom theming.
+    """Enum containing Patterns as tuples of tuples of binary values that
+    will be used a booleans to update the Maze's cells as part of the
+    Pattern. Makes drawings in the Maze's center that will be displayed
+    with a custom theming.
     """
     NONE = ()
     FORTY_TWO = (
@@ -240,9 +228,8 @@ class Patterns(Enum):
 
 
 class Colors(StyleEnum):
-    """
-        StyleEnum containing string constants representing color codes to
-        be used in ASCII escape sequences during style printing.
+    """StyleEnum containing string constants representing color codes to
+    be used in ASCII escape sequences during style printing.
     """
     DEFAULT = "-1"
     BLACK = "16"
@@ -257,9 +244,8 @@ class Colors(StyleEnum):
 
 
 class Styling(StyleEnum):
-    """
-        StyleEnum containing string constants representing style codes to
-        be used in ASCII escape sequences during style printing.
+    """StyleEnum containing string constants representing style codes to
+    be used in ASCII escape sequences during style printing.
     """
     BOLD = "1"
     DIM = "2"
@@ -269,21 +255,19 @@ class Styling(StyleEnum):
 
 
 def move_cursor(y: int, x: int = 0) -> str:
-    """
-        Returns a string to print to move the cursor across the terminal window
-        based on the given coordinates as argument.
+    """Returns a string to print to move the cursor across the terminal window
+    based on the given coordinates as argument.
     """
     coordinate = "\033[" + str(y) + ";" + str(x) + "H"
     return coordinate
 
 
 class CursorOperations(StyleEnum):
-    """
-        StyleEnum containing string constants representing cursor operations
-        codes to be used in ASCII escape sequences during style printing.
+    """StyleEnum containing string constants representing cursor operations
+    codes to be used in ASCII escape sequences during style printing.
 
-        Examples: SAVE_CURSOR to save its position, LOAD_CURSOR to load it back
-        etc.
+    Examples: SAVE_CURSOR to save its position, LOAD_CURSOR to load it back
+    etc.
     """
     ESC = "\033["
 
@@ -309,12 +293,11 @@ def styling(
         style: list[Styling] = [],
         fg_color: Colors = Colors.DEFAULT,
         bg_color: Colors = Colors.DEFAULT) -> str:
-    """
-        Returns a string to print to apply a custom style. Takes as argument
-        a list of Styling values [BOLD, ITALIC, ...], a foreground color
-        and a background color.
+    """Returns a string to print to apply a custom style. Takes as argument
+    a list of Styling values [BOLD, ITALIC, ...], a foreground color
+    and a background color.
 
-        Note: style is not applied to MOVE values of CursorOperations.
+    Note: style is not applied to MOVE values of CursorOperations.
     """
     return (f"\033[0;{";".join([
         *(str(st) for st in style),
@@ -326,21 +309,19 @@ def print_error(
         content: str,
         end: str = "\n\nRefer to the provided README file for guidance.\n\n"
         ) -> None:
-    """
-        Prints messages using a bold red style destined to errors. Takes a
-        message as argument, as well as an end message, defaulted to README
-        redirections.
+    """Prints messages using a bold red style destined to errors. Takes a
+    message as argument, as well as an end message, defaulted to README
+    redirections.
 
-        Returns None
+    Returns None
     """
     style_print(styling([Styling.BOLD], Colors.RED), content, end)
 
 
 def style_print(style: Styling | str, content: str, end: str = "") -> None:
-    """
-        Takes a style, a string content and an optional end string to print out
-        respecting this order: print(style, content, STYLE_CLEAR, end).
-        Sep and end argument to print are emptied.
+    """Takes a style, a string content and an optional end string to print out
+    respecting this order: print(style, content, STYLE_CLEAR, end).
+    Sep and end argument to print are emptied.
     """
     print(
         style, content, CursorOperations.STYLE_CLEAR, end,

@@ -9,15 +9,14 @@ from .utils import (
 
 
 class Theme:
-    """
-        Class destined to group together special characters and style printing
-        for the Maze's walls, angles, the start and exit characters, the
-        path visuals and the pattern's. Consists of an init method only. Uses
-        Walls, Angles, SmallIcons classes, and styling function.
+    """Class destined to group together special characters and style printing
+    for the Maze's walls, angles, the start and exit characters, the
+    path visuals and the pattern's. Consists of an init method only. Uses
+    Walls, Angles, SmallIcons classes, and styling function.
 
-        Attributes: Walls, Angles, start, exit, progress_line(Walls, Angles)
-        walls_ path_ start_ exit_ icon_ styles as str, icon_ Walls, Angles and
-        content.
+    Attributes: Walls, Angles, start, exit, progress_line(Walls, Angles)
+    walls_ path_ start_ exit_ icon_ styles as str, icon_ Walls, Angles and
+    content.
     """
     def __init__(
             self, walls: type[Walls], angles: type[Angles],
@@ -43,9 +42,8 @@ class Theme:
 
 
 class Themes(Enum):
-    """
-        Enumerates different Theme objects with set values for each argument.
-        Used in parser, menues and maze displays.
+    """Enumerates different Theme objects with set values for each argument.
+    Used in parser, menues and maze displays.
     """
     DEFAULT = Theme(
         walls=BoldBasicWalls,
@@ -138,8 +136,7 @@ class Themes(Enum):
 
 
 def get_theme(theme: str) -> Theme:
-    """
-        Returns a selected Theme object from the Enumeration from the
-        given string as argument.
+    """Returns a selected Theme object from the Enumeration from the
+    given string as argument.
     """
     return cast(Theme, getattr(Themes, theme.upper()).value)

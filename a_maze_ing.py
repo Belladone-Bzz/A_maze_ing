@@ -34,16 +34,15 @@ else:
 def instantiate_maze(
         config: dict[str, str],
         mandatory_values: tuple[str, ...]) -> str | Maze:
-    """
-        Receives a config dict containing all parsed arguments as strings,
-        as well as a list of mandatory values.
+    """Receives a config dict containing all parsed arguments as strings,
+    as well as a list of mandatory values.
 
-        Tries converting every
-        argument into their respective final type and instantiating a
-        Maze object, catching any exception.
+    Tries converting every
+    argument into their respective final type and instantiating a
+    Maze object, catching any exception.
 
-        Returns either the successfully created Maze instance,
-        or an error message.
+    Returns either the successfully created Maze instance,
+    or an error message.
     """
     try:
         maze = Maze(
@@ -77,16 +76,15 @@ def instantiate_maze(
 
 
 def main() -> int:
-    """
-        Brings the a_maze_ing program together parsing the given configuration
-        file, instantiating a first maze and entering the menues loop.
-        Queries user input by modifying the current terminal (TTY) session
-        and sends it to the menues module, receives back selection options
-        and updates the display accordingly.
+    """Brings the a_maze_ing program together parsing the given configuration
+    file, instantiating a first maze and entering the menues loop.
+    Queries user input by modifying the current terminal (TTY) session
+    and sends it to the menues module, receives back selection options
+    and updates the display accordingly.
 
-        Returns an int corresponding to errors, print out before leaving.
-        Possible returns: "Success", "Not enough argument",
-        "File parsing error", "Config parsing error", "Keyboard interrupt"
+    Returns an int corresponding to errors, print out before leaving.
+    Possible returns: "Success", "Not enough argument",
+    "File parsing error", "Config parsing error", "Keyboard interrupt"
     """
     if len(argv) != 2:
         print_error(
