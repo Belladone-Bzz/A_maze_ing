@@ -2,7 +2,7 @@
 
 ## Maze_display module
 
-This module is responsible of every printing methods and algorithms, as well as containing all Enum classes related to special characters, style printing and cursor manipulations. Both [display](#display.py) and [menues](#menues.py) files are accessible through a single enclosing function[^closure] that manages the states of the Maze and its config, while [themes](#themes.py) and [utils](#utils.py) contains constants variables.
+This module is responsible of every printing methods and algorithms, as well as containing all Enum classes related to special characters, style printing and cursor manipulations. Both [display](#display.py) and [menues](#menues.py) files are accessible through a single enclosing function[^closure] that manages the states of the Maze and its config, while [themes](#themes.py) and [utils](#utils.py) contains constants variables. This latter utility file can be found as a [Github Gist here](https://gist.github.com/jolyne-mangeot/895674d11a3ae2783075051bd6fdaf95).
 
 ### display.py
 

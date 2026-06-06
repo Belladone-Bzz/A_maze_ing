@@ -1,6 +1,21 @@
 
 from enum import Enum
 
+"""Utility file with accessible Classes, Enums and functions to
+centralize the printing of colored or stylized text within a project.
+Walls and Angles classes are not made to be instantiated and rather
+passed as arguments for example when multiple visual themes are
+made accessible to the user, so they share all the same attributes.
+The styling function makes the connection between all StyleEnums,
+its return value thought out to be stored or directly printed with
+the style_print function. It makes from the passed Styling and
+Colors Enum values a custom 'theme' that can group as as many effects
+as one could want. For colors, the values can range from 0 to 255 and
+be inserted as value from the Colors enum, a string or an int of the
+values. No verification of range is made, feel free to experiment
+until the output style is to your liking.
+"""
+
 
 class Walls:
     """Parent class of Walls classes declaring attributes to be used in
