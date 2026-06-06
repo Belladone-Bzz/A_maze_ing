@@ -54,7 +54,8 @@
 	- "maze_error": updates the `current_error` nonlocal string with the input.
 	- "back_to_main": Manually calls `change_menu("main")` and updates the `config_save` enclosed dict with the current config. Used when successfully generating a maze.
 
-[!NOTE] What are called execution functions are the callable passed as argument to Option objects for their optional `exec` attribute. They therefore have to respect the same typing, taking as parameter and returning strings.
+> [!NOTE]
+> What are called execution functions are the callable passed as argument to Option objects for their optional `exec` attribute. They therefore have to respect the same typing, taking as parameter and returning strings.
 
 ### themes.py
 
@@ -91,8 +92,8 @@ The utils file of this module's purpose is to make one's job of printing out inf
 	- `DoubleAngles`: `╔` `╗` `╚` `╝`
 	- `RoundedAngles`: `╭` `╮` `╰` `╯`
 
-[!NOTE]
-These 2 class families were originally declared as Enum's, but the problem of group typing was faced as the entire class had to be given out as argument, rather than each character on its own, and no solution of inheritance or duck typing was found during the making of this project.
+> [!NOTE]
+> These 2 class families were originally declared as Enum's, but the problem of group typing was faced as the entire class had to be given out as argument, rather than each character on its own, and no solution of inheritance or duck typing was found during the making of this project.
 
 #### Enums:
 
@@ -109,8 +110,8 @@ These 2 class families were originally declared as Enum's, but the problem of gr
 	- [Cursor control](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#cursor-controls): Useful to move the cursor around cell by cell, line by line or even using coordinates, but also saving its position to restore it later.
 	- [Erase functions](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#erase-functions): As in their name, that can erase lines, parts of lines, the entire terminal, etc. The style clearing code is also stored here, usable to restore the default display between prints to avoid styles transferring.
 
-[!NOTE]
-For more details on how the StyleEnum's are used in our project, this Github Gist here[^3] was our main resource to compose what is called ASCII escape sequences[^4] to alter and enrich terminal printing and display. Useful as they are, this utils file is then made to be usable in as many project that need terminal printing as possible.
+> [!NOTE]
+> For more details on how the StyleEnum's are used in our project, this Github Gist here[^3] was our main resource to compose what is called ASCII escape sequences[^4] to alter and enrich terminal printing and display. Useful as they are, this utils file is then made to be usable in as many project that need terminal printing as possible.
 
 #### Functions:
 
@@ -125,7 +126,8 @@ For more details on how the StyleEnum's are used in our project, this Github Gis
 
 ## Resources
 
-[!NOTE] No AI was used in the making of this module nor README file. Documentation written by [jolyne-mangeot](https://github.com/jolyne-mangeot)
+> [!NOTE]
+> No AI was used in the making of this module nor README file. Documentation written by [jolyne-mangeot](https://github.com/jolyne-mangeot)
 
 [^1]: [Wikipedia list of box drawing character](https://en.wikipedia.org/wiki/Box-drawing_characters)
 
