@@ -2,14 +2,23 @@
 
 ## Maze_display module
 
+This module is responsible of every printing methods and algorithms, as well as containing all Enum classes related to special characters, style printing and cursor manipulations. Both [display](#display.py) and [menues](#menues.py) files are accessible through a single enclosing function[^closure] that manages the states of the Maze and its config, while [themes](#themes.py) and [utils](#utils.py) contains constants variables.
+
 ### display.py
-
-#### Classes:
-
-#### Enums:
 
 #### Functions:
 
+- `instantiate_maze_display(config: dict[str, str]) -> Callable[[str, Maze], None]`: Exposed function of the display file, enclosing all other functions so they all can keep track of the currently selected theme within the `current_theme` variable through the config dict given as argument. It returns `maze_display`.
+
+- `print_maze(maze: Maze) -> None`: Displays the maze cell by cell, surrounding them with special characters depending on which of their walls are open or not. Displays each angle based on open walls, outputting an adaptive and clear display depending on the `current_theme` enclosed variable containing characters and styles to print.
+
+- `integrate_pattern_design(maze: Maze) -> None`: Function called after `print_maze`, going back on the print to integrate the selected pattern design. Works with the [CursorOperations enum](#Enums-2), and takes a Maze object as argument.
+
+- `display_maze(maze: Maze) -> None`: This is the function called when displaying the Maze's interface. It checks with the termios[^termios] module the size of the current terminal and calls the `print_maze` function when possible.
+
+- `display_maze_generation(maze: Maze) -> None`: Works the same as `display_maze`, but it responsible of calling the `stepped_generation` Maze generator method to call `print_maze` every time a new cell is accessed. If the terminal is too small, the `generate_maze` Maze method is called instead to skip the generator yields[^generator].
+
+- `maze_display(current_display: str, maze: Maze) -> None`:  This function is the one returned by the enclosing `instantiate_maze_display`. It takes a current display string and a Maze, and recovers the selected theme through the `config` nonlocal dict. The two possible displays are 'display_maze' and 'display_maze_generation'.
 
 ### menues.py
 
@@ -17,7 +26,7 @@
 
 - `ProgramQuit(Exception)`: Exception raised when option 'quit program' is selected through execution function.
 
-- `Options`: Takes various string, list of strings and sometimes an execution function to handle different type of menu options. Takes a mandatory `name`, `option_type` and `text` string arguments to init, while `options` and `exec` are only necessary to 'selection' and 'validation' option types respectively. Has access to the following instances methods:
+- `Options`: This class is enclosed in the later described `instantiate_menues` function to gain access to its nonlocal variables. It takes various string, list of strings and sometimes an execution function to handle different type of menu options. Takes a mandatory `name`, `option_type` and `text` string arguments to init, while `options` and `exec` are only necessary to 'selection' and 'validation' option types respectively. Has access to the following instances methods:
 
 	- `toggle(self) -> None`: Switches to "True" or "False" the corresponding config entry if the option type of the object is 'toggle'.
 	- `value_up(self, factor: int) -> None`: Handles the modification of 'slider' and 'double_slider' values upward by the factor argument, checking if the upper limit is reached and updating the corresponding config entry accordingly.
@@ -32,7 +41,7 @@
 
 #### Functions:
 
-- `instantiate_menues(config: dict[str, str]) -> Callable[[str, str], str]`: This function is the only exposed callable of this file, enclosing all needed functions, variables and class ([Options](#Classes-1)) to render and navigate the Maze's menues. It takes as argument the config dict containing the values as strings used by the A_maze_ing program to instantiate maze and updates it with the user's new values. Works with the following nonlocal attributes:
+- `instantiate_menues(config: dict[str, str]) -> Callable[[str, str], str]`: This function is the only exposed callable of this file, enclosing all needed functions, variables and class ([Options](#Classes)) to render and navigate the Maze's menues. It takes as argument the config dict containing the values as strings used by the A_maze_ing program to instantiate maze and updates it with the user's new values. Works with the following nonlocal attributes:
 `config_save: dict[str, str]` `current_menu: str` `current_index: int` `current_error: str ` `focused_option: "Option" | None ` and an Options objects-instantiating dict `menues: dict[str, list[Option]]`.
 
 - `get_config_ranges(option: str) -> range | tuple[range, range]`: is a utility function returning range of possible values for each 'slider' (numeric value through which the user can scroll through the menues) depending on config or pre-set values, or a tuple of ranges for 'double_sliders', used for the user to enter coordinates. The option argument is here always the `name` attribute of an Option object.
@@ -43,7 +52,7 @@
 
 - `randomize_seed(_: str) -> str`: Execution function called to randomize the Maze config's seed.
 
-- `browse_menu(user_input: str) -> str`: Updates nonlocal variables depending on the pressed key to navigate menues and pass on the input to an Option object browse method if necessary. Does so by comparing the user_input string passed as argument with values from the [Keyboard Enum](#Enums-1)
+- `browse_menu(user_input: str) -> str`: Updates nonlocal variables depending on the pressed key to navigate menues and pass on the input to an Option object browse method if necessary. Does so by comparing the user_input string passed as argument with values from the [Keyboard Enum](#Enums)
 
 - `print_menu(theme: Theme) -> None`: Displays the current menu, navigation index and errors applying a theme recovered from the config dict.
 
@@ -79,7 +88,7 @@ The utils file of this module's purpose is to make one's job of printing out inf
 
 #### Classes:
 
-- `Walls`: The wall class is here to group in type all inheriting wall classes that will store the 7 special characters[^1] to make up the Maze's borders. It so contains the declared but undefined attributes: `VERTICAL` `HORIZONTAL` `VERTICAL_R` `VERTICAL_L` `HORIZONTAL_U` `HORIZONTAL_D` `CROSS`. With every child class assigning values to these variables, they will then be usable by the Maze and menues printing functions, with the following walls added:
+- `Walls`: The wall class is here to group in type all inheriting wall classes that will store the 7 special characters[^box_chars] to make up the Maze's borders. It so contains the declared but undefined attributes: `VERTICAL` `HORIZONTAL` `VERTICAL_R` `VERTICAL_L` `HORIZONTAL_U` `HORIZONTAL_D` `CROSS`. With every child class assigning values to these variables, they will then be usable by the Maze and menues printing functions, with the following walls added:
 
 	- `BasicWalls`: `│` `─` `├` `┤` `┴` `┬` `┼`
 	- `BoldBasicWalls`: `┃` `━` `┣` `┫` `┻` `┳` `╋`
@@ -99,7 +108,7 @@ The utils file of this module's purpose is to make one's job of printing out inf
 
 - `StyleEnum(Enum)`: This Enum, destined to be inherited by styling related enumerations, only contains an override of the `__str__` method, returning its own value instead of name when a member of any StyleEnum is converted to a string (most notably when given to print functions).
 
-- `SmallIcons(StyleEnum)`: The SmallIcons enum is exposed in the maze_display module, and stores various special characters[^2] and emojis to make accessible wherever needed.
+- `SmallIcons(StyleEnum)`: The SmallIcons enum is exposed in the maze_display module, and stores various special characters[^spe_chars] and emojis to make accessible wherever needed.
 
 - `Colors(StyleEnum)`: This Enum stores as string the color code of various shades. These code are useful to insert into ASCII escape sequences. They do not correspond to the [8-16 basic sets of colors](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#color-codes), but the [256 color codes](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#256-colors) (for reference). In any case, they cannot be used on their own but must be inserted into the correct sequence syntax to have the expected result: `ESC[38;5;{code}m` (38 for foreground, 48 for background). In this module, they can be used with the later described style_print function, which inserts colors given as argument into a correct sequence to print out.
 
@@ -111,7 +120,7 @@ The utils file of this module's purpose is to make one's job of printing out inf
 	- [Erase functions](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#erase-functions): As in their name, that can erase lines, parts of lines, the entire terminal, etc. The style clearing code is also stored here, usable to restore the default display between prints to avoid styles transferring.
 
 > [!NOTE]
-> For more details on how the StyleEnum's are used in our project, this Github Gist here[^3] was our main resource to compose what is called ASCII escape sequences[^4] to alter and enrich terminal printing and display. Useful as they are, this utils file is then made to be usable in as many project that need terminal printing as possible.
+> For more details on how the StyleEnum's are used in our project, this Github Gist here[^gist] was our main resource to compose what is called ASCII escape sequences[^ascii_code] to alter and enrich terminal printing and display. Useful as they are, this utils file is then made to be usable in as many project that need terminal printing as possible.
 
 #### Functions:
 
@@ -123,16 +132,21 @@ The utils file of this module's purpose is to make one's job of printing out inf
 
 - `print_error(content: str, end: str = "\n\nRefer to the provided README file for guidance.\n\n" ) -> None`: Uses both styling and style_print functions to print out a message in bold red with a set overwritable end message.
 
-
 ## Resources
 
 > [!NOTE]
 > No AI was used in the making of this module nor README file. Documentation written by [jolyne-mangeot](https://github.com/jolyne-mangeot)
 
-[^1]: [Wikipedia list of box drawing character](https://en.wikipedia.org/wiki/Box-drawing_characters)
+[^closure]: [Function closures in python](https://dev.to/m16bappi/understanding-closures-in-python-4mdi)
 
-[^2]: [Wikipedia list of unicode characters](https://en.wikipedia.org/wiki/List_of_Unicode_characters)
+[^termios]: [Termios module documentation](https://docs.python.org/3.13/library/termios.html)
 
-[^3]: [Github Gist by fnky](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
+[^generator]: [Generators documentation](https://www.w3schools.com/python/python_generators.asp)
 
-[^4]: [Wikipedia page on escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
+[^box_chars]: [Wikipedia list of box drawing character](https://en.wikipedia.org/wiki/Box-drawing_characters)
+
+[^spe_chars]: [Wikipedia list of unicode characters](https://en.wikipedia.org/wiki/List_of_Unicode_characters)
+
+[^gist]: [Github Gist by fnky](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
+
+[^ascii_code]: [Wikipedia page on escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code)
