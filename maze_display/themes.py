@@ -51,6 +51,21 @@ class Patterns(Enum):
         (1, 1, 1, 0, 0, 1, 0),
         (1, 0, 1, 0, 0, 1, 0),
         (0, 1, 1, 0, 0, 1, 0))
+    MEUUH = (
+        (0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0),
+        (0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0),
+        (1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0),
+        (1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0),
+        (0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0),
+        (0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0),
+        (1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0),
+        (1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0),
+        (0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0),
+        (0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1),
+        (0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1),
+        (0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0),
+        (0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0),
+        (0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0))
 
 
 class Theme:
@@ -144,8 +159,8 @@ class Themes(Enum):
     MEUUH = Theme(
         walls=DoubleWalls,
         angles=DoubleAngles,
-        start=SmallIcons.MILK,
-        exit=SmallIcons.COW,
+        start=SmallIcons.COW,
+        exit=SmallIcons.MILK,
         progress_line=(DoubleWalls, DoubleAngles),
 
         walls_style=styling([], Colors.GREEN),
@@ -157,7 +172,7 @@ class Themes(Enum):
         icon_angles=BoldBasicAngles,
         icon_content="▞▞▞",
 
-        icon_style=styling([Styling.BLINKING], Colors.WHITE))
+        icon_style=styling([], Colors.WHITE))
     BOSS_LADY = Theme(
         walls=DoubleWalls,
         angles=DoubleAngles,
