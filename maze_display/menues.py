@@ -103,15 +103,6 @@ def instantiate_menues(
                 config_save[key] = value
         return ""
 
-    def generate_maze(_: str) -> str:
-        """Execution function called to return a string to the main program
-        to call for a new Maze instantiation. Updates the config_save dict
-        with the new config to instantly update menues displayed info.
-        Takes a string and returns one to respect Callable typing, but
-        does nothing of them.
-        """
-        return "maze_gen"
-
     def leave_program(_: str) -> str:
         """Execution function called to raise ProgramQuit Exception.
         Takes a string and returns one to respect Callable typing, but
@@ -349,7 +340,7 @@ def instantiate_menues(
                 name="generate maze",
                 option_type="validate",
                 text="- Generate maze -",
-                exec=partial(generate_maze, "")),
+                exec=partial(lambda _: "maze_gen", "")),
             Option(
                 name="back",
                 option_type="validate",
