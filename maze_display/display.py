@@ -1,5 +1,6 @@
 
-from .utils import style_print, CursorOperations, SmallIcons, move_cursor
+from .utils import (
+    style_print, CursorOperations, move_cursor, emoji_list)
 from .themes import Theme, get_theme
 from maze_gen import Maze, Directions
 from collections.abc import Callable
@@ -39,11 +40,6 @@ def instantiate_maze_display(
         """
         print(move_cursor(0, 0))
 
-        emojis: tuple[SmallIcons, ...] = (
-            SmallIcons.COOKIE, SmallIcons.BEE, SmallIcons.FLOWER,
-            SmallIcons.BUTTERFLY, SmallIcons.CATERPILLAR, SmallIcons.COW,
-            SmallIcons.MILK, SmallIcons.TONGUE, SmallIcons.BIKINI)
-
         line: str = str(current_theme.angles.TOP_LEFT)
         line += "".join(
             str(current_theme.walls.HORIZONTAL) * 3 + (
@@ -64,13 +60,13 @@ def instantiate_maze_display(
                     line += (
                         f" {current_theme.start_style}{current_theme.start}"
                         f"{current_theme.walls_style} "
-                        if current_theme.start not in emojis
+                        if current_theme.start not in emoji_list
                         else f" {current_theme.start}")
                 elif maze.cells[x][y].exit is True:
                     line += (
                         f" {current_theme.exit_style}{current_theme.exit}"
                         f"{current_theme.walls_style} "
-                        if current_theme.exit not in emojis
+                        if current_theme.exit not in emoji_list
                         else f" {current_theme.exit}")
                 else:
                     line += "   "

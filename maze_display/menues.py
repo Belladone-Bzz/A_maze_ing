@@ -1,7 +1,6 @@
 
-from .utils import (
-    style_print, print_error, SmallIcons, CursorOperations, Patterns)
-from .themes import Theme, Themes, get_theme
+from .utils import style_print, print_error, SmallIcons, CursorOperations
+from .themes import Theme, Themes, get_theme, Patterns
 from maze_gen import Maze
 from random import randint
 from typing import cast

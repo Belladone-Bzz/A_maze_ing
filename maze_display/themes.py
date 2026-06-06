@@ -8,6 +8,51 @@ from .utils import (
     SmallIcons)
 
 
+class Patterns(Enum):
+    """Enum containing Patterns as tuples of tuples of binary values that
+    will be used a booleans to update the Maze's cells as part of the
+    Pattern. Makes drawings in the Maze's center that will be displayed
+    with a custom theming.
+    """
+    NONE = ()
+    FORTY_TWO = (
+        (0, 0, 1, 0, 1, 1, 1),
+        (0, 1, 0, 0, 0, 0, 1),
+        (1, 1, 1, 0, 0, 1, 0),
+        (0, 0, 1, 0, 1, 0, 0),
+        (0, 0, 1, 0, 1, 1, 1))
+    HEART = (
+        (0, 1, 0, 1, 0),
+        (1, 0, 1, 0, 1),
+        (0, 1, 0, 1, 0),
+        (0, 0, 1, 0, 0))
+    BEE = (
+        (0, 0, 1, 1, 0, 1, 1, 0, 0, 0),
+        (0, 1, 0, 0, 1, 0, 0, 1, 0, 0),
+        (0, 0, 1, 0, 0, 1, 0, 1, 0, 0),
+        (0, 0, 0, 1, 1, 1, 1, 1, 0, 0),
+        (0, 0, 1, 1, 0, 1, 0, 0, 1, 0),
+        (0, 1, 0, 1, 0, 1, 0, 0, 0, 1),
+        (1, 1, 0, 1, 0, 1, 0, 1, 0, 1),
+        (0, 1, 0, 1, 0, 1, 0, 0, 0, 1),
+        (0, 0, 1, 1, 0, 1, 0, 0, 1, 0),
+        (0, 0, 0, 1, 1, 1, 1, 1, 0, 0))
+    BBL = (
+        (1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0),
+        (1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0),
+        (1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0),
+        (1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0),
+        (1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0),
+        (1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0),
+        (1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1))
+    SIX_SEVEN = (
+        (0, 1, 0, 0, 1, 1, 1),
+        (1, 0, 0, 0, 0, 0, 1),
+        (1, 1, 1, 0, 0, 1, 0),
+        (1, 0, 1, 0, 0, 1, 0),
+        (0, 1, 1, 0, 0, 1, 0))
+
+
 class Theme:
     """Class destined to group together special characters and style printing
     for the Maze's walls, angles, the start and exit characters, the
