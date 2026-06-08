@@ -1,12 +1,13 @@
 
-from maze_gen import Maze
-from maze_io import write_out_maze, generate_config
 from pydantic import ValidationError
 from sys import argv, stdin
 from os import name
 from typing import cast
 from collections.abc import Callable
-from maze_display import (
+
+from a_maze_ing_project import (
+    Maze,
+    write_out_maze, generate_config,
     print_error, instantiate_maze_display,
     instantiate_menues, ProgramQuit, Patterns)
 

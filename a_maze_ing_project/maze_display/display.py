@@ -1,7 +1,7 @@
 
 from .utils import style_print, CursorOperations
 from .themes import Theme, get_theme
-from maze_gen import Maze, Directions
+from a_maze_ing_project.maze_gen import Maze, Directions
 from collections.abc import Callable
 from os import get_terminal_size, terminal_size
 from time import sleep

@@ -1,5 +1,5 @@
 
-from maze_gen import Maze
+from a_maze_ing_project.maze_gen import Maze
 
 
 def write_out_maze(maze: Maze, config: dict[str, str]) -> str:

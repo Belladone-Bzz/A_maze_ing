@@ -1,7 +1,6 @@
 
 from random import randint
-from maze_display import Patterns
-from maze_display import Themes
+from a_maze_ing_project.maze_display import Patterns, Themes
 
 
 def parse_config_file(
