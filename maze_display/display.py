@@ -25,6 +25,12 @@ def instantiate_maze_display(
 
     def calculate_intersection_index(
             bin_bool: tuple[bool, bool, bool, bool]) -> int:
+        """Returns a decimal value from a 4 bit binary value.
+
+        Uses join and int to first convert the 4 booleans given as parameter
+        into binary, then joining them into a string given to int with a base
+        of 2 to recover an int between 0 and 15, to be used as an index.
+        """
         return int("".join(str(int(bi)) for bi in bin_bool), 2)
 
     def print_maze(maze: Maze, theme: Theme) -> None:
@@ -121,6 +127,14 @@ def instantiate_maze_display(
                 else str(theme.walls.HORIZONTAL))
             for cell in (maze.cells[x][-1] for x in range(maze.config.WIDTH)))
         style_print(theme.walls_style, line, "\n")
+
+    def integrate_entry_exit(maze: Maze, theme: Theme) -> None:
+        """Function called after print_maze, going back on the print to
+        integrate the icons for the entry and the exit coordinates with
+        their corresponding styling.
+
+        Returns None
+        """
         print(CursorOperations.SAVE_CURSOR, end="")
         for coords, style, icon in zip(
                 (maze.config.ENTRY, maze.config.EXIT),
@@ -230,6 +244,7 @@ def instantiate_maze_display(
                 maze.config.WIDTH * 4 < window_size.columns
                 and maze.config.HEIGHT * 2 < window_size.lines):
             print_maze(maze, theme)
+            integrate_entry_exit(maze, theme)
             integrate_pattern_design(maze, theme)
         else:
             style_print(
@@ -251,12 +266,13 @@ def instantiate_maze_display(
         if (
                 maze.config.WIDTH * 4 < window_size.columns
                 and maze.config.HEIGHT * 2 < window_size.lines
-                or int(config["gen_speed"]) != 0):
+                and int(config["gen_speed"]) != 0):
             step: int = 0
             for _ in maze.stepped_generation():
                 if step % int(config["gen_speed"]) == 0:
                     print_maze(maze, theme)
-                    integrate_pattern_design(maze, theme)
+                    # integrate_entry_exit(maze, theme)
+                    # integrate_pattern_design(maze, theme)
                 sleep(0.004)
                 step += 1
         else:

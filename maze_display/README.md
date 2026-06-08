@@ -10,15 +10,20 @@ This module is responsible of every printing methods and algorithms, as well as 
 
 - `instantiate_maze_display(config: dict[str, str]) -> Callable[[str, Maze], None]`: Exposed function of the display file, enclosing all other functions so they all can keep track of the currently selected theme within the `current_theme` variable through the config dict given as argument. It returns `maze_display`.
 
-- `print_maze(maze: Maze) -> None`: Displays the maze cell by cell, surrounding them with special characters depending on which of their walls are open or not. Displays each angle based on open walls, outputting an adaptive and clear display depending on the `current_theme` enclosed variable containing characters and styles to print.
+- `print_maze(maze: Maze) -> None`: Displays the maze cell by cell, surrounding them with special characters depending on which of their walls are open or not. Displays each angle based on open walls, outputting an adaptive and clear display depending on the theme argument containing characters and styles to print.
+
+- `integrate_entry_exit(maze: Maze, theme: Theme) -> None`: Function called after print_maze, going back on the print to integrate the icons for the entry and the exit coordinates with their corresponding styling.
 
 - `integrate_pattern_design(maze: Maze) -> None`: Function called after `print_maze`, going back on the print to integrate the selected pattern design. Works with the [CursorOperations enum](#Enums-2), and takes a Maze object as argument.
 
 - `display_maze(maze: Maze) -> None`: This is the function called when displaying the Maze's interface. It checks with the termios[^termios] module the size of the current terminal and calls the `print_maze` function when possible.
 
-- `display_maze_generation(maze: Maze) -> None`: Works the same as `display_maze`, but it responsible of calling the `stepped_generation` Maze generator method to call `print_maze` every time a new cell is accessed. If the terminal is too small, the `generate_maze` Maze method is called instead to skip the generator yields[^generator].
+- `display_maze_generation(maze: Maze) -> None`: Works the same as `display_maze`, but it responsible of calling the `stepped_generation` Maze generator method to call `print_maze` every time a new cell is accessed. If the terminal is too small, or the `gen_speed` config parameter if 0, the `generate_maze` Maze method is called instead to skip the generator yields[^generator].
 
 - `maze_display(current_display: str, maze: Maze) -> None`:  This function is the one returned by the enclosing `instantiate_maze_display`. It takes a current display string and a Maze, and recovers the selected theme through the `config` nonlocal dict. The two possible displays are 'display_maze' and 'display_maze_generation'.
+
+> [!NOTE]
+> Both the print_maze and integrate_pattern_design use a binary indexing to chose which intersection character to use. With each cell intersection consisting of 16 possibilities, the corresponding character to print depends on a tuple of boolean of which cell is accessible or not joined as a string of binary and converted to decimal.
 
 ### menues.py
 
