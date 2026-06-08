@@ -305,14 +305,15 @@ def styling(
         ])}m")
 
 
-def style_print(style: str, content: str, end: str = "") -> None:
+def style_print(
+        style: str, content: str, end: str = "", flush: bool = True) -> None:
     """Takes a style, a string content and an optional end string to print out
     respecting this order: print(style, content, STYLE_CLEAR, end).
     Sep and end argument to print are emptied.
     """
     print(
         style, content, CursorOperations.STYLE_CLEAR, end,
-        flush=True, sep="", end="")
+        flush=flush, sep="", end="")
 
 
 def print_error(

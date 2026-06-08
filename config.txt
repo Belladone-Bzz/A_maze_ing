@@ -19,10 +19,13 @@ OUTPUT_FILE=output_file
 # - seed, for maze reproducibility (whole number)
 # - central pattern, to display a predesigned pattern on the center of the maze,
 #     Patterns available: Forty_two, Heart, Bee, Bbl, Six_seven, None
+# - gen_speed, for generation speed, concerns the displaying of the maze generating (0 to 10).
+#     the speed relates to the number of cells added to the maze between each print, a speed of 0 will skip this display.
 
 PERFECT=True
 SEED=702999800310
 PATTERN=Forty_two
+GEN_SPEED=1
 
 # Color, characters and styling theme to apply when printing the generated maze.
 #     Themes available: Default, Bee, Metamorphosis, Meuuh, Boss_lady

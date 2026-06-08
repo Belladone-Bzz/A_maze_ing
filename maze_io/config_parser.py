@@ -33,7 +33,8 @@ def parse_config_file(
         entry: list[str] = line.split("=")
         if len(entry) == 2:
             if entry[0] not in (
-                    *mandatory_values, "SEED", "PATTERN", "THEME"):
+                    *mandatory_values,
+                    "SEED", "PATTERN", "THEME", "GEN_SPEED"):
                 error_message.append(
                     f" - unknown value key on line {number}: "
                     f"'{entry[0][:15]}={entry[1][:20]}'")
@@ -77,6 +78,11 @@ def generate_config(
                 theme.name.capitalize() for theme in Themes):
             raise ValueError("Unknown value attributed to theme parameter.")
         config.update({"theme": config.get("theme", "Default")})
+        if "gen_speed" not in config.keys():
+            config.update({"gen_speed": "3"})
+        if int(config["gen_speed"]) not in range(0, 11):
+            raise ValueError(
+                "Generation speed parameter must be an int between 0 and 10.")
     except ValueError as error:
         output = f"- {str(error)}"
     config.update({"show_path": "True"})

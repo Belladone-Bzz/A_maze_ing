@@ -76,6 +76,8 @@ def instantiate_menues(
                 return (
                     range(0, int(config["width"])),
                     range(0, int(config["height"])))
+            case "gen_speed":
+                return range(0, 11)
             case _:
                 return range(0)
 
@@ -336,6 +338,10 @@ def instantiate_menues(
                 option_type="validate",
                 text=f"{'Output file:':<15}""{value:>20.20}",
                 exec=partial(lambda _: "file_rename", "")),
+            Option(
+                name="gen_speed",
+                option_type="slider",
+                text=f"{"Generation speed:":<22}""{value:>13}"),
             Option(
                 name="generate maze",
                 option_type="validate",
