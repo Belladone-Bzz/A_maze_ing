@@ -54,10 +54,73 @@ This project allowed us to greatly improve the following skills:
 > [!NOTE]
 No AI was used in the making of this project.
 
-#### In order to better understand the complexity of maze generation :
+## Generation algorithms:
+
+https://codebox.net/pages/maze-generator/online
+
+https://medium.com/@batu.senturk/maze-generation-showdown-kruskals-vs-wilsons-vs-iterative-backtracking-45b3127863ef
+
+https://weblog.jamisbuck.org/2011/2/7/maze-generation-algorithm-recap
+
+https://professor-l.github.io/mazes/
+
+https://www.cs.cmu.edu/~112-n22/notes/student-tp-guides/Mazes.pdf
+
+
+- Backtracking algorithm:
+
+  https://aryanab.medium.com/maze-generation-recursive-backtracking-5981bc5cc766
+  
+  https://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking
+  
+- Hunt and kill algorithm:
+  
+  https://weblog.jamisbuck.org/2011/1/24/maze-generation-hunt-and-kill-algorithm
+
+- Prim algorithm:
+  
+  https://weblog.jamisbuck.org/2011/1/10/maze-generation-prim-s-algorithm
+
+## Solving algorithms:
+
+https://medium.com/@batu.senturk/foundational-algorithms-in-computer-science-dfs-vs-bfs-d723458eda44
+
+https://medium.com/@batu.senturk/maze-wars-which-is-the-best-maze-solving-algorithm-4102d3115191
+
+- Breadth first search algorithm:
+
+  https://medium.com/@prajun_t/breadth-first-search-bfs-db7ffb384da7
+  
+  https://www.geeksforgeeks.org/dsa/breadth-first-search-or-bfs-for-a-graph/
+
+- Dead-end filling algortihm:
+
+  https://medium.com/@batu.senturk/dead-end-filling-a-unique-approach-to-maze-solving-e79c8005e276
+
+- Dijkstra algorithm:
+  
+  https://medium.com/@batu.senturk/the-smartest-graph-traversals-a-and-dijkstras-algorithm-41dbbd5421b5
+
+- A star algorithm:
+
+  https://matteo-tosato7.medium.com/exploring-the-depths-solving-mazes-with-a-search-algorithm-c15253104899
+
+  https://levelup.gitconnected.com/a-star-a-search-for-solving-a-maze-using-python-with-visualization-b0cae1c3ba92
+
+
 
 # Team and project management
 
-- [Jolyne](https://github.com/jolyne-mangeot) :
+#### [Jolyne](https://github.com/jolyne-mangeot) :
 
-- [Belladone-Bzz](https://github.com/Belladone-Bzz) :
+
+#### [Belladone-Bzz](https://github.com/Belladone-Bzz) :
+
+**Conception:**
+  - Ressources research (generation algorithms, solving algortihms).
+  - Documentation (Docstrings, Readme.md).
+
+**Programming:**
+  - Generation Algorithms (Backtraking, Hunt and kill, Prim).
+  - Solving algorithms (Breadth first search, Dead-end filling, Dijkstra, A-star).
+
