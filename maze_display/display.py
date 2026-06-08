@@ -1,6 +1,5 @@
 
-from .utils import (
-    style_print, CursorOperations, move_cursor, emoji_list)
+from .utils import style_print, CursorOperations
 from .themes import Theme, get_theme
 from maze_gen import Maze, Directions
 from collections.abc import Callable
@@ -25,6 +24,10 @@ def instantiate_maze_display(
     """
 
     current_theme: Theme = get_theme(config["theme"])
+
+    def calculate_intersection_index(
+            bin_bool: tuple[bool, bool, bool, bool]) -> int:
+        return int("".join(str(int(bi)) for bi in bin_bool), 2)
 
     def print_maze(maze: Maze) -> None:
         """Takes a Maze object to display. Works with utils file, containing
@@ -53,7 +56,7 @@ def instantiate_maze_display(
             current_theme.walls_style, line,
             f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
 
-        intersections: tuple[str] = (
+        intersections: tuple[str, ...] = (
             " ",
             str(current_theme.walls.VERTICAL),
             str(current_theme.walls.VERTICAL),
@@ -103,26 +106,22 @@ def instantiate_maze_display(
                     style_print(
                         current_theme.walls_style, line,
                         f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
-                    continue
-                binary_intersection: list[bool] = [
+                    break
+                line += intersections[calculate_intersection_index((
                     maze.cells[x][y].walls[Directions.SOUTH],
                     maze.cells[x + 1][y].walls[Directions.SOUTH],
                     maze.cells[x][y].walls[Directions.EAST],
-                    maze.cells[x][y + 1].walls[Directions.EAST]]
-                index: int = int(
-                    "".join(str(int(bi)) for bi in binary_intersection),
-                    2)
-                line += intersections[index]
+                    maze.cells[x][y + 1].walls[Directions.EAST]))]
 
         line = str(current_theme.angles.BOTTOM_LEFT)
         line += "".join(
             str(current_theme.walls.HORIZONTAL) * 3 + (
-                "" if cell.coordinates[0] == maze.config.WIDTH - 1
+                str(current_theme.angles.BOTTOM_RIGHT)
+                if cell.coordinates[0] == maze.config.WIDTH - 1
                 else str(current_theme.walls.HORIZONTAL_U)
                 if cell.walls[Directions.EAST] is True
                 else str(current_theme.walls.HORIZONTAL))
             for cell in (maze.cells[x][-1] for x in range(maze.config.WIDTH)))
-        line += str(current_theme.angles.BOTTOM_RIGHT)
         style_print(current_theme.walls_style, line, "\n")
         print(CursorOperations.SAVE_CURSOR, end="")
         for coords, theme, icon in zip(
@@ -143,83 +142,51 @@ def instantiate_maze_display(
 
         Returns None
         """
+        intersections: tuple[str, ...] = (
+            str(CursorOperations.MOVE_RIGHT),
+            str(current_theme.icon_angles.BOTTOM_RIGHT),
+            str(current_theme.icon_angles.BOTTOM_LEFT),
+            str(current_theme.icon_walls.HORIZONTAL_U),
+            str(current_theme.icon_angles.TOP_RIGHT),
+            str(current_theme.icon_walls.VERTICAL_L),
+            str(current_theme.icon_walls.CROSS),
+            str(current_theme.icon_walls.CROSS),
+            str(current_theme.icon_angles.TOP_LEFT),
+            str(current_theme.icon_walls.CROSS),
+            str(current_theme.icon_walls.VERTICAL_R),
+            str(current_theme.icon_walls.CROSS),
+            str(current_theme.icon_walls.HORIZONTAL_D),
+            str(current_theme.icon_walls.CROSS),
+            str(current_theme.icon_walls.CROSS),
+            str(current_theme.icon_walls.CROSS)
+        )
         pattern: list[list[bool]] = maze.config.PATTERN
         lines: str = ""
 
         for y in range(len(pattern)):
             for x in range(len(pattern[0])):
-                if pattern[y][x] is True:
-                    lines += (
-                        current_theme.icon_angles.TOP_LEFT
-                        if (x == 0 and y == 0)
-                        or (x == 0 and pattern[y - 1][x] is False)
-                        or (y == 0 and pattern[y][x - 1] is False)
-                        or (
-                            x != 0 and y != 0
-                            and pattern[y - 1][x - 1] is False
-                            and pattern[y - 1][x] is False
-                            and pattern[y][x - 1] is False)
-                        else current_theme.icon_walls.HORIZONTAL_D
-                        if x != 0 and pattern[y][x - 1] is True and (
-                            y == 0 or (
-                                pattern[y - 1][x - 1] is False
-                                and pattern[y - 1][x] is False))
-                        else current_theme.icon_walls.VERTICAL_R
-                        if y != 0 and pattern[y - 1][x] is True and (
-                            x == 0 or (
-                                pattern[y - 1][x - 1] is False
-                                and pattern[y][x - 1] is False))
-                        else current_theme.icon_walls.CROSS)
-                    lines += current_theme.icon_walls.HORIZONTAL * 3
-                else:
-                    lines += (
-                        current_theme.icon_angles.TOP_RIGHT
-                        if x != 0 and pattern[y][x - 1] is True and (
-                            y == 0 or (
-                                pattern[y - 1][x] is False
-                                and pattern[y - 1][x - 1] is False))
-                        else current_theme.icon_angles.BOTTOM_LEFT
-                        if y != 0 and pattern[y - 1][x] is True and (
-                            x == 0 or (
-                                pattern[y][x - 1] is False
-                                and pattern[y - 1][x - 1] is False))
-                        else current_theme.icon_angles.BOTTOM_RIGHT
-                        if y != 0 and x != 0
-                        and pattern[y][x - 1] is False
-                        and pattern[y - 1][x] is False
-                        and pattern[y - 1][x - 1] is True
-                        else current_theme.icon_walls.HORIZONTAL_U
-                        if y != 0 and x != 0
-                        and pattern[y][x - 1] is False
-                        and pattern[y - 1][x] is True
-                        and pattern[y - 1][x - 1] is True
-                        else current_theme.icon_walls.VERTICAL_L
-                        if y != 0 and x != 0
-                        and pattern[y][x - 1] is True
-                        and pattern[y - 1][x] is False
-                        and pattern[y - 1][x - 1] is True
-                        else current_theme.icon_walls.CROSS
-                        if y != 0 and x != 0
-                        and pattern[y][x - 1] is True
-                        and pattern[y - 1][x] is True
-                        else str(CursorOperations.MOVE_RIGHT))
-                    lines += (
-                        str(CursorOperations.MOVE_RIGHT) * 3
-                        if y == 0 or pattern[y - 1][x] is False
-                        else current_theme.icon_walls.HORIZONTAL * 3)
-                if x == len(pattern[0]) - 1:
-                    lines += (
-                        current_theme.icon_angles.TOP_RIGHT
-                        if pattern[y][x] is True and (
-                            y == 0 or pattern[y - 1][x] is False)
-                        else current_theme.icon_walls.VERTICAL_L
-                        if pattern[y][x] is True and y != 0
-                        and pattern[y - 1][x] is True
-                        else current_theme.icon_angles.BOTTOM_RIGHT
-                        if pattern[y][x] is False and y != 0
-                        and pattern[y - 1][x] is True
-                        else str(CursorOperations.MOVE_RIGHT)
-                    ) + "\n"
+                lines += intersections[calculate_intersection_index((
+                    pattern[y][x],
+                    False if x == 0 else pattern[y][x - 1],
+                    False if y == 0 else pattern[y - 1][x],
+                    False if x == 0 or y == 0 else pattern[y - 1][x - 1]))]
+                lines += (
+                    current_theme.icon_walls.HORIZONTAL * 3
+                    if pattern[y][x] is True or (
+                        y != 0 and pattern[y - 1][x] is True)
+                    else str(CursorOperations.MOVE_RIGHT) * 3)
+            lines += (
+                current_theme.icon_angles.TOP_RIGHT
+                if pattern[y][x] is True and (
+                    y == 0 or pattern[y - 1][x] is False)
+                else current_theme.icon_walls.VERTICAL_L
+                if pattern[y][x] is True and y != 0
+                and pattern[y - 1][x] is True
+                else current_theme.icon_angles.BOTTOM_RIGHT
+                if pattern[y][x] is False and y != 0
+                and pattern[y - 1][x] is True
+                else str(CursorOperations.MOVE_RIGHT)
+            ) + "\n"
             for x in range(len(pattern[0])):
                 if pattern[y][x] is True:
                     lines += (
@@ -231,33 +198,31 @@ def instantiate_maze_display(
                         if x != 0 and pattern[y][x - 1] is True
                         else str(CursorOperations.MOVE_RIGHT))
                     lines += str(CursorOperations.MOVE_RIGHT) * 3
-                if x == len(pattern[0]) - 1:
-                    lines += (
-                        current_theme.icon_walls.VERTICAL
-                        if pattern[y][x] is True
-                        else str(CursorOperations.MOVE_RIGHT)) + "\n"
-            if y == len(pattern) - 1:
-                for x in range(len(pattern[0])):
-                    lines += (
-                        current_theme.icon_angles.BOTTOM_LEFT
-                        if pattern[y][x] is True and (
-                            x == 0 or pattern[y][x - 1] is False)
-                        else current_theme.icon_walls.HORIZONTAL_U
-                        if pattern[y][x] is True
-                        and x != 0 and pattern[y][x - 1] is True
-                        else current_theme.icon_angles.BOTTOM_RIGHT
-                        if pattern[y][x] is False
-                        and x != 0 and pattern[y][x - 1] is True
-                        else str(CursorOperations.MOVE_RIGHT))
-                    lines += (
-                        current_theme.icon_walls.HORIZONTAL * 3
-                        if pattern[y][x] is True else
-                        str(CursorOperations.MOVE_RIGHT) * 3)
-                lines += (
-                    current_theme.icon_angles.BOTTOM_RIGHT
-                    if pattern[y][len(pattern[0]) - 1] is True
-                    else str(CursorOperations.MOVE_RIGHT)
-                )
+            lines += (
+                current_theme.icon_walls.VERTICAL
+                if pattern[y][x] is True
+                else str(CursorOperations.MOVE_RIGHT)) + "\n"
+        for x in range(len(pattern[0])):
+            lines += (
+                current_theme.icon_angles.BOTTOM_LEFT
+                if pattern[y][x] is True and (
+                    x == 0 or pattern[y][x - 1] is False)
+                else current_theme.icon_walls.HORIZONTAL_U
+                if pattern[y][x] is True
+                and x != 0 and pattern[y][x - 1] is True
+                else current_theme.icon_angles.BOTTOM_RIGHT
+                if pattern[y][x] is False
+                and x != 0 and pattern[y][x - 1] is True
+                else str(CursorOperations.MOVE_RIGHT))
+            lines += (
+                current_theme.icon_walls.HORIZONTAL * 3
+                if pattern[y][x] is True else
+                str(CursorOperations.MOVE_RIGHT) * 3)
+        lines += (
+            current_theme.icon_angles.BOTTOM_RIGHT
+            if pattern[y][len(pattern[0]) - 1] is True
+            else str(CursorOperations.MOVE_RIGHT)
+        )
         print(CursorOperations.SAVE_CURSOR, end="")
         for index, line in enumerate(lines.split("\n")):
             print(CursorOperations.MOVE_CURSOR(
