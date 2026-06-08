@@ -2,6 +2,10 @@
 **/__pycache__
 **/.mypy_cache
 
+# pip project folder
+*.egg-info/*
+venv/*
+
 # project related files
 *output*
 *test*
