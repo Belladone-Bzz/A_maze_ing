@@ -1,6 +1,7 @@
 
 from math import inf
-from a_maze_ing_project.maze_gen import Maze, Directions, Movements, CellCoordinates
+from a_maze_ing_project.maze_gen import (
+    Maze, Directions, Movements, CellCoordinates)
 
 
 class MazeSolver:
@@ -27,6 +28,12 @@ class MazeSolver:
 
 
 if __name__ == "__main__":
+    """If you encounter an ImportError on maze_gen when running this test
+    file, run `pip install -e .` from the root of the repository. It will
+    index every source file in an 'egg-info' folder and correct the path
+    finding errors
+    """
+
     from random import randint
 
     maze: Maze = Maze(
