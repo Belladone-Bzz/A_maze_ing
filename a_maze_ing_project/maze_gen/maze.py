@@ -147,8 +147,7 @@ class Maze:
 
     class Cell:
         """Class Cell
-        Atributes: coordinates, walls, entry, exit, pattern, is_in_maze,
-        is_visited.
+        Atributes: coordinates, walls, entry, exit, pattern, is_in_maze.
         Methods: init
         """
         def __init__(self, coordinates: CellCoordinates, walled: bool) -> None:
@@ -159,7 +158,6 @@ class Maze:
             self.exit: bool = False
             self.pattern: bool = False
             self.is_in_maze: bool = False
-            self.is_visited: bool = False
 
     def integrate_pattern(self) -> None:
         """Method that reads the given PATTERN and applies it to the current

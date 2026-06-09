@@ -1,12 +1,18 @@
 # A_maze_ing
 
-## Maze_generating module
+## Maze_gen module
 
 > [!NOTE]
 > No AI was used in the making of this module nor README file. Documentation written by [Belladone-Bzz](https://github.com/Belladone-Bzz)
 
 This module manages all the classes, enumerations, methods and algorithms required to generate a maze, within the maze.py file.
 This file can be found as a [Github Gist here](https://gist.github.com/Belladone-Bzz/98f3d80636ba63530c14b6fb08277536)
+
+**Key features of our maze generator:**
+- Several generation algorithms have been implemented. The dynamic display of these algorithms clearly illustrates the very different ways in which they generate a maze. The appearance of the final maze also varies depending on the algorithm chosen. We made this choice to highlight the diversity and complexity of the various existing algorithms
+- We gave a great deal of thought to the generation of imperfect mazes. We could have simply broken down walls at random in our imperfect mazes to create loops. However, to make the imperfect mazes more aesthetically pleasing and avoid the creation of rooms, we employed several methods. 
+    - Firstly, we used a method that only breaks walls when there are at least three consecutive horizontal or vertical walls in a row; by breaking the one in the middle (with an 80% probability), this prevents the creation of rooms. In the case of small mazes, this method was not always feasible.
+    - In such cases, all the dead ends in the maze were analysed. The priority was to break down the wall opposite the entrance to the dead end whenever possible. If this was not possible, we looked for a dead-end with two consecutive walls on at least one of its sides in order to break through a wall. If this was still not feasible, only then would we randomly break through a side wall of a dead-end. This method has enabled us to minimise the generation of chambers, which only occur in rare cases in 3x3 mazes.
 
 ### maze.py
 
@@ -28,7 +34,7 @@ This file can be found as a [Github Gist here](https://gist.github.com/Belladone
 
 -  `Cell`: Class Cell, nested in Maze class.
    - **Utility:** Allows you to instantiate, store and manipulate each cell in the grid.
-   - **Attributes:** coordinates, walls, entry, exit, pattern, is_in_maze, is_visited
+   - **Attributes:** coordinates, walls, entry, exit, pattern, is_in_maze.
    - **Methods:** init.
 
 #### Functions:
