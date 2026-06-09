@@ -52,11 +52,11 @@ class Maze:
         "Backtracking", "Prim", "Hunt_and_kill")
 
     def __init__(
-        """Initialises the attributes of the Maze instance."""
             self, width: int, height: int,
             entry: tuple[int, int], exit: tuple[int, int],
             perfect: bool, gen_algorithm: str, seed: int,
-            pattern: list[list[bool]] = []):
+            pattern: list[list[bool]] = []) -> None:
+        """Initialises the attributes of the Maze instance."""
         if gen_algorithm not in self.generation_algorithms:
             raise ValueError(
                 f"Invalid generation algorithm entered: {gen_algorithm}. "
@@ -151,7 +151,8 @@ class Maze:
         is_visited.
         Methods: init
         """
-        def __init__(self, coordinates: CellCoordinates, walled: bool):
+        def __init__(self, coordinates: CellCoordinates, walled: bool) -> None:
+            """Initialises the attributes of the Cell instance."""
             self.coordinates: CellCoordinates = coordinates
             self.walls: list[bool] = [walled, walled, walled, walled]
             self.entry: bool = False
@@ -343,7 +344,8 @@ class Maze:
         dead-end with two True walls on the same side, perpendicular to the
         dead-end’s entrance, to avoid creating chambers. 3.If no dead-end meets
         these criteria, then a random dead-end is chosen and one of the walls
-        perpendicular to the entrance is opened if the adjacent cell is available.
+        perpendicular to the entrance is opened if the adjacent cell is
+        available.
         """
         dead_end: list[CellCoordinates] = self.find_dead_end()
 
@@ -542,7 +544,7 @@ class Maze:
     # _________________________________________________________________________
 
     def generate_maze(self) -> None:
-        """Generate the maze with the algorithm given in config, and make it 
+        """Generate the maze with the algorithm given in config, and make it
         imperfect if perfect is set to False. The generation is done and the
         maze is display after it.
         """
@@ -559,7 +561,7 @@ class Maze:
                 pass
 
     def stepped_generation(self) -> Generator[None]:
-        """Generate the maze with the algorithm given in config, and make it 
+        """Generate the maze with the algorithm given in config, and make it
         imperfect if perfect is set to False. The display is done during the
         generation, making it dynamic.
         """

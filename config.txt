@@ -2,13 +2,13 @@
 
 # Positive numerical values (may exceed terminal maximum display size)
 
-WIDTH=20
-HEIGHT=15
+WIDTH=30
+HEIGHT=20
 
 # Positive numerical coordinates separated by a comma (may not exceed maze size)
 
 ENTRY=0,0
-EXIT=14,14
+EXIT=24,12
 
 # File to overwrite with hexadecimal maze layout and more
 
@@ -34,7 +34,7 @@ THEME=Bees
 
 # Generation algorithms available: Backtracking, Prim, Hunt_and_kill
 
-GEN_ALGORITHM=Hunt_and_kill
+GEN_ALGORITHM=Prim
 
 # Solving algorithms available: Dijkstra
 
