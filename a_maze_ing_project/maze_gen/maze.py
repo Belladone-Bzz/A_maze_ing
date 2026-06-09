@@ -493,6 +493,8 @@ class Maze:
                     Directions.EAST] = False
                 self.cells[coords[0] + 1][coords[1]].walls[
                     Directions.WEST] = False
+            else:
+                v_walls.remove(coords)
 
         def break_south_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and her down neighbor."""
@@ -502,6 +504,8 @@ class Maze:
                     Directions.SOUTH] = False
                 self.cells[coords[0]][coords[1] + 1].walls[
                     Directions.NORTH] = False
+            else:
+                h_walls.remove(coords)
 
         v_walls: list[CellCoordinates] = self.check_consec_walls("vertical")
         h_walls: list[CellCoordinates] = self.check_consec_walls("horizontal")
@@ -513,22 +517,6 @@ class Maze:
             yield None
         if v_walls == [] and h_walls == []:
             self.dead_end_opener()
-
-    # _________________________________________________________________________
-    #                            SOLVING ALGORITHMS
-    # _________________________________________________________________________
-
-    def breadth_first_search_algorithm(self) -> None:
-        """"""
-
-    def dead_end_filling_algorithm(self) -> None:
-        """"""
-
-    def dijkstra_algorithm(self) -> None:
-        """"""
-
-    def alpha_star_algorithm(self) -> None:
-        """"""
 
     # _________________________________________________________________________
     #                         MAZE GENERATION AND DISPLAY
