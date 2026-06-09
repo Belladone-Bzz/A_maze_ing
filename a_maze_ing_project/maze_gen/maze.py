@@ -283,7 +283,7 @@ class Maze:
     def check_consec_walls(self, axes: str) -> list[CellCoordinates]:
         """Check if a wall is part of a sequence of 3+ consecutive walls
         along the horizontal or vertical axes of the grid. If it's the case
-        it has 80% chance to be added to the lis of walls to be broken.
+        it has 80% chance to be added to the list of walls to be broken.
         Return the list of these walls."""
         walls_to_broke: list[CellCoordinates] = []
         consecutive_walls: int = 0
@@ -455,7 +455,9 @@ class Maze:
                     current: CellCoordinates = (x, y)
                     neighbors: list[CellCoordinates] = self.get_neighbors(
                         current, True)
-                    if self.is_in_maze(current) is False and neighbors != []:
+                    if (self.is_in_maze(current) is False
+                            and neighbors != []
+                            and self.is_available(current)):
                         cell_to_connect: CellCoordinates = choice(neighbors)
                         self.add_to_maze(current)
                         self.break_wall(current, cell_to_connect)
@@ -485,15 +487,21 @@ class Maze:
         """
         def break_east_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and her right neighbor."""
-            self.cells[coords[0]][coords[1]].walls[Directions.EAST] = False
-            self.cells[coords[0] + 1][coords[1]].walls[Directions.WEST] = False
+            if (self.cells[coords[0]][coords[1]].pattern is False
+                    and self.cells[coords[0] + 1][coords[1]].pattern is False):
+                self.cells[coords[0]][coords[1]].walls[
+                    Directions.EAST] = False
+                self.cells[coords[0] + 1][coords[1]].walls[
+                    Directions.WEST] = False
 
         def break_south_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and her down neighbor."""
-            self.cells[coords[0]][coords[1]].walls[
-                Directions.SOUTH] = False
-            self.cells[coords[0]][coords[1] + 1].walls[
-                Directions.NORTH] = False
+            if (self.cells[coords[0]][coords[1]].pattern is False
+                    and self.cells[coords[0]][coords[1] + 1].pattern is False):
+                self.cells[coords[0]][coords[1]].walls[
+                    Directions.SOUTH] = False
+                self.cells[coords[0]][coords[1] + 1].walls[
+                    Directions.NORTH] = False
 
         v_walls: list[CellCoordinates] = self.check_consec_walls("vertical")
         h_walls: list[CellCoordinates] = self.check_consec_walls("horizontal")
