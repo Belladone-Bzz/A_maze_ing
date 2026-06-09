@@ -25,6 +25,11 @@ class Directions(IntEnum):
 
 
 class Movements(Enum):
+    """Class Movements.
+    Enum for west(-1, 0), south(0, +1), east(+1, 0)
+    and north(0, -1). Each direction is associated with
+    a tuple of x, y movements to go on the given direction.
+    """
     WEST = (-1, 0)
     SOUTH = (0, +1)
     EAST = (+1, 0)
@@ -33,15 +38,21 @@ class Movements(Enum):
 
 class Maze:
     """Class Maze.
-    Attributes: width, height, entry, exit, perfect, seed,
-    patternpattern, config, cells.
-    Methods: generation(), repr().
     Nested_class: Config, Cell.
+    Attributes: width, height, entry, exit, perfect,
+    gen_algorithm, seed, pattern, config, cells.
+    Methods: init, integrate_pattern, add_enclosed_cells_to_pattern,
+    grid_generation,get_neighbor_coord, is_available, is_in_maze,
+    get_neighbors, break_wall, add_to_maze, path_to_unvisited,
+    check_consec_walls, find_dead_end, dead_end_opener, backtracking_algo,
+    prim_algo, hunt_and_kill_algo, make_maze_imperfect, generate_maze,
+    stepped_generation, repr.
     """
     generation_algorithms: tuple[str, ...] = (
         "Backtracking", "Prim", "Hunt_and_kill")
 
     def __init__(
+        """Initialises the attributes of the Maze instance."""
             self, width: int, height: int,
             entry: tuple[int, int], exit: tuple[int, int],
             perfect: bool, gen_algorithm: str, seed: int,
@@ -71,8 +82,9 @@ class Maze:
 
     class Config(BaseModel):
         """Class Config
-        Attributes: WIDTH, HEIGHT, ENTRY, EXIT, PATTERN, PERFECT, SEED.
-        Methods: validate_config(), str().
+        Attributes: WIDTH, HEIGHT, ENTRY, EXIT, GEN_ALGORITHM,
+        PATTERN, PERFECT, SEED.
+        Methods: validate_config.
         """
         WIDTH: MazeDimension
         HEIGHT: MazeDimension
@@ -135,8 +147,9 @@ class Maze:
 
     class Cell:
         """Class Cell
-        Atributes: coordinates: bool, walls: list[bool], entry: bool,
-        exit: bool, pattern: bool.
+        Atributes: coordinates, walls, entry, exit, pattern, is_in_maze,
+        is_visited.
+        Methods: init
         """
         def __init__(self, coordinates: CellCoordinates, walled: bool):
             self.coordinates: CellCoordinates = coordinates
@@ -196,13 +209,13 @@ class Maze:
             self.integrate_pattern()
 
     # _________________________________________________________________________
-    #                       GENERATION/SOLVING TOOLS
+    #                            GENERATION UTILS
     # _________________________________________________________________________
 
     def get_neighbor_coords(self, coords: CellCoordinates,
                             movement: tuple[int, int]) -> CellCoordinates:
-        """Return the coordinates of the neighboring cell in the specified
-        direction.
+        """Return the coordinates of the neighbor of the given cell(coords),
+        in the specified direction.
         """
         neighbor: CellCoordinates = (coords[0] + movement[0],
                                      coords[1] + movement[1])
@@ -325,7 +338,13 @@ class Maze:
 
     def dead_end_opener(self) -> None:
         """Search dead end and make a path in an optimal way to avoid chambers
-        in the maze."""
+        in the maze. In order of priority: 1.Open the wall opposite the
+        dead-end opening if the opposite cell is available. 2.Search for a
+        dead-end with two True walls on the same side, perpendicular to the
+        dead-end’s entrance, to avoid creating chambers. 3.If no dead-end meets
+        these criteria, then a random dead-end is chosen and one of the walls
+        perpendicular to the entrance is opened if the adjacent cell is available.
+        """
         dead_end: list[CellCoordinates] = self.find_dead_end()
 
         for coord in dead_end:
@@ -523,6 +542,10 @@ class Maze:
     # _________________________________________________________________________
 
     def generate_maze(self) -> None:
+        """Generate the maze with the algorithm given in config, and make it 
+        imperfect if perfect is set to False. The generation is done and the
+        maze is display after it.
+        """
         self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
@@ -536,6 +559,10 @@ class Maze:
                 pass
 
     def stepped_generation(self) -> Generator[None]:
+        """Generate the maze with the algorithm given in config, and make it 
+        imperfect if perfect is set to False. The display is done during the
+        generation, making it dynamic.
+        """
         self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
