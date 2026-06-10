@@ -335,8 +335,8 @@ class Maze:
             entry_dir: int = self.cells[
                 coord[0]][coord[1]].walls.index(False)
             opposite_dir: int = ((entry_dir + 2) % 4)
-            opposite_mov: tuple[int, int] = Movements(
-                Directions(opposite_dir).name).value
+            opposite_mov: tuple[int, int] = Movements[
+                Directions(opposite_dir).name].value
             ideal_cell: CellCoordinates = ((coord[0] + opposite_mov[0]),
                                            (coord[1] + opposite_mov[1]))
             if self.is_available(ideal_cell) is False:
@@ -347,8 +347,8 @@ class Maze:
         for coord in dead_end:
             entry_dir = self.cells[
                 coord[0]][coord[1]].walls.index(False)
-            entry_mov: tuple[int, int] = Movements(
-                Directions(entry_dir).name).value
+            entry_mov: tuple[int, int] = Movements[
+                Directions(entry_dir).name].value
             cell_before_entry: CellCoordinates = (
                     (coord[0] + entry_mov[0]),
                     (coord[1] + entry_mov[1]))
