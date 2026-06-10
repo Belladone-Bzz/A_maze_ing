@@ -152,6 +152,8 @@ class Maze:
         Maze, marking all concerned cells as pattern (attribute set to True),
         and marking up all their walls.
         """
+        if self.config.PATTERN == []:
+            return
         for x in range(len(self.config.PATTERN[0])):
             for y in range(len(self.config.PATTERN)):
                 if self.config.PATTERN[y][x] is False:
@@ -167,6 +169,8 @@ class Maze:
         making of an imperfect maze. This concerns cells enclosed by the
         pattern but not part of its drawing.
         """
+        if self.config.PATTERN == []:
+            return
         for x in range(len(self.config.PATTERN[0])):
             for y in range(len(self.config.PATTERN)):
                 if self.cells[x + self.pattern_h_offset][
@@ -192,8 +196,7 @@ class Maze:
             self.cells[x][-1].walls[Directions.SOUTH] = True
         self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
         self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
-        if self.config.PATTERN != []:
-            self.integrate_pattern()
+        self.integrate_pattern()
 
     # _________________________________________________________________________
     #                       GENERATION/SOLVING TOOLS
