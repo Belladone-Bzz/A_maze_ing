@@ -573,7 +573,7 @@ class Maze:
 if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
-    maze = Maze(
+    maze: Maze = Maze(
         width=25,
         height=25,
         entry=(0, 0),
