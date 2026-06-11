@@ -28,6 +28,9 @@ class MazeSolver:
 
     def dead_end_filler(self) -> None:
         """"""
+        if Maze.Config.PERFECT is False:
+            print("Dead end filler algorithm can only be used for perfect" \
+                  "mazes.")
 
 
 if __name__ == "__main__":
