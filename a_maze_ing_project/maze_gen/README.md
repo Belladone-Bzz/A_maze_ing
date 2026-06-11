@@ -35,7 +35,7 @@ This file can be found as a [Github Gist here](https://gist.github.com/Belladone
 
 -  `Cell`: Class Cell, nested in Maze class.
    - **Utility:** Allows you to instantiate, store and manipulate each cell in the grid.
-   - **Attributes:** coordinates, walls, entry, exit, pattern, is_in_maze.
+   - **Attributes:** coordinates, walls, entry, exit, pattern, is_in_maze, is_visited.
    - **Methods:** init.
 
 #### Functions:
