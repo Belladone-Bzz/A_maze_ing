@@ -26,6 +26,9 @@ class MazeSolver:
                     lambda dir: maze.cells[x][y].walls[dir], Directions):
                 pass
 
+    def dead_end_filler(self) -> None:
+        """"""
+
 
 if __name__ == "__main__":
     """If you encounter an ImportError on maze_gen when running this test

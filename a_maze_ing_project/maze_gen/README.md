@@ -26,7 +26,7 @@ This file can be found as a [Github Gist here](https://gist.github.com/Belladone
   - **Utility:** Contain all classes, methods and algorithms used to generate a maze.
   - **Nested_class:** Config, Cell.
   - **Attributes:** width, height, entry, exit, perfect, gen_algorithm, seed, pattern, config, cells.
-  - **Methods:** init, integrate_pattern, add_enclosed_cells_to_pattern, grid_generation, get_neighbor_coord, is_available, is_in_maze, get_neighbors, break_wall, add_to_maze, path_to_unvisited, check_consec_walls, find_dead_end, dead_end_opener, backtracking_algo, prim_algo, hunt_and_kill_algo, make_maze_imperfect, generate_maze, stepped_generation, repr   
+  - **Methods:** init, integrate_pattern, add_enclosed_cells_to_pattern, grid_generation, get_neighbor_coord, is_available, is_in_maze, get_neighbors, break_wall, add_to_maze, path_to_not_in_maze, check_consec_walls, find_dead_end, dead_end_opener, backtracking_algo, prim_algo, hunt_and_kill_algo, make_maze_imperfect, generate_maze, stepped_generation, repr   
 
 -  `Config`: Class Config, nested in Maze class. Inherit from BaseModel from Pydantic module.
    - **Utility:** Check that the maze configuration given is correct.

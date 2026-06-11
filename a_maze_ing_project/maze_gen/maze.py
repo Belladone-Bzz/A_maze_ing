@@ -52,7 +52,7 @@ class Maze:
     gen_algorithm, seed, pattern, config, cells.
     Methods: init, integrate_pattern, add_enclosed_cells_to_pattern,
     grid_generation,get_neighbor_coord, is_available, is_in_maze,
-    get_neighbors, break_wall, add_to_maze, path_to_unvisited,
+    get_neighbors, break_wall, add_to_maze, path_to_not_in_maze,
     check_consec_walls, find_dead_end, dead_end_opener, backtracking_algo,
     prim_algo, hunt_and_kill_algo, make_maze_imperfect, generate_maze,
     stepped_generation, repr.
@@ -290,7 +290,7 @@ class Maze:
         """Set the cell to is_in_maze = True."""
         self.cells[coords[0]][coords[1]].is_in_maze = True
 
-    def path_to_unvisited(self,
+    def path_to_not_in_maze(self,
                           coords: CellCoordinates) -> CellCoordinates | None:
         """Find the neighbors of the cell with the coordinates passed as an
         argument. Break down the walls between that cell and one of its
@@ -433,7 +433,7 @@ class Maze:
         back_track: list[CellCoordinates] = [start]
         while back_track:
             current: CellCoordinates = back_track[-1]
-            next_cell = self.path_to_unvisited(current)
+            next_cell = self.path_to_not_in_maze(current)
             if next_cell is not None:
                 back_track.append(next_cell)
             else:
@@ -500,7 +500,7 @@ class Maze:
 
         new_start: CellCoordinates | None
         while True:
-            next_cell = self.path_to_unvisited(start)
+            next_cell = self.path_to_not_in_maze(start)
             if next_cell is not None:
                 self.add_to_maze(next_cell)
                 self.break_wall(start, next_cell)
