@@ -5,6 +5,15 @@ from collections.abc import Generator, Callable
 from enum import IntEnum, Enum
 from random import seed as set_seed, choice, randint, shuffle
 
+"""This module manages all the classes, enumerations, methods and algorithms
+required to generate a maze, within the maze.py file. Several generation
+algorithms have been implemented: Backtracking, Prim, Hunt and kill, and
+ one to made an imperfect maze. We made this choice to highlight the diversity
+ and complexity of the various existing algorithms. This module contain Maze,
+Config, and Cell classes, Directions and Movements Enum, and all functions used
+to generate a perfect or imperfect maze.
+"""
+
 
 MazeDimension = Annotated[int, Field(ge=3)]
 CellCoordinates = Annotated[
@@ -25,6 +34,11 @@ class Directions(IntEnum):
 
 
 class Movements(Enum):
+    """Class Movements.
+    Enum for west(-1, 0), south(0, +1), east(+1, 0)
+    and north(0, -1). Each direction is associated with
+    a tuple of x, y movements to go on the given direction.
+    """
     WEST = (-1, 0)
     SOUTH = (0, +1)
     EAST = (+1, 0)
@@ -33,10 +47,15 @@ class Movements(Enum):
 
 class Maze:
     """Class Maze.
-    Attributes: width, height, entry, exit, perfect, seed,
-    patternpattern, config, cells.
-    Methods: generation(), repr().
     Nested_class: Config, Cell.
+    Attributes: width, height, entry, exit, perfect,
+    gen_algorithm, seed, pattern, config, cells.
+    Methods: init, integrate_pattern, add_enclosed_cells_to_pattern,
+    grid_generation,get_neighbor_coord, is_available, is_in_maze,
+    get_neighbors, break_wall, add_to_maze, path_to_not_in_maze,
+    check_consec_walls, find_dead_end, dead_end_opener, backtracking_algo,
+    prim_algo, hunt_and_kill_algo, make_maze_imperfect, generate_maze,
+    stepped_generation, repr.
     """
     generation_algorithms: tuple[str, ...] = (
         "Backtracking", "Prim", "Hunt_and_kill")
@@ -45,7 +64,8 @@ class Maze:
             self, width: int, height: int,
             entry: tuple[int, int], exit: tuple[int, int],
             perfect: bool, gen_algorithm: str, seed: int,
-            pattern: list[list[bool]] = []):
+            pattern: list[list[bool]] = []) -> None:
+        """Initialises the attributes of the Maze instance."""
         if gen_algorithm not in self.generation_algorithms:
             raise ValueError(
                 f"Invalid generation algorithm entered: {gen_algorithm}. "
@@ -71,8 +91,9 @@ class Maze:
 
     class Config(BaseModel):
         """Class Config
-        Attributes: WIDTH, HEIGHT, ENTRY, EXIT, PATTERN, PERFECT, SEED.
-        Methods: validate_config(), str().
+        Attributes: WIDTH, HEIGHT, ENTRY, EXIT, GEN_ALGORITHM,
+        PATTERN, PERFECT, SEED.
+        Methods: validate_config.
         """
         WIDTH: MazeDimension
         HEIGHT: MazeDimension
@@ -135,10 +156,12 @@ class Maze:
 
     class Cell:
         """Class Cell
-        Atributes: coordinates: bool, walls: list[bool], entry: bool,
-        exit: bool, pattern: bool.
+        Atributes: coordinates, walls, entry, exit, pattern, is_in_maze,
+        is_visited.
+        Methods: init
         """
-        def __init__(self, coordinates: CellCoordinates, walled: bool):
+        def __init__(self, coordinates: CellCoordinates, walled: bool) -> None:
+            """Initialises the attributes of the Cell instance."""
             self.coordinates: CellCoordinates = coordinates
             self.walls: list[bool] = [walled, walled, walled, walled]
             self.entry: bool = False
@@ -199,13 +222,13 @@ class Maze:
         self.integrate_pattern()
 
     # _________________________________________________________________________
-    #                       GENERATION/SOLVING TOOLS
+    #                            GENERATION UTILS
     # _________________________________________________________________________
 
     def get_neighbor_coords(self, coords: CellCoordinates,
                             movement: tuple[int, int]) -> CellCoordinates:
-        """Return the coordinates of the neighboring cell in the specified
-        direction.
+        """Return the coordinates of the neighbor of the given cell(coords),
+        in the specified direction.
         """
         neighbor: CellCoordinates = (coords[0] + movement[0],
                                      coords[1] + movement[1])
@@ -267,7 +290,7 @@ class Maze:
         """Set the cell to is_in_maze = True."""
         self.cells[coords[0]][coords[1]].is_in_maze = True
 
-    def path_to_unvisited(self,
+    def path_to_not_in_maze(self,
                           coords: CellCoordinates) -> CellCoordinates | None:
         """Find the neighbors of the cell with the coordinates passed as an
         argument. Break down the walls between that cell and one of its
@@ -286,7 +309,7 @@ class Maze:
     def check_consec_walls(self, axes: str) -> list[CellCoordinates]:
         """Check if a wall is part of a sequence of 3+ consecutive walls
         along the horizontal or vertical axes of the grid. If it's the case
-        it has 80% chance to be added to the lis of walls to be broken.
+        it has 80% chance to be added to the list of walls to be broken.
         Return the list of these walls."""
         walls_to_broke: list[CellCoordinates] = []
         consecutive_walls: int = 0
@@ -328,7 +351,14 @@ class Maze:
 
     def dead_end_opener(self) -> None:
         """Search dead end and make a path in an optimal way to avoid chambers
-        in the maze."""
+        in the maze. In order of priority: 1.Open the wall opposite the
+        dead-end opening if the opposite cell is available. 2.Search for a
+        dead-end with two True walls on the same side, perpendicular to the
+        dead-end’s entrance, to avoid creating chambers. 3.If no dead-end meets
+        these criteria, then a random dead-end is chosen and one of the walls
+        perpendicular to the entrance is opened if the adjacent cell is
+        available.
+        """
         dead_end: list[CellCoordinates] = self.find_dead_end()
 
         for coord in dead_end:
@@ -403,7 +433,7 @@ class Maze:
         back_track: list[CellCoordinates] = [start]
         while back_track:
             current: CellCoordinates = back_track[-1]
-            next_cell = self.path_to_unvisited(current)
+            next_cell = self.path_to_not_in_maze(current)
             if next_cell is not None:
                 back_track.append(next_cell)
             else:
@@ -458,7 +488,9 @@ class Maze:
                     current: CellCoordinates = (x, y)
                     neighbors: list[CellCoordinates] = self.get_neighbors(
                         current, True)
-                    if self.is_in_maze(current) is False and neighbors != []:
+                    if (self.is_in_maze(current) is False
+                            and neighbors != []
+                            and self.is_available(current)):
                         cell_to_connect: CellCoordinates = choice(neighbors)
                         self.add_to_maze(current)
                         self.break_wall(current, cell_to_connect)
@@ -468,7 +500,7 @@ class Maze:
 
         new_start: CellCoordinates | None
         while True:
-            next_cell = self.path_to_unvisited(start)
+            next_cell = self.path_to_not_in_maze(start)
             if next_cell is not None:
                 self.add_to_maze(next_cell)
                 self.break_wall(start, next_cell)
@@ -488,15 +520,25 @@ class Maze:
         """
         def break_east_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and her right neighbor."""
-            self.cells[coords[0]][coords[1]].walls[Directions.EAST] = False
-            self.cells[coords[0] + 1][coords[1]].walls[Directions.WEST] = False
+            if (self.cells[coords[0]][coords[1]].pattern is False
+                    and self.cells[coords[0] + 1][coords[1]].pattern is False):
+                self.cells[coords[0]][coords[1]].walls[
+                    Directions.EAST] = False
+                self.cells[coords[0] + 1][coords[1]].walls[
+                    Directions.WEST] = False
+            else:
+                v_walls.remove(coords)
 
         def break_south_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and her down neighbor."""
-            self.cells[coords[0]][coords[1]].walls[
-                Directions.SOUTH] = False
-            self.cells[coords[0]][coords[1] + 1].walls[
-                Directions.NORTH] = False
+            if (self.cells[coords[0]][coords[1]].pattern is False
+                    and self.cells[coords[0]][coords[1] + 1].pattern is False):
+                self.cells[coords[0]][coords[1]].walls[
+                    Directions.SOUTH] = False
+                self.cells[coords[0]][coords[1] + 1].walls[
+                    Directions.NORTH] = False
+            else:
+                h_walls.remove(coords)
 
         v_walls: list[CellCoordinates] = self.check_consec_walls("vertical")
         h_walls: list[CellCoordinates] = self.check_consec_walls("horizontal")
@@ -510,26 +552,14 @@ class Maze:
             self.dead_end_opener()
 
     # _________________________________________________________________________
-    #                            SOLVING ALGORITHMS
-    # _________________________________________________________________________
-
-    def breadth_first_search_algorithm(self) -> None:
-        """"""
-
-    def dead_end_filling_algorithm(self) -> None:
-        """"""
-
-    def dijkstra_algorithm(self) -> None:
-        """"""
-
-    def alpha_star_algorithm(self) -> None:
-        """"""
-
-    # _________________________________________________________________________
     #                         MAZE GENERATION AND DISPLAY
     # _________________________________________________________________________
 
     def generate_maze(self) -> None:
+        """Generate the maze with the algorithm given in config, and make it
+        imperfect if perfect is set to False. The generation is done and the
+        maze is display after it.
+        """
         self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
@@ -543,6 +573,10 @@ class Maze:
                 pass
 
     def stepped_generation(self) -> Generator[None]:
+        """Generate the maze with the algorithm given in config, and make it
+        imperfect if perfect is set to False. The display is done during the
+        generation, making it dynamic.
+        """
         self.grid_generation(True)
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,

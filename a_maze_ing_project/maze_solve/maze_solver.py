@@ -165,6 +165,9 @@ class MazeSolver:
                 self.shortest_path[0])[1])
             yield None
 
+    def dead_end_filler(self) -> None:
+        """"""
+
 
 if __name__ == "__main__":
     """If you encounter an ImportError on maze_gen when running this test
