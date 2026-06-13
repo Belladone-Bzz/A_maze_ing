@@ -10,6 +10,9 @@ class FoundDeadEnd(Exception):
 
 
 class MazeSolver:
+    solving_algorithms: tuple[str, ...] = (
+        "Dijkstra")
+
     def __init__(self, maze: Maze) -> None:
         self.maze: Maze = maze
         self.ENTRY: CellCoordinates = maze.config.ENTRY
@@ -167,6 +170,10 @@ class MazeSolver:
 
     def dead_end_filler(self) -> None:
         """"""
+
+
+    def solve_maze(self, algorithm: str) -> None:
+        pass
 
 
 if __name__ == "__main__":
