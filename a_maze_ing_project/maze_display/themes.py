@@ -1,7 +1,7 @@
 
 from enum import Enum
 from typing import cast
-from .utils import Styling, styling, Colors, Walls, Angles
+from .utils import Styling, styling, Colors, Walls, Angles, Shades
 from .utils import (
     BasicWalls, BoldBasicWalls, DoubleWalls,
     BoldBasicAngles, DoubleAngles, RoundedAngles,
@@ -119,8 +119,8 @@ class Themes(Enum):
         path_style=styling([Styling.BOLD], Colors.YELLOW),
         start_style=styling([Styling.BOLD], Colors.YELLOW),
         exit_style=styling([Styling.BOLD], Colors.RED),
-        visited_style=styling(),
-        highlighted_style=styling(),
+        visited_style=styling([], Colors.GRAY),
+        highlighted_style=styling([], Colors.WHITE),
 
         icon_walls=DoubleWalls,
         icon_angles=DoubleAngles,
@@ -135,15 +135,15 @@ class Themes(Enum):
         progress_line=(BasicWalls, RoundedAngles),
 
         walls_style=styling([], Colors.BLACK, Colors.YELLOW),
-        path_style=styling([], Colors.BLACK, Colors.YELLOW),
+        path_style=styling([], "208", Colors.YELLOW),
         start_style=styling([], Colors.BLACK, Colors.YELLOW),
         exit_style=styling([], Colors.BLACK, Colors.YELLOW),
-        visited_style=styling(),
-        highlighted_style=styling(),
+        visited_style=styling([], Colors.GRAY, Colors.YELLOW),
+        highlighted_style=styling([], "12", Colors.YELLOW),
 
         icon_walls=DoubleWalls,
         icon_angles=DoubleAngles,
-        icon_content=str(SmallIcons.BLOCK) * 3,
+        icon_content=str(Shades.BLOCK) * 3,
 
         icon_style=styling([], Colors.BLACK, Colors.YELLOW))
     METAMORPHOSIS = Theme(
@@ -157,7 +157,7 @@ class Themes(Enum):
         path_style=styling([], Colors.LIGHT_GREEN, Colors.YELLOW),
         start_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
         exit_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
-        visited_style=styling(),
+        visited_style=styling([], Colors.GRAY),
         highlighted_style=styling(),
 
         icon_walls=DoubleWalls,
@@ -176,7 +176,7 @@ class Themes(Enum):
         path_style=styling([], Colors.GREEN),
         start_style=styling([], Colors.GREEN),
         exit_style=styling([], Colors.GREEN),
-        visited_style=styling(),
+        visited_style=styling([], Colors.GRAY),
         highlighted_style=styling(),
 
         icon_walls=BoldBasicWalls,
@@ -195,7 +195,7 @@ class Themes(Enum):
         path_style=styling([], Colors.MAGENTA, Colors.BLACK),
         start_style=styling(),
         exit_style=styling(),
-        visited_style=styling(),
+        visited_style=styling([], Colors.GRAY),
         highlighted_style=styling(),
 
         icon_walls=BoldBasicWalls,

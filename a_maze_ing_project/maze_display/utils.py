@@ -159,6 +159,13 @@ class StyleEnum(Enum):
         return str(self.value)
 
 
+class Shades(StyleEnum):
+    BLOCK = "█"
+    DARK_SHADE = "▓"
+    MEDIUM_SHADE = "▒"
+    LIGHT_SHADE = "░"
+
+
 class SmallIcons(StyleEnum):
     """StyleEnum containing single character icons to be used directly in
     prints.
@@ -167,10 +174,6 @@ class SmallIcons(StyleEnum):
     exposes them, and can be used in a condition to print an extra space
     if a non-emoji character is used in the same place.
     """
-    BLOCK = "█"
-    DARK_SHADE = "▓"
-    MEDIUM_SHADE = "▒"
-    LIGHT_SHADE = "░"
     NO_SHADE = " "
     FULL_SQUARE = "■"
     EMPTY_SQUARE = "□"
@@ -220,6 +223,7 @@ class Colors(StyleEnum):
     """
     DEFAULT = "-1"
     BLACK = "0"
+    GRAY = "250"
     RED = "196"
     LIGHT_GREEN = "153"
     GREEN = "28"
