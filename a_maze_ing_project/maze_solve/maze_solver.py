@@ -171,8 +171,8 @@ class MazeSolver:
             if self.maze.is_available(neighbor) is False:
                 continue
             if (
-                    maze.cells[neighbor[0]][neighbor[1]].is_visited is True
-                    and maze.cells[coords[0]][coords[1]].walls[
+                    self.maze.cells[neighbor[0]][neighbor[1]].is_visited is True
+                    and self.maze.cells[coords[0]][coords[1]].walls[
                         Directions[movement.name]] is False):
                 visited_neighbor += 1
         return visited_neighbor
@@ -186,38 +186,38 @@ class MazeSolver:
         dead_end: list[CellCoordinates] = []
         for y in range(0, (self.maze.config.HEIGHT)):
             for x in range(0, (self.maze.config.WIDTH)):
-                if maze.cells[x][y].is_visited is True:
+                if self.maze.cells[x][y].is_visited is True:
                     continue
                 visited_neighbors: int = self.number_visited_neighbors((x, y))
                 if (
-                        maze.cells[x][y].entry is True or
-                        maze.cells[x][y].exit is True):
+                        self.maze.cells[x][y].entry is True or
+                        self.maze.cells[x][y].exit is True):
                     continue
                 if sum(self.maze.cells[x][y].walls) + visited_neighbors == 3:
                     dead_end.append((x, y))
         return dead_end
 
-    def find_path_to_exit(self) -> None:
+    def find_path_to_exit(self) -> Generator[None]:
         """Find the path from the entry to the exit."""
-        path_to_exit: list[CellCoordinates] = [self.ENTRY]
+        self.shortest_path = [self.ENTRY]
         current: CellCoordinates = self.ENTRY
         while current != self.EXIT:
             for movement in Movements:
                 neighbor = self.maze.get_neighbor_coords(
                             current, movement.value)
-                if len(path_to_exit) > 1 and neighbor == path_to_exit[-2]:
+                if len(self.shortest_path) > 1 and neighbor == self.shortest_path[-2]:
                     continue
                 if self.maze.is_available(neighbor) is False:
                     continue
                 if (
                     self.maze.cells[
                         neighbor[0]][neighbor[1]].is_visited is False
-                        and maze.cells[current[0]][current[1]].walls[
+                        and self.maze.cells[current[0]][current[1]].walls[
                             Directions[movement.name]] is False):
-                    path_to_exit.append(neighbor)
+                    self.shortest_path.append(neighbor)
                     current = neighbor
+                    yield None
                     break
-        self.shortest_path = path_to_exit
 
     # _________________________________________________________________________
     #                              ALGORITHMS
@@ -236,7 +236,7 @@ class MazeSolver:
             self.shortest_path = list(shortest_path)
             yield None
 
-    def dead_end_filler(self) -> None:
+    def dead_end_filler(self) -> Generator[None]:
         """Find the path from the entrance to the exit in a perfect maze. This
         dead-end detection algorithm identifies all the dead ends in the maze
         (excluding the entrance and exit if they are part of them). These cells
@@ -251,15 +251,17 @@ class MazeSolver:
             return
         dead_end: list[CellCoordinates] = []
         dead_end = self.maze.find_dead_end()
-        if maze.config.ENTRY in dead_end:
+        if self.ENTRY in dead_end:
             dead_end.remove(self.ENTRY)
-        if maze.config.EXIT in dead_end:
+        if self.EXIT in dead_end:
             dead_end.remove(self.EXIT)
         while dead_end != []:
             for cell in dead_end:
                 self.maze.cells[cell[0]][cell[1]].is_visited = True
+                yield None
             dead_end = self.update_dead_end()
-        self.find_path_to_exit()
+        for _ in self.find_path_to_exit():
+            yield None
 
     # _________________________________________________________________________
     #                      SOLVING GENERATION AND DISPLAY
