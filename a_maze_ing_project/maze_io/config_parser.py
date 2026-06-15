@@ -70,9 +70,11 @@ def generate_config(
         if "seed" not in config.keys():
             config.update({"seed": str(randint(0, 1000000000000))})
         int(config["seed"])
-        if config.get("sol_algorithm", "None") not in (
-                MazeSolver.solving_algorithms):
-            raise ValueError("")
+        if config.get(
+                "sol_algorithm", "None") not in MazeSolver.solving_algorithms:
+            raise ValueError(
+                "Unknown value attributed to sol_algorithm parameter, "
+                "available: " + ", ".join(MazeSolver.solving_algorithms))
         patterns: list[str] = list(
             pattern.name.capitalize() for pattern in Patterns)
         if config.get("pattern", "None") not in patterns:

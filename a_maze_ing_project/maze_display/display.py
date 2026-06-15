@@ -2,6 +2,7 @@
 from .utils import style_print, CursorOperations
 from .themes import Theme, get_theme
 from a_maze_ing_project.maze_gen import Maze, Directions
+from a_maze_ing_project.maze_solve import MazeSolver
 from collections.abc import Callable
 from os import get_terminal_size, terminal_size
 from time import sleep
@@ -230,29 +231,6 @@ def instantiate_maze_display(
             style_print(theme.icon_style, line)
         print(CursorOperations.LOAD_CURSOR, end="")
 
-    def display_maze(maze: Maze, theme: Theme) -> None:
-        """Function called to display the Maze given as argument.
-
-        Checks the size of the terminal session using termios and either
-        displays the full by calling print_maze function, or a custom
-        message.
-
-        Returns None
-        """
-        window_size: terminal_size = get_terminal_size()
-        if (
-                maze.config.WIDTH * 4 < window_size.columns
-                and maze.config.HEIGHT * 2 < window_size.lines):
-            print_maze(maze, theme)
-            integrate_entry_exit(maze, theme)
-            integrate_pattern_design(maze, theme)
-        else:
-            style_print(
-                theme.walls_style,
-                "The window is too small to display the Maze.\n"
-                "Save it to an output file or increase the window's size to "
-                "preview it.")
-
     def display_maze_generation(maze: Maze, theme: Theme) -> None:
         """Function called to trigger the given Maze's generation using its
         Generator method to call print_maze every time a new cell is
@@ -271,12 +249,51 @@ def instantiate_maze_display(
             for _ in maze.stepped_generation():
                 if step % int(config["gen_speed"]) == 0:
                     print_maze(maze, theme)
-                    # integrate_entry_exit(maze, theme)
-                    # integrate_pattern_design(maze, theme)
                 sleep(0.004)
                 step += 1
         else:
             maze.generate_maze()
+
+    def display_maze_solving(maze: Maze, theme: Theme) -> None:
+        print(CursorOperations.HEAVY_CLEAR, end="")
+        window_size: terminal_size = get_terminal_size()
+        solver: MazeSolver = MazeSolver(maze)
+        if (
+                maze.config.WIDTH * 4 < window_size.columns
+                and maze.config.HEIGHT * 2 < window_size.lines
+                and int(config["gen_speed"]) != 0):
+            step: int = 0
+            for _ in solver.stepped_maze_solving(config["sol_algorithm"]):
+                if step % int(config["gen_speed"]) == 0:
+                    print_maze(maze, theme)
+                sleep(0.004)
+                step += 1
+        else:
+            solver.maze_solving(config["sol_algorithm"])
+
+    def display_maze(maze: Maze, theme: Theme) -> None:
+        """Function called to display the Maze given as argument.
+
+        Checks the size of the terminal session using termios and either
+        displays the full by calling print_maze function, or a custom
+        message.
+
+        Returns None
+        """
+        window_size: terminal_size = get_terminal_size()
+        if (
+                maze.config.WIDTH * 4 < window_size.columns
+                and maze.config.HEIGHT * 2 < window_size.lines):
+            print_maze(maze, theme)
+            integrate_entry_exit(maze, theme)
+            if maze.config.PATTERN != []:
+                integrate_pattern_design(maze, theme)
+        else:
+            style_print(
+                theme.walls_style,
+                "The window is too small to display the Maze.\n"
+                "Save it to an output file or increase the window's size to "
+                "preview it.")
 
     def maze_display(current_display: str, maze: Maze) -> None:
         """Function returned by instantiate_maze_display to give access to all
@@ -291,5 +308,7 @@ def instantiate_maze_display(
             display_maze(maze, current_theme)
         elif current_display == "display_maze_generation":
             display_maze_generation(maze, current_theme)
+        elif current_display == "display_maze_solving":
+            display_maze_solving(maze, current_theme)
 
     return maze_display

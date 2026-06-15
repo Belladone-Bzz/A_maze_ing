@@ -122,6 +122,7 @@ def main() -> int:
         instantiate_maze_display(config)
     while True:
         maze_display("display_maze_generation", maze)
+        maze_display("display_maze_solving", maze)
         while True:
             maze_display("display_maze", maze)
             menu_module("print_menu", "")
@@ -155,8 +156,8 @@ if __name__ == "__main__":
     output: int
     try:
         output = main()
-    except KeyboardInterrupt:
-        output = 4
+    # except KeyboardInterrupt:
+    #     output = 4
     except ProgramQuit:
         output = 0
     exits: tuple[str, ...] = (
