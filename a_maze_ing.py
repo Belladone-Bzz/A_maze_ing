@@ -6,7 +6,7 @@ from typing import cast
 from collections.abc import Callable
 
 from a_maze_ing_project import (
-    Maze,
+    Maze, MazeSolver,
     write_out_maze, generate_config,
     print_error, instantiate_maze_display,
     instantiate_menues, ProgramQuit, Patterns)
@@ -111,6 +111,7 @@ def main() -> int:
             "\nOne or multiple errors caught during configuration reading:\n"
             + maze)
         return 3
+    solver: MazeSolver = MazeSolver(maze)
 
     input(
         "\nCorrect configuration found and loaded. "
@@ -118,13 +119,13 @@ def main() -> int:
     user_input: str
     function_output = ""
     menu_module: Callable[[str, str], str] = instantiate_menues(config)
-    maze_display: Callable[[str, Maze], None] =\
+    maze_display: Callable[[str, Maze, MazeSolver], None] =\
         instantiate_maze_display(config)
     while True:
-        maze_display("display_maze_generation", maze)
-        maze_display("display_maze_solving", maze)
+        maze_display("display_maze_generation", maze, solver)
+        maze_display("display_maze_solving", maze, solver)
         while True:
-            maze_display("display_maze", maze)
+            maze_display("display_maze", maze, solver)
             menu_module("print_menu", "")
             user_input = stdin.read(1)
             if user_input == "\x1b" and stdin.read(1) == "[":
@@ -139,6 +140,7 @@ def main() -> int:
                     menu_module("maze_error", new_maze)
                 else:
                     maze = new_maze
+                    solver = MazeSolver(maze)
                     menu_module("back_to_main", "")
                     break
             elif function_output == "file_rename":
@@ -156,8 +158,8 @@ if __name__ == "__main__":
     output: int
     try:
         output = main()
-    # except KeyboardInterrupt:
-    #     output = 4
+    except KeyboardInterrupt:
+        output = 4
     except ProgramQuit:
         output = 0
     exits: tuple[str, ...] = (

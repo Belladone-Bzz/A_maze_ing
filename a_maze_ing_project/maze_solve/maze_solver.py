@@ -116,6 +116,8 @@ class MazeSolver:
         while len(processed_nodes) < len(self.intersection_cells):
             for known_node in current_nodes:
                 for next_node in self.get_neighbour_nodes(known_node):
+                    if next_node.coords in processed_nodes:
+                        continue
                     entry_to_next_node = (
                         self.get_dist_from_entry(known_node)[0]
                         + next_node.distance)
@@ -229,11 +231,11 @@ class MazeSolver:
             yield None
         for _ in self.set_nodes_distance_from_entry():
             yield None
-        shortest_path: deque[CellCoordinates] = deque([self.EXIT])
-        while self.ENTRY != shortest_path[0]:
-            shortest_path.extendleft(self.get_dist_from_entry(
-                shortest_path[0])[1])
-            self.shortest_path = list(shortest_path)
+        path_queue: deque[CellCoordinates] = deque([self.maze.config.EXIT])
+        while self.ENTRY != path_queue[0]:
+            path_queue.extendleft(self.get_dist_from_entry(
+                path_queue[0])[1])
+            self.shortest_path = list(path_queue)
             yield None
 
     def dead_end_filler(self) -> None:
