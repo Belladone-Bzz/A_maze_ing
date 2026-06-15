@@ -291,7 +291,7 @@ class Maze:
         self.cells[coords[0]][coords[1]].is_in_maze = True
 
     def path_to_not_in_maze(self,
-                          coords: CellCoordinates) -> CellCoordinates | None:
+                            coords: CellCoordinates) -> CellCoordinates | None:
         """Find the neighbors of the cell with the coordinates passed as an
         argument. Break down the walls between that cell and one of its
         randomly selected neighbors. Return the coordinate of the new cell in
