@@ -1,7 +1,8 @@
 
-from .utils import style_print, CursorOperations
+from .utils import style_print, CursorOperations, Shades
 from .themes import Theme, get_theme
-from a_maze_ing_project.maze_gen import Maze, Directions
+from a_maze_ing_project.maze_gen import (
+    Maze, Directions, Movements, CellCoordinates)
 from a_maze_ing_project.maze_solve import MazeSolver
 from collections.abc import Callable
 from os import get_terminal_size, terminal_size
@@ -9,7 +10,7 @@ from time import sleep
 
 
 def instantiate_maze_display(
-        config: dict[str, str]) -> Callable[[str, Maze], None]:
+        config: dict[str, str]) -> Callable[[str, Maze, MazeSolver], None]:
     """Exposed function of the display file, enclosing all maze-displaying
     functions. Takes a config dict to keep access to updated Maze infos.
 
@@ -34,7 +35,9 @@ def instantiate_maze_display(
         """
         return int("".join(str(int(bi)) for bi in bin_bool), 2)
 
-    def print_maze(maze: Maze, theme: Theme) -> None:
+    def print_maze(
+            maze: Maze, theme: Theme, path: list[CellCoordinates] = [],
+            highlight: tuple[CellCoordinates, ...] = ()) -> None:
         """Takes a Maze object to display. Works with utils file, containing
         custom and special characters, as well as Themes, applying
         colors and styling.
@@ -47,6 +50,32 @@ def instantiate_maze_display(
         Returns None
         """
         print(CursorOperations.MOVE_CURSOR(0, 0))
+
+        def get_fill_character(
+                cell_1: CellCoordinates,
+                movement: Movements | None = None) -> str:
+            if config["show_path"] == "False":
+                return " "
+            cell_2: CellCoordinates
+            fill: tuple[str, str, str] = (
+                theme.visited_style + Shades.LIGHT_SHADE.value,
+                theme.highlighted_style + Shades.DARK_SHADE.value,
+                theme.path_style + Shades.MEDIUM_SHADE.value)
+            if movement is not None:
+                if maze.cells[cell_1[0]][cell_1[1]].walls[
+                        Directions[movement.name]] is True:
+                    return " "
+                cell_2 = maze.get_neighbor_coords(
+                    cell_1, movement.value)
+            else:
+                cell_2 = cell_1
+            return (
+                fill[2] if (cell_1 in path and cell_2 in path)
+                else fill[1] if (cell_1 in highlight and cell_2 in highlight)
+                else fill[0] if (
+                    maze.cells[cell_1[0]][cell_1[1]].is_visited is True
+                    and maze.cells[cell_2[0]][cell_2[1]].is_visited is True)
+                else " ") + theme.walls_style
 
         line: str = str(theme.angles.TOP_LEFT)
         line += "".join(
@@ -77,16 +106,18 @@ def instantiate_maze_display(
             str(theme.walls.HORIZONTAL),
             str(theme.walls.HORIZONTAL_D),
             str(theme.walls.HORIZONTAL_U),
-            str(theme.walls.CROSS)
-        )
+            str(theme.walls.CROSS))
+
         for y in range(maze.config.HEIGHT):
             line = str(theme.walls.VERTICAL)
             for x in range(maze.config.WIDTH):
-                line += "   "
+                line += get_fill_character((x, y), Movements.WEST)
+                line += get_fill_character((x, y))
+                line += get_fill_character((x, y), Movements.EAST)
                 line += (
-                        str(theme.walls.VERTICAL)
-                        if maze.cells[x][y].walls[Directions.EAST] is True
-                        else " ")
+                    str(theme.walls.VERTICAL)
+                    if maze.cells[x][y].walls[Directions.EAST] is True
+                    else get_fill_character((x, y), Movements.EAST))
             style_print(
                 theme.walls_style, line,
                 f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
@@ -102,7 +133,9 @@ def instantiate_maze_display(
                 line += (
                     str(theme.walls.HORIZONTAL) * 3
                     if maze.cells[x][y].walls[Directions.SOUTH] is True
-                    else "   ")
+                    else (
+                        " " + get_fill_character((x, y), Movements.SOUTH)
+                        + " "))
                 if x == maze.config.WIDTH - 1:
                     line += (
                         str(theme.walls.VERTICAL_L)
@@ -171,8 +204,7 @@ def instantiate_maze_display(
             str(theme.icon_walls.HORIZONTAL_D),
             str(theme.icon_walls.CROSS),
             str(theme.icon_walls.CROSS),
-            str(theme.icon_walls.CROSS)
-        )
+            str(theme.icon_walls.CROSS))
         pattern: list[list[bool]] = maze.config.PATTERN
         lines: str = ""
 
@@ -254,10 +286,11 @@ def instantiate_maze_display(
         else:
             maze.generate_maze()
 
-    def display_maze_solving(maze: Maze, theme: Theme) -> None:
+    def display_maze_solving(
+            maze: Maze, theme: Theme, solver: MazeSolver) -> None:
         print(CursorOperations.HEAVY_CLEAR, end="")
         window_size: terminal_size = get_terminal_size()
-        solver: MazeSolver = MazeSolver(maze)
+
         if (
                 maze.config.WIDTH * 4 < window_size.columns
                 and maze.config.HEIGHT * 2 < window_size.lines
@@ -265,13 +298,14 @@ def instantiate_maze_display(
             step: int = 0
             for _ in solver.stepped_maze_solving(config["sol_algorithm"]):
                 if step % int(config["gen_speed"]) == 0:
-                    print_maze(maze, theme)
+                    print_maze(
+                        maze, theme, solver.shortest_path, solver.highlighted)
                 sleep(0.004)
                 step += 1
         else:
             solver.maze_solving(config["sol_algorithm"])
 
-    def display_maze(maze: Maze, theme: Theme) -> None:
+    def display_maze(maze: Maze, theme: Theme, solver: MazeSolver) -> None:
         """Function called to display the Maze given as argument.
 
         Checks the size of the terminal session using termios and either
@@ -284,7 +318,11 @@ def instantiate_maze_display(
         if (
                 maze.config.WIDTH * 4 < window_size.columns
                 and maze.config.HEIGHT * 2 < window_size.lines):
-            print_maze(maze, theme)
+            if config["show_path"] == "True":
+                print_maze(
+                    maze, theme, solver.shortest_path, solver.highlighted)
+            else:
+                print_maze(maze, theme)
             integrate_entry_exit(maze, theme)
             if maze.config.PATTERN != []:
                 integrate_pattern_design(maze, theme)
@@ -295,7 +333,8 @@ def instantiate_maze_display(
                 "Save it to an output file or increase the window's size to "
                 "preview it.")
 
-    def maze_display(current_display: str, maze: Maze) -> None:
+    def maze_display(
+            current_display: str, maze: Maze, solver: MazeSolver) -> None:
         """Function returned by instantiate_maze_display to give access to all
         enclosed functions. Takes an action as a string and a Maze object
         to display either generating or generated, applying a Theme
@@ -305,10 +344,10 @@ def instantiate_maze_display(
         """
         current_theme = get_theme(config["theme"])
         if current_display == "display_maze":
-            display_maze(maze, current_theme)
+            display_maze(maze, current_theme, solver)
         elif current_display == "display_maze_generation":
             display_maze_generation(maze, current_theme)
         elif current_display == "display_maze_solving":
-            display_maze_solving(maze, current_theme)
+            display_maze_solving(maze, current_theme, solver)
 
     return maze_display
