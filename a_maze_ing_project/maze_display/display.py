@@ -22,7 +22,10 @@ def instantiate_maze_display(
     "display_maze": display the entire maze after it is generated;
     "display_maze_generation": display the maze at every loop of its
     generation if the terminal is big enough, otherwise generates
-    the maze  directly.
+    the maze directly;
+    "display_maze_solving": display the maze at every loop of its
+    solving if the terminal is big enough, otherwise solves
+    the maze directly.
     """
 
     def calculate_intersection_index(
@@ -91,7 +94,7 @@ def instantiate_maze_display(
             f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
 
         intersections: tuple[str, ...] = (
-            " ",
+            str(theme.walls.DOT),
             str(theme.walls.VERTICAL),
             str(theme.walls.VERTICAL),
             str(theme.walls.VERTICAL),
@@ -267,7 +270,8 @@ def instantiate_maze_display(
         """Function called to trigger the given Maze's generation using its
         Generator method to call print_maze every time a new cell is
         accessed. Also checks the terminal window size using termios
-        to only trigger the generation and not display it.
+        to only trigger the generation and not display it if it's too
+        small.
 
         Returns None
         """
@@ -288,6 +292,14 @@ def instantiate_maze_display(
 
     def display_maze_solving(
             maze: Maze, theme: Theme, solver: MazeSolver) -> None:
+        """Function called to trigger the given Maze's solving using the
+        given MazeSolver object to call print_maze everytime the chosen
+        algorithm yields None. Also checks the terminal window size using
+        termios to only trigger the generation and not display it if it's too
+        small.
+
+        Returns None
+        """
         print(CursorOperations.HEAVY_CLEAR, end="")
         window_size: terminal_size = get_terminal_size()
 

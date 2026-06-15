@@ -8,19 +8,25 @@ This module is responsible of every printing methods and algorithms, as well as 
 
 #### Functions:
 
-- `instantiate_maze_display(config: dict[str, str]) -> Callable[[str, Maze], None]`: Exposed function of the display file, enclosing all other functions so they all can keep track of the currently selected theme within the `current_theme` variable through the config dict given as argument. It returns `maze_display`.
+- `instantiate_maze_display(config: dict[str, str]) -> Callable[[str, Maze, MazeSolver], None]`: Exposed function of the display file, enclosing all other functions so they all can keep track of the currently selected theme within the `current_theme` variable through the config dict given as argument. It returns `maze_display`.
 
-- `print_maze(maze: Maze) -> None`: Displays the maze cell by cell, surrounding them with special characters depending on which of their walls are open or not. Displays each angle based on open walls, outputting an adaptive and clear display depending on the theme argument containing characters and styles to print.
+- `calculate_intersection_index(bin_bool: tuple[bool, bool, bool, bool]) -> int:` Transforms 4 booleans designed to be walls to find which intersection character to use by returning an index between 0 and 15.
+
+- `print_maze(maze: Maze, theme: Theme, path: list[CellCoordinates] = [], highlight: tuple[CellCoordinates, ...] = ()) -> None`: Displays the maze cell by cell, surrounding them with special characters depending on which of their walls are open or not. Displays each angle based on open walls, outputting an adaptive and clear display depending on the theme argument containing characters and styles to print.
+
+- `get_fill_character(cell_1: CellCoordinates, movement: Movements | None = None) -> str:`: function nested into print_maze checking if a cell or its separation with another should be filled with block characters to signify a `visited`, `highlighted` or in `path` state.
 
 - `integrate_entry_exit(maze: Maze, theme: Theme) -> None`: Function called after print_maze, going back on the print to integrate the icons for the entry and the exit coordinates with their corresponding styling.
 
 - `integrate_pattern_design(maze: Maze) -> None`: Function called after `print_maze`, going back on the print to integrate the selected pattern design. Works with the [CursorOperations enum](#Enums-2), and takes a Maze object as argument.
 
-- `display_maze(maze: Maze) -> None`: This is the function called when displaying the Maze's interface. It checks with the termios[^termios] module the size of the current terminal and calls the `print_maze` function when possible.
+- `display_maze(maze: Maze, theme: Theme, solver: MazeSolver) -> None`: This is the function called when displaying the Maze's interface. It checks with the termios[^termios] module the size of the current terminal and calls the `print_maze` function when possible.
 
 - `display_maze_generation(maze: Maze) -> None`: Works the same as `display_maze`, but it responsible of calling the `stepped_generation` Maze generator method to call `print_maze` every time a new cell is accessed. If the terminal is too small, or the `gen_speed` config parameter if 0, the `generate_maze` Maze method is called instead to skip the generator yields[^generator].
 
-- `maze_display(current_display: str, maze: Maze) -> None`:  This function is the one returned by the enclosing `instantiate_maze_display`. It takes a current display string and a Maze, and recovers the selected theme through the `config` nonlocal dict. The two possible displays are 'display_maze' and 'display_maze_generation'.
+- `display_maze_solving(maze: Maze, theme: Theme, solver: MazeSolver) -> None`: Works the same as `display_maze_generation` to call the solver's stepped or instant solving algorithm and displaying the maze each time the stepped method yields None.
+
+- `maze_display(current_display: str, maze: Maze, solver: MazeSolver) -> None`:  This function is the one returned by the enclosing `instantiate_maze_display`. It takes a current display string and a Maze, and recovers the selected theme through the `config` nonlocal dict. The three possible displays are 'display_maze', 'display_maze_generation' and 'display_maze_solving'.
 
 > [!NOTE]
 > Both the print_maze and integrate_pattern_design use a binary indexing to chose which intersection character to use. With each cell intersection consisting of 16 possibilities, the corresponding character to print depends on a tuple of boolean of which cell is accessible or not joined as a string of binary and converted to decimal.
@@ -39,10 +45,6 @@ This module is responsible of every printing methods and algorithms, as well as 
 	- `value_left(self) -> None`: Updates the pertinent config dict entry, either by calling value down for slider and double_slider option types, or switching the selected value for selection option type.
 	- `value_right(self) -> None`: Same as `value_left`
 	- `browse_option(self, user_input: str) -> None`: Takes the user_input to handle navigating option by option. For directions, calls the associated method, and for confirm, calls toggle method or reinitialize the current_option nonlocal string.
-
-#### Enums:
-
-- `Keyboard(Enum)`: Groups in tuples of strings possible user inputs as keys, for instance `w` and `\x1b[A` (arrow up) for `Keyboard.UP`.
 
 #### Functions:
 
@@ -93,11 +95,11 @@ The utils file of this module's purpose is to make one's job of printing out inf
 
 #### Classes:
 
-- `Walls`: The wall class is here to group in type all inheriting wall classes that will store the 7 special characters[^box_chars] to make up the Maze's borders. It so contains the declared but undefined attributes: `VERTICAL` `HORIZONTAL` `VERTICAL_R` `VERTICAL_L` `HORIZONTAL_U` `HORIZONTAL_D` `CROSS`. With every child class assigning values to these variables, they will then be usable by the Maze and menues printing functions, with the following walls added:
+- `Walls`: The wall class is here to group in type all inheriting wall classes that will store the 7 special characters[^box_chars] to make up the Maze's borders. It so contains the declared but undefined attributes: `VERTICAL` `HORIZONTAL` `VERTICAL_R` `VERTICAL_L` `HORIZONTAL_U` `HORIZONTAL_D` `CROSS` `DOT`. With every child class assigning values to these variables, they will then be usable by the Maze and menues printing functions, with the following walls added:
 
-	- `BasicWalls`: `│` `─` `├` `┤` `┴` `┬` `┼`
-	- `BoldBasicWalls`: `┃` `━` `┣` `┫` `┻` `┳` `╋`
-	- `DoubleWalls`: `║` `═` `╠` `╣` `╩` `╦` `╬`
+	- `BasicWalls`: `│` `─` `├` `┤` `┴` `┬` `┼` `·`
+	- `BoldBasicWalls`: `┃` `━` `┣` `┫` `┻` `┳` `╋` `•`
+	- `DoubleWalls`: `║` `═` `╠` `╣` `╩` `╦` `╬` `◦`
 
 - `Angles`: This class works the same as Walls, but concerns angle Unicode characters. The following 4 attributes are declared here: `TOP_LEFT` `TOP_RIGHT` `BOTTOM_LEFT` `BOTTOM_RIGHT`, and assigned values in the following children classes:
 
@@ -111,7 +113,11 @@ The utils file of this module's purpose is to make one's job of printing out inf
 
 #### Enums:
 
+- `Keyboard(Enum)`: Groups in tuples of strings possible user inputs as keys, for instance `w` and `\x1b[A` (arrow up) for `Keyboard.UP`.
+
 - `StyleEnum(Enum)`: This Enum, destined to be inherited by styling related enumerations, only contains an override of the `__str__` method, returning its own value instead of name when a member of any StyleEnum is converted to a string (most notably when given to print functions).
+
+- `Shades(StyleEnum)`: This Enum contains different shade characters for any and all purposes.
 
 - `SmallIcons(StyleEnum)`: The SmallIcons enum is exposed in the maze_display module, and stores various special characters[^spe_chars] and emojis to make accessible wherever needed.
 

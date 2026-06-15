@@ -7,10 +7,25 @@ from a_maze_ing_project.maze_gen import (
 
 
 class FoundDeadEnd(Exception):
+    """Exception to be raised by algorithms when finding a dead-end, useful
+    for backtracking algorithms for example.
+    """
     pass
 
 
 class MazeSolver:
+    """Class containing all methods related to the solving of a Maze object
+    by finding its shortest path from entry to exit. Integrates graph-creating
+    methods for the Dijkstra algorithm and mostly works with the Maze-nested
+    class Cell for navigating.
+
+    Attributes: maze, highlighted (for display purposes), shortest_path and
+    intersection_cells (graph utility).
+    Notable algorithm methods: dijkstra_algorithm(), dead_end_filler(),
+    stepped_maze_solving(algo: str) and maze_solving(algo: str) which are
+    essentially the same except for stepped which is a Generator that yields
+    None during key moment of the solving.
+    """
     solving_algorithms: tuple[str, ...] = (
         "Dijkstra", "Dead_end_filler")
 
@@ -29,6 +44,14 @@ class MazeSolver:
     # _________________________________________________________________________
 
     class Node:
+        """Nested class to store additional informations about each cell
+        of the Maze. In this graph implementation, each intersection cell
+        holds these informations about each of their neighbours intersections.
+        Helps navigating and saving traveling time.
+
+        Attributes: coords: CellCoordinates, distance: int, path:
+        tuple[CellCoordinates]
+        """
         def __init__(
                 self, coords: CellCoordinates, distance: int,
                 path: tuple[CellCoordinates, ...]) -> None:
@@ -37,6 +60,12 @@ class MazeSolver:
             self.path: tuple[CellCoordinates, ...] = path
 
     def record_maze_intersections(self) -> Generator[None]:
+        """Loops through every cell of the Maze to append them to the
+        intersection_cells set when they are surrounded by 0 or 1 wall,
+        meaning they connect more than 3 cells. Separatly includes the entry
+        and exit cells. Yields None each time a cell is added to the set for
+        display purposes.
+        """
         self.intersection_cells = {
             self.ENTRY, self.EXIT}
         self.create_neighbours_list(self.ENTRY)
@@ -57,6 +86,11 @@ class MazeSolver:
     def find_next_intersection(
             self, cell: CellCoordinates, dir: Directions
             ) -> Node:
+        """Given a cell and a direction, connects to the first found
+        intersection_cell and returns a Node object from the information found
+        during navigation. Raise FoundDeadEnd error when hitting a wall.
+        Automatically turns when the path winds.
+        """
         temp_x: int
         temp_y: int
         x: int = cell[0]
@@ -84,6 +118,12 @@ class MazeSolver:
             (temp_x, temp_y), distance_bet_cells, tuple(route_taken))
 
     def generate_cell_graph(self) -> Generator[None]:
+        """Calls record_maze_intersections and find_next_intersection methods
+        to instantiate the intersection_cells set and a Node object for each
+        neighbour of an intersection that's inserted into a list added as
+        attribute to Cell objects for future reference. Yields None
+        from record_maze_intersections for display purposes.
+        """
         for _ in self.record_maze_intersections():
             yield None
         found_node: MazeSolver.Node
@@ -108,6 +148,12 @@ class MazeSolver:
                     self.get_neighbour_nodes((x, y)).append(found_node)
 
     def set_nodes_distance_from_entry(self) -> Generator[None]:
+        """From the entry intersection, calculates the distance from it
+        to each intersection of the Maze, saving the closest Node to access
+        to go back to the entry the fastest. Stops when every Node is
+        processed, and yields None when checking each Node distance for
+        display purposes.
+        """
         current_nodes: list[CellCoordinates] = [self.ENTRY]
         temp_neighbours: list[CellCoordinates] = []
         processed_nodes: set[CellCoordinates] = set()
@@ -200,14 +246,18 @@ class MazeSolver:
         return dead_end
 
     def find_path_to_exit(self) -> Generator[None]:
-        """Find the path from the entry to the exit."""
+        """Find the path from the entry to the exit when all cells are marked
+        as visited if out of the single path between the two cells.
+        """
         self.shortest_path = [self.ENTRY]
         current: CellCoordinates = self.ENTRY
         while current != self.EXIT:
             for movement in Movements:
                 neighbor = self.maze.get_neighbor_coords(
                             current, movement.value)
-                if len(self.shortest_path) > 1 and neighbor == self.shortest_path[-2]:
+                if (
+                        len(self.shortest_path) > 1
+                        and neighbor == self.shortest_path[-2]):
                     continue
                 if self.maze.is_available(neighbor) is False:
                     continue

@@ -16,6 +16,18 @@ values. No verification of range is made, feel free to experiment
 until the output style is to your liking.
 """
 
+class Keyboard(Enum):
+    """Stores in lists of strings the different keyboard keys available to
+    navigate menues. Contains characters or escape sequences for
+    ESCAPE, CONFIRM, UP, DOWN, RIGHT and LEFT.
+    """
+    ESCAPE = "\x1b"
+    CONFIRM = ("\r", "\n")
+    UP = ("w", "A", "\x1b[A", "\x1b", "\xe0H")
+    DOWN = ("s", "B", "\x1b[B", "\x1b", "\xe0P")
+    RIGHT = ("d", "C", "\x1b[C", "\x1b", "\xe0M")
+    LEFT = ("a", "D", "\x1b[D", "\x1b", "\xe0K")
+
 
 class Walls:
     """Parent class of Walls classes declaring attributes to be used in
@@ -34,6 +46,7 @@ class Walls:
     HORIZONTAL_U: str
     HORIZONTAL_D: str
     CROSS: str
+    DOT: str
 
 
 class BasicWalls(Walls):
@@ -41,7 +54,7 @@ class BasicWalls(Walls):
     to be used in blocks and menues displays.
 
     Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
-    HORIZONTAL_U, HORIZONTAL_D, CROSS
+    HORIZONTAL_U, HORIZONTAL_D, CROSS, DOT
     """
     VERTICAL: str = "│"
     HORIZONTAL: str = "─"
@@ -51,6 +64,7 @@ class BasicWalls(Walls):
     HORIZONTAL_U: str = "┴"
     HORIZONTAL_D: str = "┬"
     CROSS: str = "┼"
+    DOT: str = "·"
 
 
 class BoldBasicWalls(Walls):
@@ -58,7 +72,7 @@ class BoldBasicWalls(Walls):
     to be used in blocks and menues displays.
 
     Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
-    HORIZONTAL_U, HORIZONTAL_D, CROSS
+    HORIZONTAL_U, HORIZONTAL_D, CROSS, DOT
     """
     VERTICAL: str = "┃"
     HORIZONTAL: str = "━"
@@ -68,6 +82,7 @@ class BoldBasicWalls(Walls):
     HORIZONTAL_U: str = "┻"
     HORIZONTAL_D: str = "┳"
     CROSS: str = "╋"
+    DOT: str = "•"
 
 
 class DoubleWalls(Walls):
@@ -75,7 +90,7 @@ class DoubleWalls(Walls):
     to be used in blocks and menues displays.
 
     Attributes: VERTICAL, HORIZONTAL, VERTICAL_R, VERTICAL_L,
-    HORIZONTAL_U, HORIZONTAL_D, CROSS
+    HORIZONTAL_U, HORIZONTAL_D, CROSS, DOT
     """
     VERTICAL: str = "║"
     HORIZONTAL: str = "═"
@@ -85,6 +100,7 @@ class DoubleWalls(Walls):
     HORIZONTAL_U: str = "╩"
     HORIZONTAL_D: str = "╦"
     CROSS: str = "╬"
+    DOT: str = "◦"
 
 
 class Angles:
@@ -160,6 +176,8 @@ class StyleEnum(Enum):
 
 
 class Shades(StyleEnum):
+    """StyleEnum containing different shade characters for all purposes.
+    """
     BLOCK = "█"
     DARK_SHADE = "▓"
     MEDIUM_SHADE = "▒"
