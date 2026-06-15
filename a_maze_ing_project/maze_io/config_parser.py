@@ -1,6 +1,7 @@
 
 from random import randint
 from a_maze_ing_project.maze_display import Patterns, Themes
+from a_maze_ing_project.maze_solve import MazeSolver
 
 
 def parse_config_file(
@@ -69,13 +70,24 @@ def generate_config(
         if "seed" not in config.keys():
             config.update({"seed": str(randint(0, 1000000000000))})
         int(config["seed"])
-        if config.get("pattern", "None") not in (
-                pattern.name.capitalize() for pattern in Patterns):
-            raise ValueError("Unknown value attributed to pattern parameter.")
+        if config.get(
+                "sol_algorithm", "None") not in MazeSolver.solving_algorithms:
+            raise ValueError(
+                "Unknown value attributed to sol_algorithm parameter, "
+                "available: " + ", ".join(MazeSolver.solving_algorithms))
+        patterns: list[str] = list(
+            pattern.name.capitalize() for pattern in Patterns)
+        if config.get("pattern", "None") not in patterns:
+            raise ValueError(
+                "Unknown value attributed to pattern parameter, available: "
+                ", ".join(patterns))
         config.update({"pattern": config.get("pattern", "None")})
-        if config.get("theme", "Default") not in (
-                theme.name.capitalize() for theme in Themes):
-            raise ValueError("Unknown value attributed to theme parameter.")
+        themes: list[str] = list(
+            theme.name.capitalize() for theme in Themes)
+        if config.get("theme", "Default") not in themes:
+            raise ValueError(
+                "Unknown value attributed to theme parameter, available: "
+                ", ".join(themes))
         config.update({"theme": config.get("theme", "Default")})
         if "gen_speed" not in config.keys():
             config.update({"gen_speed": "3"})

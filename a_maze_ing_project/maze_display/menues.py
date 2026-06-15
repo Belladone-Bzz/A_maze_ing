@@ -2,6 +2,7 @@
 from .utils import style_print, print_error, SmallIcons, CursorOperations
 from .themes import Theme, Themes, get_theme, Patterns
 from a_maze_ing_project.maze_gen import Maze
+from a_maze_ing_project.maze_solve import MazeSolver
 from random import randint
 from typing import cast
 from enum import Enum
@@ -320,7 +321,7 @@ def instantiate_menues(
             Option(
                 name="sol_algorithm",
                 option_type="selection",
-                options=["Dijkstra"],
+                options=list(MazeSolver.solving_algorithms),
                 text=(
                     f"{"Solving algorithm:":<22}"
                     "{value:>13}")),

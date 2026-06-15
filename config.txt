@@ -2,13 +2,13 @@
 
 # Positive numerical values (may exceed terminal maximum display size)
 
-WIDTH=30
-HEIGHT=20
+WIDTH=10
+HEIGHT=10
 
 # Positive numerical coordinates separated by a comma (may not exceed maze size)
 
 ENTRY=0,0
-EXIT=24,12
+EXIT=9,9
 
 # File to overwrite with hexadecimal maze layout and more
 

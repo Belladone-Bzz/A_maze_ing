@@ -1,34 +1,168 @@
 
-from math import inf
+from typing import Generator, cast
+from collections import deque
+from collections.abc import Callable
 from a_maze_ing_project.maze_gen import (
     Maze, Directions, Movements, CellCoordinates)
 
 
+class FoundDeadEnd(Exception):
+    pass
+
+
 class MazeSolver:
+    solving_algorithms: tuple[str, ...] = (
+        "Dijkstra", "Dead_end_filler")
+
     def __init__(self, maze: Maze) -> None:
-        self.maze = maze
+        self.maze: Maze = maze
+        self.ENTRY: CellCoordinates = maze.config.ENTRY
+        self.EXIT: CellCoordinates = maze.config.EXIT
 
-        self.shortest_path: list[CellCoordinates]
-        self.solutions: list[list[CellCoordinates]]
+        self.highlighted: tuple[CellCoordinates, ...] = ()
+        self.shortest_path: list[CellCoordinates] = []
 
-    def dijkstra_algorithm(self) -> None:
-        maze: Maze = self.maze
-        intersection_cells: set[CellCoordinates] = {
-            maze.config.ENTRY,
-            maze.config.EXIT}
-        for x in range(maze.config.WIDTH):
-            for y in range(maze.config.HEIGHT):
-                if len(maze.cells[x][y]) in (1, 3):
-                    intersection_cells.add((x, y))
-        for x, y in intersection_cells:
-            maze.cells[x][y].distance_from_entry = inf
-            for direction in filter(
-                    lambda dir: maze.cells[x][y].walls[dir], Directions):
+        self.intersection_cells: set[CellCoordinates]
+
+    # _________________________________________________________________________
+    #                         GRAPHS UTILITY
+    # _________________________________________________________________________
+
+    class Node:
+        def __init__(
+                self, coords: CellCoordinates, distance: int,
+                path: tuple[CellCoordinates, ...]) -> None:
+            self.coords: CellCoordinates = coords
+            self.distance: int = distance
+            self.path: tuple[CellCoordinates, ...] = path
+
+    def record_maze_intersections(self) -> Generator[None]:
+        self.intersection_cells = {
+            self.ENTRY, self.EXIT}
+        self.create_neighbours_list(self.ENTRY)
+        self.set_distance_from_entry(self.ENTRY, (0, None))
+        self.maze.cells[self.ENTRY[0]][self.ENTRY[1]].is_visited = True
+        self.create_neighbours_list(self.EXIT)
+        self.set_distance_from_entry(self.EXIT, (-1, None))
+        self.maze.cells[self.EXIT[0]][self.EXIT[1]].is_visited = True
+        for x in range(self.maze.config.WIDTH):
+            for y in range(self.maze.config.HEIGHT):
+                if sum(self.maze.cells[x][y].walls) <= 1:
+                    self.intersection_cells.add((x, y))
+                    self.maze.cells[x][y].is_visited = True
+                    self.set_distance_from_entry((x, y), (-1, None))
+                    self.create_neighbours_list((x, y))
+                    yield None
+
+    def find_next_intersection(
+            self, cell: CellCoordinates, dir: Directions
+            ) -> Node:
+        temp_x: int
+        temp_y: int
+        x: int = cell[0]
+        y: int = cell[1]
+        distance_bet_cells: int = 1
+        temp_x, temp_y = self.maze.get_neighbor_coords(
+            (x, y), Movements[dir.name].value)
+        route_taken: list[CellCoordinates] = [(temp_x, temp_y)]
+        while (temp_x, temp_y) not in self.intersection_cells:
+            if self.maze.cells[temp_x][temp_y].walls[dir] is False:
                 pass
+            elif self.maze.cells[temp_x][temp_y].walls[(dir + 1) % 4]\
+                    is False:
+                dir = Directions((dir + 1) % 4)
+            elif self.maze.cells[temp_x][temp_y].walls[(dir + 3) % 4]\
+                    is False:
+                dir = Directions((dir + 3) % 4)
+            else:
+                raise FoundDeadEnd
+            temp_x, temp_y = self.maze.get_neighbor_coords(
+                (temp_x, temp_y), Movements[dir.name].value)
+            distance_bet_cells += 1
+            route_taken.append((temp_x, temp_y))
+        return MazeSolver.Node(
+            (temp_x, temp_y), distance_bet_cells, tuple(route_taken))
+
+    def generate_cell_graph(self) -> Generator[None]:
+        for _ in self.record_maze_intersections():
+            yield None
+        found_node: MazeSolver.Node
+        for x, y in self.intersection_cells:
+            for direction in filter(
+                    lambda dir: not self.maze.cells[x][y].walls[dir],
+                    Directions):
+                try:
+                    found_node = (
+                        self.find_next_intersection((x, y), direction))
+                except FoundDeadEnd:
+                    continue
+                if found_node.coords == (x, y):
+                    continue
+                for neighbour in self.get_neighbour_nodes((x, y)):
+                    if neighbour.coords == found_node.coords:
+                        if found_node.distance < neighbour.distance:
+                            neighbour.distance = found_node.distance
+                            neighbour.path = found_node.path
+                        break
+                else:
+                    self.get_neighbour_nodes((x, y)).append(found_node)
+
+    def set_nodes_distance_from_entry(self) -> Generator[None]:
+        current_nodes: list[CellCoordinates] = [self.ENTRY]
+        temp_neighbours: list[CellCoordinates] = []
+        processed_nodes: set[CellCoordinates] = set()
+        distance_from_entry: float
+        entry_to_next_node: float
+        while len(processed_nodes) < len(self.intersection_cells):
+            for known_node in current_nodes:
+                for next_node in self.get_neighbour_nodes(known_node):
+                    entry_to_next_node = (
+                        self.get_dist_from_entry(known_node)[0]
+                        + next_node.distance)
+                    distance_from_entry = self.get_dist_from_entry(
+                        next_node.coords)[0]
+                    if (distance_from_entry == -1
+                            or distance_from_entry > entry_to_next_node):
+                        self.highlighted = next_node.path
+                        self.set_distance_from_entry(
+                            next_node.coords, (
+                                entry_to_next_node,
+                                tuple([known_node, *next_node.path][-2::-1])))
+                        yield None
+                    temp_neighbours.append(next_node.coords)
+            processed_nodes.update(current_nodes)
+            current_nodes = temp_neighbours
+            temp_neighbours = []
+        self.highlighted = ()
+
+    def get_neighbour_nodes(
+            self, cell: CellCoordinates) -> list[Node]:
+        return cast(list[MazeSolver.Node], getattr(
+            self.maze.cells[cell[0]][cell[1]], "neighbour_nodes"))
+
+    def create_neighbours_list(self, cell: CellCoordinates) -> None:
+        setattr(
+            self.maze.cells[cell[0]][cell[1]], "neighbour_nodes", [])
+
+    def get_dist_from_entry(
+            self, cell: CellCoordinates
+            ) -> tuple[int, tuple[CellCoordinates, ...]]:
+        return cast(tuple[int, tuple[CellCoordinates, ...]], getattr(
+            self.maze.cells[cell[0]][cell[1]], "distance_from_entry"))
+
+    def set_distance_from_entry(
+            self, cell: CellCoordinates,
+            distance: tuple[int, tuple[CellCoordinates, ...] | None]) -> None:
+        setattr(
+            self.maze.cells[cell[0]][cell[1]], "distance_from_entry", distance)
+
+    # _________________________________________________________________________
+    #                             SOLVING UTILS
+    # _________________________________________________________________________
 
     def number_visited_neighbors(self, coords: CellCoordinates) -> int:
-        """A function to count the number of adjacent cells for which
-        `is_visited` is True. Returns this number.
+        """Count the number of adjacent cells for which is_visited` is
+        True. Returns this number.
         """
         visited_neighbor: int = 0
         for movement in Movements:
@@ -44,10 +178,10 @@ class MazeSolver:
         return visited_neighbor
 
     def update_dead_end(self) -> list[CellCoordinates]:
-        """Function to update dead ends for the dead_end_filler algorithm.
-        Checks all cells in the grid. If they are is_visited = False and the
-        sum of (walls + adjacent cells that are is_visited = True) equals 3,
-        then they are added to the list of dead ends returned.
+        """Update dead ends for the dead_end_filler algorithm. Checks all
+        cells in the grid. If they are is_visited = False and the sum of
+        (walls + adjacent cells that are is_visited = True) equals 3, then
+        they are added to the list of dead ends returned.
         """
         dead_end: list[CellCoordinates] = []
         for y in range(0, (self.maze.config.HEIGHT)):
@@ -64,10 +198,10 @@ class MazeSolver:
         return dead_end
 
     def find_path_to_exit(self) -> None:
-        """"""
-        path_to_exit: list[CellCoordinates] = [maze.config.ENTRY]
-        current: CellCoordinates = maze.config.ENTRY
-        while current != maze.config.EXIT:
+        """Find the path from the entry to the exit."""
+        path_to_exit: list[CellCoordinates] = [self.ENTRY]
+        current: CellCoordinates = self.ENTRY
+        while current != self.EXIT:
             for movement in Movements:
                 neighbor = self.maze.get_neighbor_coords(
                             current, movement.value)
@@ -85,6 +219,23 @@ class MazeSolver:
                     break
         self.shortest_path = path_to_exit
 
+    # _________________________________________________________________________
+    #                              ALGORITHMS
+    # _________________________________________________________________________
+
+    def dijkstra_algorithm(self) -> Generator[None]:
+        """"""
+        for _ in self.generate_cell_graph():
+            yield None
+        for _ in self.set_nodes_distance_from_entry():
+            yield None
+        shortest_path: deque[CellCoordinates] = deque([self.EXIT])
+        while self.ENTRY != shortest_path[0]:
+            shortest_path.extendleft(self.get_dist_from_entry(
+                shortest_path[0])[1])
+            self.shortest_path = list(shortest_path)
+            yield None
+
     def dead_end_filler(self) -> None:
         """Find the path from the entrance to the exit in a perfect maze. This
         dead-end detection algorithm identifies all the dead ends in the maze
@@ -101,14 +252,32 @@ class MazeSolver:
         dead_end: list[CellCoordinates] = []
         dead_end = self.maze.find_dead_end()
         if maze.config.ENTRY in dead_end:
-            dead_end.remove(maze.config.ENTRY)
+            dead_end.remove(self.ENTRY)
         if maze.config.EXIT in dead_end:
-            dead_end.remove(maze.config.EXIT)
+            dead_end.remove(self.EXIT)
         while dead_end != []:
             for cell in dead_end:
                 self.maze.cells[cell[0]][cell[1]].is_visited = True
             dead_end = self.update_dead_end()
         self.find_path_to_exit()
+
+    # _________________________________________________________________________
+    #                      SOLVING GENERATION AND DISPLAY
+    # _________________________________________________________________________
+
+    def stepped_maze_solving(self, algorithm: str) -> Generator[None]:
+        algorithms: dict[str, Callable[[], Generator[None]]] = {
+            "Dijkstra": self.dijkstra_algorithm,
+            "Dead_end_filler": self.dead_end_filler}
+        for _ in algorithms[algorithm]():
+            yield None
+
+    def maze_solving(self, algorithm: str) -> None:
+        algorithms: dict[str, Callable[[], Generator[None]]] = {
+            "Dijkstra": self.dijkstra_algorithm,
+            "Dead_end_filler": self.dead_end_filler}
+        for _ in algorithms[algorithm]():
+            pass
 
 
 if __name__ == "__main__":
@@ -119,6 +288,7 @@ if __name__ == "__main__":
     """
 
     from random import randint
+    from sys import argv
 
     maze: Maze = Maze(
         width=5,
@@ -136,5 +306,21 @@ if __name__ == "__main__":
             # [False, False, True, False, True, True, True]])
     maze.generate_maze()
     print(maze)
+    print(maze.config.SEED)
     solv: MazeSolver = MazeSolver(maze)
     solv.dead_end_filler()
+
+    if len(argv) < 2 or argv[1] == "dijkstra":
+        for _ in solv.stepped_maze_solving("Dijkstra"):
+            pass
+        # for cell in solv.intersection_cells:
+        #     print(
+        #         f"Cell {cell}: Dist {solv.get_dist_from_entry(cell)} "
+        #         "from entry, neighbours:\n",
+        #         "\n".join(
+        #             f"  Neighbour {neigh.coords}, At dist {neigh.distance}"
+        #             for neigh in solv.get_neighbour_nodes(cell)), sep="")
+        #     print()
+
+    print("Solutions found:")
+    print(solv.shortest_path)
