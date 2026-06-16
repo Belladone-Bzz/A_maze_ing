@@ -155,7 +155,7 @@ def main() -> int:
                     "Enter new file name for maze output: ")
                 tcsetattr(fd, TCSAFLUSH, new_term)
             elif function_output == "save_maze":
-                function_output = write_out_maze(maze, config)
+                function_output = write_out_maze(maze, solver, config)
                 if function_output != "":
                     menu_module("maze_error", function_output)
 

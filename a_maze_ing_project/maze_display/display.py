@@ -70,10 +70,8 @@ def instantiate_maze_display(
                 theme.highlighted_style + Shades.DARK_SHADE.value,
                 theme.path_style + Shades.MEDIUM_SHADE.value)
             if movement is not None:
-                if (
-                        maze.cells[cell_1[0]][cell_1[1]].walls[
-                            Directions[movement.name]] is True
-                        or solver.algorithm == "Dijkstra"):
+                if maze.cells[cell_1[0]][cell_1[1]].walls[
+                        Directions[movement.name]] is True:
                     return " "
                 cell_2 = maze.get_neighbor_coords(
                     cell_1, movement.value)
@@ -84,7 +82,8 @@ def instantiate_maze_display(
                 else fill[1] if (cell_1 in highlight and cell_2 in highlight)
                 else fill[0] if (
                     maze.cells[cell_1[0]][cell_1[1]].is_visited is True
-                    and maze.cells[cell_2[0]][cell_2[1]].is_visited is True)
+                    and maze.cells[cell_2[0]][cell_2[1]].is_visited is True
+                    and (cell_1 == cell_2 or solver.algorithm != "Dijkstra"))
                 else " ") + theme.walls_style
 
         line: str = str(theme.angles.TOP_LEFT)
@@ -404,11 +403,19 @@ def instantiate_maze_display(
                 integrate_found_path(theme, solver.shortest_path)
             integrate_entry_exit(maze, theme)
         else:
+            print(CursorOperations.MOVE_CURSOR(0, 0))
             style_print(
                 theme.walls_style,
-                "The window is too small to display the Maze.\n"
-                "Save it to an output file or increase the window's size to "
-                "preview it.")
+                "\nThe window is too small to show the Maze.".center(41),
+                end="\n")
+            style_print(
+                theme.walls_style,
+                "Save it to an output file or increase the".center(41),
+                end="\n")
+            style_print(
+                theme.walls_style,
+                "window's size to preview it.".center(41),
+                end="\n\n")
 
     def maze_display(
             current_display: str, maze: Maze, solver: MazeSolver) -> None:

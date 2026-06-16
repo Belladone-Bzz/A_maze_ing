@@ -6,6 +6,7 @@ from a_maze_ing_project.maze_gen import Maze
 from a_maze_ing_project.maze_solve import MazeSolver
 from random import randint, seed
 from typing import cast
+from os import get_terminal_size, terminal_size
 from collections.abc import Callable
 from functools import partial
 from itertools import chain
@@ -390,34 +391,40 @@ def instantiate_menues(
         nonlocal current_index
         nonlocal current_error
         nonlocal focused_option
-        quote: str = (
-            "A labyrinth is not a place to be lost, but a path to be found.")
-        if len(quote) > int(config_save["width"]) * 4 + 1:
-            style_print(
-                theme.walls_style,
-                quote[:38].center(int(config_save["width"]) * 4 + 1), "\n")
-            style_print(
-                theme.walls_style,
-                quote[39:].center(int(config_save["width"]) * 4 + 1), "\n")
-        else:
-            style_print(
-                theme.walls_style,
-                quote.center(int(config_save["width"]) * 4 + 1), "\n")
         menu_width: int = max(
             len(str(entry)) for entry in chain(
                 menues[current_menu], current_error.split("\n"))) + 6
+        justify_menues: int = int(config_save["width"])
+        window_size: terminal_size = get_terminal_size()
+        if (
+                int(config_save["width"]) * 4 > window_size.columns
+                or int(config_save["height"]) * 2 > window_size.lines):
+            justify_menues = 10
+        quote: str = (
+            "A labyrinth is not a place to be lost, but a path to be found.")
+        if len(quote) > justify_menues * 4 + 1:
+            style_print(
+                theme.walls_style,
+                quote[:38].center(justify_menues * 4 + 1), "\n")
+            style_print(
+                theme.walls_style,
+                quote[39:].center(justify_menues * 4 + 1), "\n")
+        else:
+            style_print(
+                theme.walls_style,
+                quote.center(justify_menues * 4 + 1), "\n")
         print(CursorOperations.LIGHT_CLEAR, end="")
         line: str = (
             theme.angles.TOP_LEFT + (theme.walls.HORIZONTAL * menu_width)
             + theme.angles.TOP_RIGHT)
         style_print(theme.walls_style, line.center(
-            int(config_save["width"]) * 4 + 1), "\n")
+            justify_menues * 4 + 1), "\n")
         for index, entry in enumerate(menues[current_menu]):
             if index == len(menues[current_menu]) - 1 and current_error == "":
                 style_print(theme.walls_style, (
                     f"{theme.walls.VERTICAL}{" " * menu_width}"
                     f"{theme.walls.VERTICAL}").center(
-                        int(config_save["width"]) * 4 + 1),
+                        justify_menues * 4 + 1),
                     "\n")
             elif index == len(menues[current_menu]) - 1:
                 for errors in current_error.split("\n"):
@@ -436,17 +443,17 @@ def instantiate_menues(
                 line = (str(entry).center(menu_width))
             style_print(
                 theme.walls_style, theme.walls.VERTICAL.rjust(
-                    int((int(config_save["width"]) * 4 - menu_width) / 2 + 1)))
+                    int((justify_menues * 4 - menu_width) / 2 + 1)))
             style_print(
                 theme.walls_style, line.center(menu_width))
             style_print(theme.walls_style, theme.walls.VERTICAL.ljust(
-                    int((int(config_save["width"]) * 4 - menu_width + 1) / 2)),
+                    int((justify_menues * 4 - menu_width + 1) / 2)),
                     "\n")
         line = (
             theme.angles.BOTTOM_LEFT + (theme.walls.HORIZONTAL * menu_width)
             + theme.angles.BOTTOM_RIGHT)
         style_print(theme.walls_style, line.center(
-            int(config_save["width"]) * 4 + 1), "\n")
+            justify_menues * 4 + 1), "\n")
 
     def menues_module(
             current_action: str, user_input: str) -> str:
