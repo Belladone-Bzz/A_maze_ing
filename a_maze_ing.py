@@ -117,7 +117,7 @@ def main() -> int:
             "\nOne or multiple errors caught during configuration reading:\n"
             + maze)
         return 3
-    solver: MazeSolver = MazeSolver(maze)
+    solver: MazeSolver = MazeSolver(maze, config["sol_algorithm"])
 
     input(
         "\nCorrect configuration found and loaded. "
@@ -146,7 +146,7 @@ def main() -> int:
                     menu_module("maze_error", new_maze)
                 else:
                     maze = new_maze
-                    solver = MazeSolver(maze)
+                    solver = MazeSolver(maze, config["sol_algorithm"])
                     menu_module("back_to_main", "")
                     break
             elif function_output == "file_rename":

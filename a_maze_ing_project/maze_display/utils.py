@@ -248,7 +248,7 @@ class Colors(StyleEnum):
     GREEN = "28"
     YELLOW = "220"
     BLUE = "27"
-    MAGENTA = "141"
+    MAGENTA = "213"
     CYAN = "81"
     WHITE = "231"
 

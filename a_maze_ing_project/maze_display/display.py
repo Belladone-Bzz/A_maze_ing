@@ -39,8 +39,7 @@ def instantiate_maze_display(
         return int("".join(str(int(bi)) for bi in bin_bool), 2)
 
     def print_maze(
-            maze: Maze, theme: Theme, path: list[CellCoordinates] = [],
-            highlight: tuple[CellCoordinates, ...] = ()) -> None:
+            maze: Maze, theme: Theme, solver: MazeSolver) -> None:
         """Takes a Maze object to display. Works with utils file, containing
         custom and special characters, as well as Themes, applying
         colors and styling.
@@ -54,6 +53,12 @@ def instantiate_maze_display(
         """
         print(CursorOperations.MOVE_CURSOR(0, 0))
 
+        path: list[CellCoordinates] = []
+        highlight: tuple[CellCoordinates, ...] = ()
+        if config["show_path"] == "True":
+            path = solver.shortest_path
+            highlight = solver.highlighted
+
         def get_fill_character(
                 cell_1: CellCoordinates,
                 movement: Movements | None = None) -> str:
@@ -65,8 +70,10 @@ def instantiate_maze_display(
                 theme.highlighted_style + Shades.DARK_SHADE.value,
                 theme.path_style + Shades.MEDIUM_SHADE.value)
             if movement is not None:
-                if maze.cells[cell_1[0]][cell_1[1]].walls[
-                        Directions[movement.name]] is True:
+                if (
+                        maze.cells[cell_1[0]][cell_1[1]].walls[
+                            Directions[movement.name]] is True
+                        or solver.algorithm == "Dijkstra"):
                     return " "
                 cell_2 = maze.get_neighbor_coords(
                     cell_1, movement.value)
@@ -266,7 +273,68 @@ def instantiate_maze_display(
             style_print(theme.icon_style, line)
         print(CursorOperations.LOAD_CURSOR, end="")
 
-    def display_maze_generation(maze: Maze, theme: Theme) -> None:
+    def integrate_found_path(
+            theme: Theme, path: list[CellCoordinates]) -> None:
+
+        def get_line_character(index: int) -> str:
+            back: int = -1
+            front: int = -1
+            cell_1: CellCoordinates = path[index]
+            if index != 0:
+                cell_0: CellCoordinates = path[index - 1]
+                back = Directions[Movements(
+                    (cell_1[0] - cell_0[0], cell_1[1] - cell_0[1])).name].value
+            if index != len(path) - 1:
+                cell_2: CellCoordinates = path[index + 1]
+                front = Directions[Movements(
+                    (cell_1[0] - cell_2[0], cell_1[1] - cell_2[1])).name].value
+            if back == -1:
+                back = front + 2 % 4
+            if front == -1:
+                front = back + 2 % 4
+            match sorted((back, front)):
+                case (Directions.SOUTH.value, Directions.NORTH.value):
+                    return theme.path_chars[0].VERTICAL
+                case (Directions.WEST.value, Directions.EAST.value):
+                    return theme.path_chars[0].HORIZONTAL
+                case (Directions.EAST.value, Directions.NORTH.value):
+                    return theme.path_chars[1].TOP_RIGHT
+                case (Directions.SOUTH.value, Directions.EAST.value):
+                    return theme.path_chars[1].BOTTOM_RIGHT
+                case (Directions.WEST.value, Directions.NORTH.value):
+                    return theme.path_chars[1].TOP_LEFT
+                case (Directions.WEST.value, Directions.SOUTH.value):
+                    return theme.path_chars[1].BOTTOM_LEFT
+                case _:
+                    return " "
+
+        line: str = ""
+        for index, cell in enumerate(path):
+            line += CursorOperations.MOVE_CURSOR(
+                cell[1] * 2 + 3, cell[0] * 4 + 3) + get_line_character(index)
+            if index != len(path) - 1:
+                if path[index + 1][0] < cell[0]:
+                    line += CursorOperations.MOVE_CURSOR(
+                        cell[1] * 2 + 3, cell[0] * 4)
+                    line += theme.path_chars[0].HORIZONTAL * 3
+                elif path[index + 1][0] > cell[0]:
+                    line += CursorOperations.MOVE_CURSOR(
+                        cell[1] * 2 + 3, cell[0] * 4 + 4)
+                    line += theme.path_chars[0].HORIZONTAL * 3
+                elif path[index + 1][1] < cell[1]:
+                    line += CursorOperations.MOVE_CURSOR(
+                        cell[1] * 2 + 2, cell[0] * 4 + 3)
+                    line += theme.path_chars[0].VERTICAL
+                elif path[index + 1][1] > cell[1]:
+                    line += CursorOperations.MOVE_CURSOR(
+                        cell[1] * 2 + 4, cell[0] * 4 + 3)
+                    line += theme.path_chars[0].VERTICAL
+        print(CursorOperations.SAVE_CURSOR, end="")
+        style_print(theme.path_style, line)
+        print(CursorOperations.LOAD_CURSOR, end="")
+
+    def display_maze_generation(
+            maze: Maze, theme: Theme, solver: MazeSolver) -> None:
         """Function called to trigger the given Maze's generation using its
         Generator method to call print_maze every time a new cell is
         accessed. Also checks the terminal window size using termios
@@ -284,7 +352,7 @@ def instantiate_maze_display(
             step: int = 0
             for _ in maze.stepped_generation():
                 if step % int(config["gen_speed"]) == 0:
-                    print_maze(maze, theme)
+                    print_maze(maze, theme, solver)
                 sleep(0.004)
                 step += 1
         else:
@@ -308,14 +376,13 @@ def instantiate_maze_display(
                 and maze.config.HEIGHT * 2 < window_size.lines
                 and int(config["gen_speed"]) != 0):
             step: int = 0
-            for _ in solver.stepped_maze_solving(config["sol_algorithm"]):
+            for _ in solver.stepped_maze_solving():
                 if step % int(config["gen_speed"]) == 0:
-                    print_maze(
-                        maze, theme, solver.shortest_path, solver.highlighted)
+                    print_maze(maze, theme, solver)
                 sleep(0.004)
                 step += 1
         else:
-            solver.maze_solving(config["sol_algorithm"])
+            solver.maze_solving()
 
     def display_maze(maze: Maze, theme: Theme, solver: MazeSolver) -> None:
         """Function called to display the Maze given as argument.
@@ -330,14 +397,12 @@ def instantiate_maze_display(
         if (
                 maze.config.WIDTH * 4 < window_size.columns
                 and maze.config.HEIGHT * 2 < window_size.lines):
-            if config["show_path"] == "True":
-                print_maze(
-                    maze, theme, solver.shortest_path, solver.highlighted)
-            else:
-                print_maze(maze, theme)
-            integrate_entry_exit(maze, theme)
+            print_maze(maze, theme, solver)
             if maze.config.PATTERN != []:
                 integrate_pattern_design(maze, theme)
+            if config["show_path"] == "True":
+                integrate_found_path(theme, solver.shortest_path)
+            integrate_entry_exit(maze, theme)
         else:
             style_print(
                 theme.walls_style,
@@ -358,7 +423,7 @@ def instantiate_maze_display(
         if current_display == "display_maze":
             display_maze(maze, current_theme, solver)
         elif current_display == "display_maze_generation":
-            display_maze_generation(maze, current_theme)
+            display_maze_generation(maze, current_theme, solver)
         elif current_display == "display_maze_solving":
             display_maze_solving(maze, current_theme, solver)
 

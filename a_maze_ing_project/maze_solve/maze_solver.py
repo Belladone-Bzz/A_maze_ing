@@ -29,10 +29,12 @@ class MazeSolver:
     solving_algorithms: tuple[str, ...] = (
         "Dijkstra", "Dead_end_filler")
 
-    def __init__(self, maze: Maze) -> None:
+    def __init__(self, maze: Maze, algorithm: str) -> None:
         self.maze: Maze = maze
         self.ENTRY: CellCoordinates = maze.config.ENTRY
         self.EXIT: CellCoordinates = maze.config.EXIT
+
+        self.algorithm: str = algorithm
 
         self.highlighted: tuple[CellCoordinates, ...] = ()
         self.shortest_path: list[CellCoordinates] = []
@@ -348,18 +350,18 @@ class MazeSolver:
     #                      SOLVING GENERATION AND DISPLAY
     # _________________________________________________________________________
 
-    def stepped_maze_solving(self, algorithm: str) -> Generator[None]:
+    def stepped_maze_solving(self) -> Generator[None]:
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Dijkstra": self.dijkstra_algorithm,
             "Dead_end_filler": self.dead_end_filler}
-        for _ in algorithms[algorithm]():
+        for _ in algorithms[self.algorithm]():
             yield None
 
-    def maze_solving(self, algorithm: str) -> None:
+    def maze_solving(self) -> None:
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Dijkstra": self.dijkstra_algorithm,
             "Dead_end_filler": self.dead_end_filler}
-        for _ in algorithms[algorithm]():
+        for _ in algorithms[self.algorithm]():
             pass
 
 
@@ -385,11 +387,11 @@ if __name__ == "__main__":
     maze.generate_maze()
     print(maze)
     print(maze.config.SEED)
-    solv: MazeSolver = MazeSolver(maze)
+    solv: MazeSolver = MazeSolver(maze, "Dijkstra")
     solv.dead_end_filler()
 
     if len(argv) < 2 or argv[1] == "dijkstra":
-        for _ in solv.stepped_maze_solving("Dijkstra"):
+        for _ in solv.stepped_maze_solving():
             pass
         # for cell in solv.intersection_cells:
         #     print(

@@ -12,7 +12,7 @@ This module is responsible of every printing methods and algorithms, as well as 
 
 - `calculate_intersection_index(bin_bool: tuple[bool, bool, bool, bool]) -> int:` Transforms 4 booleans designed to be walls to find which intersection character to use by returning an index between 0 and 15.
 
-- `print_maze(maze: Maze, theme: Theme, path: list[CellCoordinates] = [], highlight: tuple[CellCoordinates, ...] = ()) -> None`: Displays the maze cell by cell, surrounding them with special characters depending on which of their walls are open or not. Displays each angle based on open walls, outputting an adaptive and clear display depending on the theme argument containing characters and styles to print.
+- `print_maze(maze: Maze, theme: Theme, solver: MazeSolver) -> None:`: Displays the maze cell by cell, surrounding them with special characters depending on which of their walls are open or not. Displays each angle based on open walls, outputting an adaptive and clear display depending on the theme argument containing characters and styles to print. Uses the MazeSolver object to display Shade Enum characters if cells are `visited`, `highlighted` or part of the found `path`.
 
 - `get_fill_character(cell_1: CellCoordinates, movement: Movements | None = None) -> str:`: function nested into print_maze checking if a cell or its separation with another should be filled with block characters to signify a `visited`, `highlighted` or in `path` state.
 

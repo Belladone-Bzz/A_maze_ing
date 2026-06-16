@@ -74,14 +74,14 @@ class Theme:
     path visuals and the pattern's. Consists of an init method only. Uses
     Walls, Angles, SmallIcons classes, and styling function.
 
-    Attributes: Walls, Angles, start, exit, progress_line(Walls, Angles)
+    Attributes: Walls, Angles, start, exit, path_chars(Walls, Angles)
     walls_ path_ start_ exit_ icon_ styles as str, icon_ Walls, Angles and
     content.
     """
     def __init__(
             self, walls: type[Walls], angles: type[Angles],
             start: SmallIcons, exit: SmallIcons,
-            progress_line: tuple[type[Walls], type[Angles]],
+            path_chars: tuple[type[Walls], type[Angles]],
             walls_style: str, path_style: str,
             start_style: str, exit_style: str,
             visited_style: str, highlighted_style: str,
@@ -91,7 +91,7 @@ class Theme:
         self.angles: type[Angles] = angles
         self.start: SmallIcons = start
         self.exit: SmallIcons = exit
-        self.progress_line: tuple[type[Walls], type[Angles]] = progress_line
+        self.path_chars: tuple[type[Walls], type[Angles]] = path_chars
         self.walls_style: str = walls_style
         self.path_style: str = path_style
         self.start_style: str = start_style
@@ -113,7 +113,7 @@ class Themes(Enum):
         angles=BoldBasicAngles,
         start=SmallIcons.EMPTY_SQUARE,
         exit=SmallIcons.FULL_SQUARE,
-        progress_line=(BasicWalls, RoundedAngles),
+        path_chars=(BasicWalls, RoundedAngles),
 
         walls_style=styling(),
         path_style=styling([Styling.BOLD], Colors.YELLOW),
@@ -132,7 +132,7 @@ class Themes(Enum):
         angles=RoundedAngles,
         start=SmallIcons.BEE,
         exit=SmallIcons.FLOWER,
-        progress_line=(BasicWalls, RoundedAngles),
+        path_chars=(BasicWalls, RoundedAngles),
 
         walls_style=styling([], Colors.BLACK, Colors.YELLOW),
         path_style=styling([], "208", Colors.YELLOW),
@@ -151,7 +151,7 @@ class Themes(Enum):
         angles=RoundedAngles,
         start=SmallIcons.CATERPILLAR,
         exit=SmallIcons.BUTTERFLY,
-        progress_line=(BasicWalls, RoundedAngles),
+        path_chars=(BasicWalls, RoundedAngles),
 
         walls_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
         path_style=styling([], Colors.LIGHT_GREEN, Colors.YELLOW),
@@ -170,7 +170,7 @@ class Themes(Enum):
         angles=DoubleAngles,
         start=SmallIcons.COW,
         exit=SmallIcons.MILK,
-        progress_line=(DoubleWalls, DoubleAngles),
+        path_chars=(DoubleWalls, DoubleAngles),
 
         walls_style=styling([], Colors.GREEN),
         path_style=styling([], Colors.GREEN),
@@ -189,14 +189,14 @@ class Themes(Enum):
         angles=DoubleAngles,
         start=SmallIcons.TONGUE,
         exit=SmallIcons.BIKINI,
-        progress_line=(BasicWalls, RoundedAngles),
+        path_chars=(BasicWalls, RoundedAngles),
 
         walls_style=styling([], Colors.MAGENTA, Colors.BLACK),
-        path_style=styling([], Colors.MAGENTA, Colors.BLACK),
+        path_style=styling([], Colors.RED, Colors.BLACK),
         start_style=styling(),
         exit_style=styling(),
-        visited_style=styling([], Colors.GRAY),
-        highlighted_style=styling(),
+        visited_style=styling([], "253", Colors.BLACK),
+        highlighted_style=styling([], "200", Colors.BLACK),
 
         icon_walls=BoldBasicWalls,
         icon_angles=BoldBasicAngles,
