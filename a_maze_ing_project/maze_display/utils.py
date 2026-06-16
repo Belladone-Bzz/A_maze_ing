@@ -22,8 +22,8 @@ class Keyboard(Enum):
     navigate menues. Contains characters or escape sequences for
     ESCAPE, CONFIRM, UP, DOWN, RIGHT and LEFT.
     """
-    ESCAPE = "\x1b"
-    CONFIRM = ("\r", "\n")
+    ESCAPE = ("\x1b", "x")
+    CONFIRM = ("\r", "\n", " ")
     UP = ("w", "A", "\x1b[A", "\x1b", "\xe0H")
     DOWN = ("s", "B", "\x1b[B", "\x1b", "\xe0P")
     RIGHT = ("d", "C", "\x1b[C", "\x1b", "\xe0M")

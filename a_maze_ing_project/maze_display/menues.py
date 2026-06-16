@@ -359,11 +359,12 @@ def instantiate_menues(
         nonlocal current_index
         nonlocal current_menu
         nonlocal focused_option
-        if user_input == Keyboard.ESCAPE.value:
+        if user_input in Keyboard.ESCAPE.value:
             if focused_option is not None:
                 focused_option = None
             elif current_menu != "main":
                 current_menu = "main"
+                current_index = 0
         elif focused_option is not None:
             focused_option.browse_option(user_input)
         elif user_input in Keyboard.DOWN.value:
