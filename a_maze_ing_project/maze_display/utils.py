@@ -16,6 +16,7 @@ values. No verification of range is made, feel free to experiment
 until the output style is to your liking.
 """
 
+
 class Keyboard(Enum):
     """Stores in lists of strings the different keyboard keys available to
     navigate menues. Contains characters or escape sequences for

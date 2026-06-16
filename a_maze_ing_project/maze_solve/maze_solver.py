@@ -162,8 +162,6 @@ class MazeSolver:
         while len(processed_nodes) < len(self.intersection_cells):
             for known_node in current_nodes:
                 for next_node in self.get_neighbour_nodes(known_node):
-                    if next_node.coords in processed_nodes:
-                        continue
                     entry_to_next_node = (
                         self.get_dist_from_entry(known_node)[0]
                         + next_node.distance)
@@ -176,8 +174,8 @@ class MazeSolver:
                             next_node.coords, (
                                 entry_to_next_node,
                                 tuple([known_node, *next_node.path][-2::-1])))
+                        temp_neighbours.append(next_node.coords)
                         yield None
-                    temp_neighbours.append(next_node.coords)
             processed_nodes.update(current_nodes)
             current_nodes = temp_neighbours
             temp_neighbours = []
@@ -185,22 +183,42 @@ class MazeSolver:
 
     def get_neighbour_nodes(
             self, cell: CellCoordinates) -> list[Node]:
+        """Retrieve the neighbour_nodes Maze.Cell attribute given to
+        intersection cells to keep track of where each node lead. This
+        attribute contains a list of Node object.
+        """
         return cast(list[MazeSolver.Node], getattr(
             self.maze.cells[cell[0]][cell[1]], "neighbour_nodes"))
 
     def create_neighbours_list(self, cell: CellCoordinates) -> None:
+        """Declare the neighbour_nodes attribute to a Cell and assign it
+        an empty list. To be used for intersection cells to keep track of
+        which other intersection they can lead to. The attribute is then
+        destined to be a list of Node object.
+        """
         setattr(
             self.maze.cells[cell[0]][cell[1]], "neighbour_nodes", [])
 
     def get_dist_from_entry(
             self, cell: CellCoordinates
             ) -> tuple[int, tuple[CellCoordinates, ...]]:
+        """Retrieve the distance_from_entry Maze.Cell attribute given to
+        intersection cells to keep track of their distance from the entry
+        cell. This attribute has to be declared using the MazeSolver method
+        set_distance_from_entry with a value.
+
+        It contains an int of traveled cells, as well as the path
+        to take to reach the neighbouring node closest to the entry.
+        """
         return cast(tuple[int, tuple[CellCoordinates, ...]], getattr(
             self.maze.cells[cell[0]][cell[1]], "distance_from_entry"))
 
     def set_distance_from_entry(
             self, cell: CellCoordinates,
             distance: tuple[int, tuple[CellCoordinates, ...] | None]) -> None:
+        """Assign a value to the distance_from_entry Cell attribute. This
+        value can be None in declaring purposes.
+        """
         setattr(
             self.maze.cells[cell[0]][cell[1]], "distance_from_entry", distance)
 
@@ -219,7 +237,7 @@ class MazeSolver:
             if self.maze.is_available(neighbor) is False:
                 continue
             if (
-                    self.maze.cells[neighbor[0]][neighbor[1]].is_visited is True
+                    self.maze.cells[neighbor[0]][neighbor[1]].is_visited
                     and self.maze.cells[coords[0]][coords[1]].walls[
                         Directions[movement.name]] is False):
                 visited_neighbor += 1
@@ -276,7 +294,18 @@ class MazeSolver:
     # _________________________________________________________________________
 
     def dijkstra_algorithm(self) -> Generator[None]:
-        """"""
+        """Find the shortest path in the maze using the Dijkstra's algorithm.
+        Sets a list of intersection_cells and calculate the distance between
+        each to generate a weighted graph, including the entry and exit
+        cells. Checks then each of their distance from the start,
+        priorizing lighter distances, until all paths are counted for.
+
+        Goes back from the exit, adding to the shortest_path each path to take
+        to go back an intersection that's the closest from the entry.
+
+        Yields None at visually significant instants, updating the is_visited
+        Cell attribute and highlighted and shortest_path MazeSolver attribute.
+        """
         for _ in self.generate_cell_graph():
             yield None
         for _ in self.set_nodes_distance_from_entry():
@@ -353,11 +382,6 @@ if __name__ == "__main__":
         gen_algorithm="Prim",
         seed=randint(0, 99999999),
         pattern=[])
-            # [False, False, True, False, True, True, True],
-            # [False, True, False, False, False, False, True],
-            # [True, True, True, False, False, True, False],
-            # [False, False, True, False, True, False, False],
-            # [False, False, True, False, True, True, True]])
     maze.generate_maze()
     print(maze)
     print(maze.config.SEED)

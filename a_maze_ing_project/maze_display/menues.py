@@ -4,9 +4,8 @@ from .utils import (
 from .themes import Theme, Themes, get_theme, Patterns
 from a_maze_ing_project.maze_gen import Maze
 from a_maze_ing_project.maze_solve import MazeSolver
-from random import randint
+from random import randint, seed
 from typing import cast
-from enum import Enum
 from collections.abc import Callable
 from functools import partial
 from itertools import chain
@@ -106,7 +105,10 @@ def instantiate_menues(
         Takes a string and returns one to respect Callable typing, but
         does nothing of them.
         """
+        temp: int = int(config["seed"])
+        seed()
         config["seed"] = str(randint(0, 1000000000000))
+        seed(temp)
         return ""
 
     class Option:
@@ -311,8 +313,8 @@ def instantiate_menues(
                 option_type="selection",
                 options=list(MazeSolver.solving_algorithms),
                 text=(
-                    f"{"Solving algorithm:":<22}"
-                    "{value:>13}")),
+                    f"{"Solving algorithm:":<20}"
+                    "{value:>15}")),
             Option(
                 name="seed",
                 option_type="slider",

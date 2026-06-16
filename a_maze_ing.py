@@ -46,6 +46,12 @@ def instantiate_maze(
     or an error message.
     """
     try:
+        if (
+                config["sol_algorithm"] == "Dead_end_filler"
+                and config["perfect"] == "False"):
+            raise ValueError(
+                "The Dead end filler algorithm can only be "
+                "used in perfect Maze")
         maze = Maze(
             width=int(config["width"]),
             height=int(config["height"]),
