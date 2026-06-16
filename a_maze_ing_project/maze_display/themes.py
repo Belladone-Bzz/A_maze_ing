@@ -154,10 +154,10 @@ class Themes(Enum):
         path_chars=(BasicWalls, RoundedAngles),
 
         walls_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
-        path_style=styling([], Colors.LIGHT_GREEN, Colors.YELLOW),
+        path_style=styling([], "154", Colors.MAGENTA),
         start_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
         exit_style=styling([], Colors.LIGHT_GREEN, Colors.MAGENTA),
-        visited_style=styling([], Colors.GRAY),
+        visited_style=styling([], Colors.BLACK, Colors.MAGENTA),
         highlighted_style=styling(),
 
         icon_walls=DoubleWalls,
@@ -173,7 +173,7 @@ class Themes(Enum):
         path_chars=(DoubleWalls, DoubleAngles),
 
         walls_style=styling([], Colors.GREEN),
-        path_style=styling([], Colors.GREEN),
+        path_style=styling([], Colors.WHITE),
         start_style=styling([], Colors.GREEN),
         exit_style=styling([], Colors.GREEN),
         visited_style=styling([], Colors.GRAY),
