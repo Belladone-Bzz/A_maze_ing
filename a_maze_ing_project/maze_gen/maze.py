@@ -358,7 +358,7 @@ class Maze:
         in the maze. In order of priority: 1.Open the wall opposite the
         dead-end opening if the opposite cell is available. 2.Search for a
         dead-end with two True walls on the same side, perpendicular to the
-        dead-end’s entrance, to avoid creating chambers. 3.If no dead-end meets
+        dead-end's entrance, to avoid creating chambers. 3.If no dead-end meets
         these criteria, then a random dead-end is chosen and one of the walls
         perpendicular to the entrance is opened if the adjacent cell is
         available.
@@ -523,7 +523,7 @@ class Maze:
         dead_end_opener() method.
         """
         def break_east_wall(coords: CellCoordinates) -> None:
-            """Break the wall between a cell and her right neighbor."""
+            """Break the wall between a cell and its right neighbor."""
             if (self.cells[coords[0]][coords[1]].pattern is False
                     and self.cells[coords[0] + 1][coords[1]].pattern is False):
                 self.cells[coords[0]][coords[1]].walls[
@@ -534,7 +534,7 @@ class Maze:
                 v_walls.remove(coords)
 
         def break_south_wall(coords: CellCoordinates) -> None:
-            """Break the wall between a cell and her down neighbor."""
+            """Break the wall between a cell and its down neighbor."""
             if (self.cells[coords[0]][coords[1]].pattern is False
                     and self.cells[coords[0]][coords[1] + 1].pattern is False):
                 self.cells[coords[0]][coords[1]].walls[

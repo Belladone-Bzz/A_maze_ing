@@ -14,11 +14,13 @@ This module is responsible of every printing methods and algorithms, as well as 
 
 - `print_maze(maze: Maze, theme: Theme, solver: MazeSolver) -> None:`: Displays the maze cell by cell, surrounding them with special characters depending on which of their walls are open or not. Displays each angle based on open walls, outputting an adaptive and clear display depending on the theme argument containing characters and styles to print. Uses the MazeSolver object to display Shade Enum characters if cells are `visited`, `highlighted` or part of the found `path`.
 
-- `get_fill_character(cell_1: CellCoordinates, movement: Movements | None = None) -> str:`: function nested into print_maze checking if a cell or its separation with another should be filled with block characters to signify a `visited`, `highlighted` or in `path` state.
+- `get_fill_character(cell_1: CellCoordinates, movement: Movements | None = None) -> str:`: function nested into `print_maze` checking if a cell or its separation with another should be filled with block characters to signify a `visited`, `highlighted` or in `path` state.
 
-- `integrate_entry_exit(maze: Maze, theme: Theme) -> None`: Function called after print_maze, going back on the print to integrate the icons for the entry and the exit coordinates with their corresponding styling.
+- `integrate_entry_exit(maze: Maze, theme: Theme) -> None`: Function called after `print_maze`, going back on the print to integrate the icons for the entry and the exit coordinates with their corresponding styling.
 
-- `integrate_pattern_design(maze: Maze) -> None`: Function called after `print_maze`, going back on the print to integrate the selected pattern design. Works with the [CursorOperations enum](#Enums-2), and takes a Maze object as argument.
+- `integrate_pattern_design(maze: Maze, theme: Theme) -> None`: Function called after `print_maze`, going back on the print to integrate the selected pattern design. Works with the [CursorOperations enum](#Enums-2), and takes a Maze object as argument.
+
+- `integrate_found_path(theme: Theme, path: list[CellCoordinates]) -> None`:Function called after print_maze, going back on the print to integrate the solver's found path. Works with nested functions get_line_character and add_cell_separation to integrate the selected theme's characters and styling for the path.
 
 - `display_maze(maze: Maze, theme: Theme, solver: MazeSolver) -> None`: This is the function called when displaying the Maze's interface. It checks with the termios[^termios] module the size of the current terminal and calls the `print_maze` function when possible.
 

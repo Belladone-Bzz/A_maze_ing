@@ -166,8 +166,6 @@ class MazeSolver:
         current_node: CellCoordinates
         while len(known_nodes) > 0:
             current_node = known_nodes.pop(0)
-            if current_node == self.EXIT:
-                break
             for next_node in self.get_neighbour_nodes(current_node):
                 distance_from_entry = self.get_dist_from_entry(
                     next_node.coords)[0]
@@ -187,14 +185,20 @@ class MazeSolver:
 
     def calc_node_priority(
             self, node: CellCoordinates, dest: CellCoordinates) -> int:
+        """Returns an int corresponding to the Manhattan distance as an
+        absolute, to be used in priorizing the closest node from the
+        destination.
+        """
         return abs(node[0] - dest[0]) + abs(node[1] - dest[1])
 
     def set_priority_nodes_distance_from_entry(self) -> Generator[None]:
         """From the entry intersection, calculates the distance from it
         to each intersection of the Maze, saving the closest Node to access
-        to go back to the entry the fastest. Stops when every Node is
-        processed, and yields None when checking each Node distance for
-        display purposes.
+        to go back to the entry the fastest. Works with a priority queue
+        to process the nodes with the lowest distance from the exit first.
+
+        Stops when the exit point is processed, and yields None when checking
+        each Node distance for display purposes.
         """
         known_nodes: list[tuple[int, CellCoordinates]] = []
         heappush(known_nodes, (0, self.ENTRY))
@@ -394,6 +398,10 @@ class MazeSolver:
     # _________________________________________________________________________
 
     def stepped_maze_solving(self) -> Generator[None]:
+        """Triggers the solver's chosen algorithm to find a path in the maze
+        between the entry and exit points. Yields None at pertinent times
+        in display purposes
+        """
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Dijkstra": partial(self.graph_algorithms, "Dijkstra"),
             "A_star": partial(self.graph_algorithms, "A_star"),
@@ -402,6 +410,11 @@ class MazeSolver:
             yield None
 
     def maze_solving(self) -> None:
+        """Triggers the solver's chosen algorithm to find a path in the maze
+        between the entry and exit points.
+
+        Returns None
+        """
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Dijkstra": partial(self.graph_algorithms, "Dijkstra"),
             "A_star": partial(self.graph_algorithms, "A_star"),

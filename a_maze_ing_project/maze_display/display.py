@@ -287,6 +287,13 @@ def instantiate_maze_display(
             return
 
         def get_line_character(index: int) -> str:
+            """Returns a special character corresponding to the trajectory of
+            the path through the cell situated at the given index. Doesn't
+            support entry and exit point as they are represented by their own
+            character. Calculate both the movement from the last cell and to
+            the next to chose which character to return, from the selected
+            theme's path_chars attribute.
+            """
             cell_0: CellCoordinates = path[index - 1]
             cell_1: CellCoordinates = path[index]
             cell_2: CellCoordinates = path[index + 1]
@@ -312,6 +319,12 @@ def instantiate_maze_display(
 
         def add_cell_separation(
                 line: str, index: int, cell: CellCoordinates) -> str:
+            """Appends to the path string special characters to print where
+            cells meet, between the path's angles. Takes a cell and its index
+            to find out where to place the cursor and what character to print
+            based on the direction to take between the current cell and the
+            next.
+            """
             if path[index + 1][0] < cell[0]:
                 line += CursorOperations.MOVE_CURSOR(
                     cell[1] * 2 + 3, cell[0] * 4)
