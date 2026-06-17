@@ -82,7 +82,6 @@ def instantiate_menues(
         nonlocal current_menu
         nonlocal current_index
         nonlocal current_error
-        nonlocal config_save
         if current_menu == "maze_config":
             for key, value in config_save.items():
                 config[key] = value
@@ -388,10 +387,6 @@ def instantiate_menues(
         """Displays the current menu, navigation index and errors applying
         the selected theme.
         """
-        nonlocal current_menu
-        nonlocal current_index
-        nonlocal current_error
-        nonlocal focused_option
         menu_width: int = max(
             len(str(entry)) for entry in chain(
                 menues[current_menu], current_error.split("\n"))) + 6

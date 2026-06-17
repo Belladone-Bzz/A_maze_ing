@@ -27,7 +27,7 @@ class MazeSolver:
     None during key moment of the solving.
     """
     solving_algorithms: tuple[str, ...] = (
-        "Dijkstra", "Dead_end_filler")
+        "Dijkstra", "Dead_end_filler", "Breadth_search")
 
     def __init__(self, maze: Maze, algorithm: str) -> None:
         self.maze: Maze = maze
@@ -228,6 +228,33 @@ class MazeSolver:
     #                             SOLVING UTILS
     # _________________________________________________________________________
 
+    def get_connected_neighbors(
+            self, coords: CellCoordinates,
+            in_maze: bool | None) -> list[CellCoordinates]:
+        """Return a list of available neighbors. The list can be filtered to
+        include only neighbors that have been added to maze, those that aren't,
+        or all of them without distinction.
+        """
+        neighbors: list[CellCoordinates] = []
+        for movement in Movements:
+            potential_neighbor = self.maze.get_neighbor_coords(
+                coords, movement.value)
+            if self.maze.is_available(potential_neighbor) is False:
+                continue
+            if self.maze.cells[
+                    potential_neighbor[0]][
+                        potential_neighbor[1]].is_visited is True:
+                continue
+            if (in_maze is not None
+                    and self.maze.is_in_maze(potential_neighbor)
+                    is not in_maze):
+                continue
+            if (self.maze.cells[coords[0]][coords[1]].walls[
+                    Directions[movement.name]] is True):
+                continue
+            neighbors.append(potential_neighbor)
+        return neighbors
+
     def number_visited_neighbors(self, coords: CellCoordinates) -> int:
         """Count the number of adjacent cells for which is_visited` is
         True. Returns this number.
@@ -346,6 +373,38 @@ class MazeSolver:
         for _ in self.find_path_to_exit():
             yield None
 
+    def breadth_first_search_algorithm(self) -> Generator[None]:
+        """"""
+        known_cells: list[CellCoordinates] = [self.ENTRY]
+        setattr(self.maze.cells[
+            self.ENTRY[0]][self.ENTRY[1]], "prev_cell", self.ENTRY)
+        self.maze.cells[self.ENTRY[0]][self.ENTRY[1]].is_visited = True
+        while known_cells:
+            self.highlighted = tuple(known_cells)
+            cell = known_cells.pop(0)
+            if cell == self.EXIT:
+                break
+            frontiers: list[CellCoordinates] = self.get_connected_neighbors(
+                cell, True)
+            for frontier in frontiers:
+                try:
+                    getattr(self.maze.cells[
+                        frontier[0]][frontier[1]], "prev_cell")
+                except AttributeError:
+                    setattr(self.maze.cells[frontier[0]][
+                        frontier[1]], "prev_cell", (cell[0], cell[1]))
+                    self.maze.cells[frontier[0]][frontier[1]].is_visited = True
+                    known_cells.append(frontier)
+                    yield None
+        self.highlighted = ()
+        self.shortest_path = [self.EXIT]
+        while self.ENTRY != self.shortest_path[0]:
+            self.shortest_path.insert(
+                0,
+                getattr(self.maze.cells[self.shortest_path[0][0]][
+                    self.shortest_path[0][1]], "prev_cell"))
+            yield None
+
     # _________________________________________________________________________
     #                      SOLVING GENERATION AND DISPLAY
     # _________________________________________________________________________
@@ -353,6 +412,7 @@ class MazeSolver:
     def stepped_maze_solving(self) -> Generator[None]:
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Dijkstra": self.dijkstra_algorithm,
+            "Breadth_search": self.breadth_first_search_algorithm,
             "Dead_end_filler": self.dead_end_filler}
         for _ in algorithms[self.algorithm]():
             yield None
@@ -360,6 +420,7 @@ class MazeSolver:
     def maze_solving(self) -> None:
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Dijkstra": self.dijkstra_algorithm,
+            "Breadth_search": self.breadth_first_search_algorithm,
             "Dead_end_filler": self.dead_end_filler}
         for _ in algorithms[self.algorithm]():
             pass
@@ -373,7 +434,6 @@ if __name__ == "__main__":
     """
 
     from random import randint
-    from sys import argv
 
     maze: Maze = Maze(
         width=5,
@@ -388,11 +448,12 @@ if __name__ == "__main__":
     print(maze)
     print(maze.config.SEED)
     solv: MazeSolver = MazeSolver(maze, "Dijkstra")
-    solv.dead_end_filler()
+    for _ in solv.breadth_first_search_algorithm():
+        pass
 
-    if len(argv) < 2 or argv[1] == "dijkstra":
-        for _ in solv.stepped_maze_solving():
-            pass
+    # if len(argv) < 2 or argv[1] == "dijkstra":
+    #     for _ in solv.stepped_maze_solving():
+    #         pass
         # for cell in solv.intersection_cells:
         #     print(
         #         f"Cell {cell}: Dist {solv.get_dist_from_entry(cell)} "
