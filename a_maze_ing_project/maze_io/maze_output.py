@@ -3,6 +3,50 @@ from a_maze_ing_project.maze_gen import Maze, CellCoordinates, Movements
 from a_maze_ing_project.maze_solve import MazeSolver
 
 
+def write_out_config(config: dict[str, str]) -> str:
+    try:
+        config_str: str = (
+            "# This is the configuration file in which you can enter variable"
+            "s, factors and algorithms preferences for your generated maze.\n"
+            "\n# Positive numerical values (may exceed terminal maximum "
+            f"display size)\n\nWIDTH={config["width"]}\n"
+            f"HEIGHT={config["height"]}\n\n"
+            "# Positive numerical coordinates separated by a comma (may not "
+            f"exceed maze size)\n\nENTRY={config["entry"]}\n"
+            f"EXIT={config["exit"]}\n"
+            "# File to overwrite with hexadecimal maze layout and more\n\n"
+            f"OUTPUT_FILE={config["output_file"]}\n\n"
+            "# Maze generation factors:\n"
+            "# - perfect, for a perfect maze (literally True or False),\n"
+            "# - seed, for maze reproducibility (whole number)\n"
+            "# - central pattern, to display a predesigned pattern on the "
+            "center of the maze,\n"
+            "#     Patterns available: Forty_two, Heart, Bee, Bbl, Six_seven, "
+            "None\n"
+            "# - gen_speed, for generation speed, concerns the displaying of "
+            "the maze generating (0 to 10).\n"
+            "#     the speed relates to the number of cells added to the maze "
+            "between each print, a speed of 0 will skip this display.\n\n"
+            f"PERFECT={config["perfect"]}\nSEED={config["seed"]}\n"
+            f"PATTERN={config["pattern"]}\n"
+            f"GEN_SPEED={config["gen_speed"]}\n\n"
+            "# Color, characters and styling theme to apply when printing the "
+            "generated maze.\n"
+            "#     Themes available: Default, Bee, Metamorphosis, Meuuh, "
+            f"Boss_lady\n\nTHEME={config["theme"]}\n\n"
+            "# Generation algorithms available: Backtracking, Prim, "
+            f"Hunt_and_kill\n\nGEN_ALGORITHM={config["gen_algorithm"]}\n\n"
+            "# Solving algorithms available: Dijkstra, Dead_end_filler, "
+            f"A_star\n\nSOL_ALGORITHM={config["sol_algorithm"]}")
+        with open("config.txt", 'w') as file:
+            print(config_str, end="", file=file)
+    except FileNotFoundError:
+        return f"- Output file {"config.txt"} not found"
+    except PermissionError:
+        return f"- Output file {"config.txt"} could not be accessed"
+    return ""
+
+
 def write_out_maze(
         maze: Maze, solver: MazeSolver, config: dict[str, str]) -> str:
     """Takes a Maze object and a config to write out maze's basic

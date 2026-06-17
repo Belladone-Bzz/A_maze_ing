@@ -7,7 +7,7 @@ from collections.abc import Callable
 
 from a_maze_ing_project import (
     Maze, MazeSolver,
-    write_out_maze, generate_config,
+    write_out_maze, write_out_config, generate_config,
     print_error, instantiate_maze_display,
     instantiate_menues, ProgramQuit, Patterns)
 
@@ -159,6 +159,10 @@ def main() -> int:
                 tcsetattr(fd, TCSAFLUSH, new_term)
             elif function_output == "save_maze":
                 function_output = write_out_maze(maze, solver, config)
+                if function_output != "":
+                    menu_module("maze_error", function_output)
+            elif function_output == "save_config":
+                function_output = write_out_config(config)
                 if function_output != "":
                     menu_module("maze_error", function_output)
 

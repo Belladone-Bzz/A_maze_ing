@@ -267,6 +267,11 @@ def instantiate_menues(
                 text="Save maze to output file",
                 exec=partial(lambda _: "save_maze", "")),
             Option(
+                name="save config",
+                option_type="validate",
+                text="Save configuration to config.txt",
+                exec=partial(lambda _: "save_config", "")),
+            Option(
                 name="generate",
                 option_type="validate",
                 text="Generate new maze",
