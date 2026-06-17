@@ -1,5 +1,5 @@
 
-from .maze_gen import Maze
+from .maze_gen.mazegenerator import Maze
 from .maze_solve import MazeSolver
 from .maze_io import write_out_maze, write_out_config, generate_config
 from .maze_display import (

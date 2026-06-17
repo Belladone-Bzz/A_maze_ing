@@ -5,11 +5,12 @@ ARGS = config.txt
 REQUIREMENTS = requirements.txt
 
 PROJECT = a_maze_ing_project
+MAZE_PACKAGE = maze_gen
 VENV = venv
 BIN = $(VENV)/bin
 PYTHON = python3
 
-CACHE = $(VENV) .mypy_cache dist
+CACHE = .mypy_cache $(PROJECT)/$(MAZE_PACKAGE)/dist
 
 run: install
 	$(BIN)/$(PYTHON) $(NAME) $(ARGS)
@@ -25,11 +26,14 @@ debug: install
 	$(BIN)/$(PYTHON) -m pdb $(NAME) $(ARGS)
 
 build: install
-	$(BIN)/$(PYTHON) -m build
+	$(BIN)/$(PYTHON) -m build $(PROJECT)/$(MAZE_PACKAGE)
 
 clean:
 	rm -rf $(CACHE)
 	find ./$(PROJECT) | grep -E "(__pycache__|\.pyc$$)" | xargs rm -rf
+
+fclean: clean
+	rm -rf $(venv)
 
 lint: install
 	source venv/bin/activate\
@@ -42,4 +46,4 @@ lint-strict: install
 	&& flake8 .\
 	&& mypy --strict .
 
-.PHONY = install run debug build clean lint lint-strict
+.PHONY = install run debug build clean fclean lint lint-strict

@@ -12,3 +12,7 @@ dependencies = [
 	"pydantic (==2.13.4)",
 	"mypy (>=2.1.0)"
 ]
+
+[project.urls]
+Homepage = "https://github.com/Belladone-Bzz/A_maze_ing"
+Issues = "https://github.com/Belladone-Bzz/A_maze_ing/issues"

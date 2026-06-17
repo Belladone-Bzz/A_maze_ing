@@ -2,7 +2,7 @@
 from .utils import (
     style_print, print_error, SmallIcons, CursorOperations, Keyboard)
 from .themes import Theme, Themes, get_theme, Patterns
-from a_maze_ing_project.maze_gen import Maze
+from a_maze_ing_project.maze_gen.mazegenerator import Maze
 from a_maze_ing_project.maze_solve import MazeSolver
 from random import randint, seed
 from typing import cast

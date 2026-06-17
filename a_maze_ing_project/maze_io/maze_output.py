@@ -1,5 +1,6 @@
 
-from a_maze_ing_project.maze_gen import Maze, CellCoordinates, Movements
+from a_maze_ing_project.maze_gen.mazegenerator import (
+    Maze, CellCoordinates, Movements)
 from a_maze_ing_project.maze_solve import MazeSolver
 
 

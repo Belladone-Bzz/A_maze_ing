@@ -4,7 +4,7 @@ from heapq import heappush, heappop
 from functools import partial
 from collections import deque
 from collections.abc import Callable
-from a_maze_ing_project.maze_gen import (
+from a_maze_ing_project.maze_gen.mazegenerator import (
     Maze, Directions, Movements, CellCoordinates)
 
 

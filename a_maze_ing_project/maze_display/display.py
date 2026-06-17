@@ -1,7 +1,7 @@
 
 from .utils import style_print, CursorOperations, Shades
 from .themes import Theme, get_theme
-from a_maze_ing_project.maze_gen import (
+from a_maze_ing_project.maze_gen.mazegenerator import (
     Maze, Directions, Movements, CellCoordinates)
 from a_maze_ing_project.maze_solve import MazeSolver
 from collections.abc import Callable

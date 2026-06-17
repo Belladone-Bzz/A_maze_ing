@@ -11,7 +11,6 @@ from a_maze_ing_project import (
     print_error, instantiate_maze_display,
     instantiate_menues, ProgramQuit, Patterns)
 
-
 if name != "nt":
     from termios import (
         tcgetattr, tcsetattr, ICANON, ECHO, TCSAFLUSH)

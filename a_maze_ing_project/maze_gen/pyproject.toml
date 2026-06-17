@@ -1,0 +1,23 @@
+[project]
+name = "mazegenerator"
+version = "1.0.0"
+description = "mazegenerator module containing a Maze class able to generate itself using multiple algorithms, comes with Enums and custom types."
+authors = [
+	{name = "Belladone-Bzz"},
+	{name = "jolyne-mangeot"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic (>=2.13.4)"
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/Belladone-Bzz/A_maze_ing"
+Issues = "https://github.com/Belladone-Bzz/A_maze_ing/issues"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
