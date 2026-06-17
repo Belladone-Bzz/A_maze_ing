@@ -9,6 +9,7 @@ venv/*
 # project related files
 *output*
 *test*
+dist
 
 # vscode related folders
 **/.vscode

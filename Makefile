@@ -4,11 +4,12 @@ ARGS = config.txt
 
 REQUIREMENTS = requirements.txt
 
+PROJECT = a_maze_ing_project
 VENV = venv
 BIN = $(VENV)/bin
 PYTHON = python3
 
-CACHE = $(VENV) .mypy_cache
+CACHE = $(VENV) .mypy_cache dist
 
 run: install
 	$(BIN)/$(PYTHON) $(NAME) $(ARGS)
@@ -17,18 +18,18 @@ venv:
 	$(PYTHON) -m venv $(VENV)
 
 install: venv
-	$(BIN)/pip install --quiet -r $(REQUIREMENTS)
 	$(BIN)/pip install --quiet --upgrade pip
+	$(BIN)/pip install --quiet -r $(REQUIREMENTS)
 
 debug: install
 	$(BIN)/$(PYTHON) -m pdb $(NAME) $(ARGS)
 
 build: install
-	python -m build
+	$(BIN)/$(PYTHON) -m build
 
 clean:
 	rm -rf $(CACHE)
-	find . -regex '^.*\(__pycache__\|\.py[co]\)$' -delete
+	find ./$(PROJECT) | grep -E "(__pycache__|\.pyc$$)" | xargs rm -rf
 
 lint: install
 	source venv/bin/activate\
