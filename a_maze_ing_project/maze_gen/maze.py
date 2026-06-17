@@ -142,6 +142,10 @@ class Maze:
                                 error_message += (
                                     "Entry and Exit coordinates cannot be "
                                     "placed in pattern cells.")
+            if self.ENTRY == self.EXIT:
+                error_message += (
+                    "Entry and exit coordinates cannot be "
+                    "on the same position.")
             if self.ENTRY[0] >= self.WIDTH or self.ENTRY[1] >= self.HEIGHT:
                 error_message += (
                     "Entry coordinates (x, y) "

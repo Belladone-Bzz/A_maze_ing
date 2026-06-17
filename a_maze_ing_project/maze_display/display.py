@@ -83,7 +83,9 @@ def instantiate_maze_display(
                 else fill[0] if (
                     maze.cells[cell_1[0]][cell_1[1]].is_visited is True
                     and maze.cells[cell_2[0]][cell_2[1]].is_visited is True
-                    and (cell_1 == cell_2 or solver.algorithm != "Dijkstra"))
+                    and (
+                        cell_1 == cell_2
+                        or solver.algorithm not in ("Dijkstra", "A_star")))
                 else " ") + theme.walls_style
 
         line: str = str(theme.angles.TOP_LEFT)
@@ -274,23 +276,24 @@ def instantiate_maze_display(
 
     def integrate_found_path(
             theme: Theme, path: list[CellCoordinates]) -> None:
+        """Function called after print_maze, going back on the print to
+        integrate the solver's found path. Works with nested functions
+        get_line_character and add_cell_separation to integrate the selected
+        theme's characters and styling for the path.
+
+        Returns None
+        """
+        if len(path) < 3:
+            return
 
         def get_line_character(index: int) -> str:
-            back: int = -1
-            front: int = -1
+            cell_0: CellCoordinates = path[index - 1]
             cell_1: CellCoordinates = path[index]
-            if index != 0:
-                cell_0: CellCoordinates = path[index - 1]
-                back = Directions[Movements(
-                    (cell_1[0] - cell_0[0], cell_1[1] - cell_0[1])).name].value
-            if index != len(path) - 1:
-                cell_2: CellCoordinates = path[index + 1]
-                front = Directions[Movements(
-                    (cell_1[0] - cell_2[0], cell_1[1] - cell_2[1])).name].value
-            if back == -1:
-                back = front + 2 % 4
-            if front == -1:
-                front = back + 2 % 4
+            cell_2: CellCoordinates = path[index + 1]
+            back: int = Directions[Movements(
+                (cell_1[0] - cell_0[0], cell_1[1] - cell_0[1])).name].value
+            front: int = Directions[Movements(
+                (cell_1[0] - cell_2[0], cell_1[1] - cell_2[1])).name].value
             match sorted((back, front)):
                 case (Directions.SOUTH.value, Directions.NORTH.value):
                     return theme.path_chars[0].VERTICAL
@@ -307,27 +310,31 @@ def instantiate_maze_display(
                 case _:
                     return " "
 
-        line: str = ""
-        for index, cell in enumerate(path):
+        def add_cell_separation(
+                line: str, index: int, cell: CellCoordinates) -> str:
+            if path[index + 1][0] < cell[0]:
+                line += CursorOperations.MOVE_CURSOR(
+                    cell[1] * 2 + 3, cell[0] * 4)
+                line += theme.path_chars[0].HORIZONTAL * 3
+            elif path[index + 1][0] > cell[0]:
+                line += CursorOperations.MOVE_CURSOR(
+                    cell[1] * 2 + 3, cell[0] * 4 + 4)
+                line += theme.path_chars[0].HORIZONTAL * 3
+            elif path[index + 1][1] < cell[1]:
+                line += CursorOperations.MOVE_CURSOR(
+                    cell[1] * 2 + 2, cell[0] * 4 + 3)
+                line += theme.path_chars[0].VERTICAL
+            elif path[index + 1][1] > cell[1]:
+                line += CursorOperations.MOVE_CURSOR(
+                    cell[1] * 2 + 4, cell[0] * 4 + 3)
+                line += theme.path_chars[0].VERTICAL
+            return line
+
+        line: str = add_cell_separation("", 0, path[0])
+        for index, cell in enumerate(path[1:-1], 1):
             line += CursorOperations.MOVE_CURSOR(
                 cell[1] * 2 + 3, cell[0] * 4 + 3) + get_line_character(index)
-            if index != len(path) - 1:
-                if path[index + 1][0] < cell[0]:
-                    line += CursorOperations.MOVE_CURSOR(
-                        cell[1] * 2 + 3, cell[0] * 4)
-                    line += theme.path_chars[0].HORIZONTAL * 3
-                elif path[index + 1][0] > cell[0]:
-                    line += CursorOperations.MOVE_CURSOR(
-                        cell[1] * 2 + 3, cell[0] * 4 + 4)
-                    line += theme.path_chars[0].HORIZONTAL * 3
-                elif path[index + 1][1] < cell[1]:
-                    line += CursorOperations.MOVE_CURSOR(
-                        cell[1] * 2 + 2, cell[0] * 4 + 3)
-                    line += theme.path_chars[0].VERTICAL
-                elif path[index + 1][1] > cell[1]:
-                    line += CursorOperations.MOVE_CURSOR(
-                        cell[1] * 2 + 4, cell[0] * 4 + 3)
-                    line += theme.path_chars[0].VERTICAL
+            line = add_cell_separation(line, index, cell)
         print(CursorOperations.SAVE_CURSOR, end="")
         style_print(theme.path_style, line)
         print(CursorOperations.LOAD_CURSOR, end="")
