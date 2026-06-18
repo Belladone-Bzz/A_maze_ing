@@ -10,7 +10,7 @@ VENV = venv
 BIN = $(VENV)/bin
 PYTHON = python3
 
-CACHE = .mypy_cache $(PROJECT)/$(MAZE_PACKAGE)/dist
+CACHE = .mypy_cache $(PROJECT)/$(MAZE_PACKAGE)/dist output_file
 
 run: install
 	$(BIN)/$(PYTHON) $(NAME) $(ARGS)

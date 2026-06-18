@@ -14,7 +14,7 @@ def write_out_config(config: dict[str, str]) -> str:
             f"HEIGHT={config["height"]}\n\n"
             "# Positive numerical coordinates separated by a comma (may not "
             f"exceed maze size)\n\nENTRY={config["entry"]}\n"
-            f"EXIT={config["exit"]}\n"
+            f"EXIT={config["exit"]}\n\n"
             "# File to overwrite with hexadecimal maze layout and more\n\n"
             f"OUTPUT_FILE={config["output_file"]}\n\n"
             "# Maze generation factors:\n"
