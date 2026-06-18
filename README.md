@@ -43,7 +43,7 @@ This project allowed us to greatly improve the following skills:
 
 **A much more detailed description of these algorithms can be found in the README.md file of the relevant module (insert link here).**
 
-During our research, we found that there are many algorithms capable of generating mazes, each with its own advantages and disadvantages. We decided to develop several generation algorithms that operate in very different ways. As we opted for a dynamic display of the maze generation process, these differences are clearly visible. Beyond the aesthetic and playful appeal, we felt it was important to highlight the diversity of these algorithms.
+During our research, we found that there are many algorithms capable of generating mazes, each with their own advantages and disadvantages. We decided to develop several generation algorithms that operate in very different ways. As we opted for a dynamic display of the maze generation process, these differences are clearly visible. Beyond the aesthetic and playful appeal, we felt it was important to highlight the diversity of these algorithms.
 
 All the algorithms implemented begin with the following steps:
 
@@ -90,6 +90,10 @@ Visually, the generation looks like a well-organised backtracking process.
 # Solving algorithms
 
 # Display
+
+The display felt for us to be an essential part for this project, equally to the generating and solving of the mazes. It's an occasion to show, organize and give the user control over the features we implemented. This is why the terminal interface of this project is divided between the maze displaying and the menues navigation.
+
+To go beyond displaying the maze once it's generated, we had to adapt both our Maze and MazeSolver classes.
 
 # Menu
 
