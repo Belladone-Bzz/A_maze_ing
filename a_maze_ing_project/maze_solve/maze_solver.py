@@ -56,7 +56,7 @@ class MazeSolver:
         Helps navigating and saving traveling time.
 
         Attributes: coords: CellCoordinates, distance: int, path:
-        tuple[CellCoordinates]
+        tuple[CellCoordinates].
         """
         def __init__(
                 self, coords: CellCoordinates, distance: int,
@@ -421,7 +421,12 @@ class MazeSolver:
             yield None
 
     def breadth_first_search_algorithm(self) -> Generator[None]:
-        """"""
+        """Find the path from the entrance to the exit in a perfect or
+        imperfect maze. This bfs algorithm explore all cells in the maze from
+        the entry and stop as soon as it find the exit cell. These cells
+        are marked as `is_visited = True`. The shortest path is memorized in
+        the MazeSolver Class.
+        """
         known_cells: list[CellCoordinates] = [self.ENTRY]
         setattr(self.maze.cells[
             self.ENTRY[0]][self.ENTRY[1]], "prev_cell", self.ENTRY)
@@ -459,7 +464,7 @@ class MazeSolver:
     def stepped_maze_solving(self) -> Generator[None]:
         """Triggers the solver's chosen algorithm to find a path in the maze
         between the entry and exit points. Yields None at pertinent times
-        in display purposes
+        in display purposes.
         """
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Dijkstra": partial(self.graph_algorithms, "Dijkstra"),
@@ -473,7 +478,7 @@ class MazeSolver:
         """Triggers the solver's chosen algorithm to find a path in the maze
         between the entry and exit points.
 
-        Returns None
+        Returns None.
         """
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Dijkstra": partial(self.graph_algorithms, "Dijkstra"),
@@ -488,7 +493,7 @@ if __name__ == "__main__":
     """If you encounter an ImportError on maze_gen when running this test
     file, run `pip install -e .` from the root of the repository. It will
     index every source file in an 'egg-info' folder and correct the path
-    finding errors
+    finding errors.
     """
 
     from random import randint
