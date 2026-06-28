@@ -33,6 +33,10 @@ The aim of this project is to create a programme capable of generating a maze an
 	- Output file for maze
 	- Generation speed
 
+**Demonstration video of a maze generating using our program:**
+
+![Gif showing the dynamic display of a maze generated with the Prim algorithm and solved with the breadth first search algorithm](docs/maze_demo.gif)
+
 **This project allowed us to greatly improve the following skills:**
 
 - Component conception
