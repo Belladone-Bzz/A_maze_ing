@@ -366,17 +366,19 @@ class MazeSolver:
     # _________________________________________________________________________
 
     def graph_algorithms(self, algorithm: str) -> Generator[None]:
-        """Finds the shortest path in the maze using the Dijkstra's algorithm.
+        """Finds the shortest path in the maze using a graph algorithm
+        (Dijkstra or A-star).
         Sets a list of intersection_cells and calculate the distance between
         each to generate a weighted graph, including the entry and exit
         cells. Checks then each of their distance from the start,
-        priorizing lighter distances, until all paths are counted for.
+        priorizing lighter distances, either until all paths are counted for
+        or the exit is found.
 
         Goes back from the exit, adding to the shortest_path each path to take
         to go back an intersection that's the closest from the entry.
 
         Yields None at visually significant instants, updating the is_visited
-        Cell attribute and highlighted and shortest_path MazeSolver attribute.
+        Cell attribute, highlighted and shortest_path MazeSolver attributes.
         """
         for _ in self.generate_cell_graph():
             yield None
