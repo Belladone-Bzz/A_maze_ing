@@ -47,8 +47,8 @@ def write_out_config(config: dict[str, str]) -> str:
             f"Boss_lady\n\nTHEME={config["theme"]}\n\n"
             "# Generation algorithms available: Backtracking, Prim, "
             f"Hunt_and_kill\n\nGEN_ALGORITHM={config["gen_algorithm"]}\n\n"
-            "# Solving algorithms available: Dijkstra, Dead_end_filler, "
-            f"A_star\n\nSOL_ALGORITHM={config["sol_algorithm"]}")
+            "# Solving algorithms available: Breadth_search, Dead_end_filler, "
+            f"Dijkstra, A_star\n\nSOL_ALGORITHM={config["sol_algorithm"]}")
         with open("config.txt", 'w') as file:
             print(config_str, end="", file=file)
     except FileNotFoundError:

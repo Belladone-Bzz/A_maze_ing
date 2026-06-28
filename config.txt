@@ -35,6 +35,6 @@ THEME=Bees
 
 GEN_ALGORITHM=Prim
 
-# Solving algorithms available: Dijkstra, Dead_end_filler, A_star
+# Solving algorithms available: Breadth_search, Dead_end_filler, Dijkstra, A_star
 
 SOL_ALGORITHM=Breadth_search
