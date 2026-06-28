@@ -198,9 +198,6 @@ As documentation is key to make a project easier to go back to and improve, we i
 
 # Resources
 
-> [!NOTE]
-> No AI was used in the making of this project.
-
 ## Generation algorithms:
 
 https://codebox.net/pages/maze-generator/online
@@ -272,6 +269,9 @@ https://medium.com/@batu.senturk/maze-wars-which-is-the-best-maze-solving-algori
 
 # Team and project management
 
+> [!NOTE]
+> No AI was used in the making of this project.
+
 #### [Jolyne](https://github.com/jolyne-mangeot) :
 
 - Configuration file reading and parsing with BaseModel class
@@ -287,3 +287,5 @@ https://medium.com/@batu.senturk/maze-wars-which-is-the-best-maze-solving-algori
 - Solving algorithms (Breadth first search, Dead-end filling).
 
 For each our work, we tested and documented it with either or both dedicated readme's and docstrings.
+
+If we sometimes peer-coded some parts of each module, it was pretty clear from the start which module interested us the most to conceptualize and code. We both used the conception branch with Obsidian to take our own notes and write down references, though the project went along its way mostly without issues. We chose to stay longer rather than cutting corners so most of the project is optimized and readable, but if changes could have been made from the start, we would probably have used the curses module for the display and navigation, as coding everything from scratch sometimes made convoluted code. To expand on the project, infinitely more algorithms could be added to our Maze and MazeSolving classes. We also thought of making themes customizable from the program, making every special character, colors and styling available to the user directly, but it would have taken too much time and organization for little result.
