@@ -204,7 +204,19 @@ Each menu is first implemented as a dictionary containing its options, their typ
 
 ## Output
 
+When saving the maze to a file, it is first converted into text in a specific format.
 
+First, each cell is represented as an hexadecimal value (0 to F, 0 to 15) specifying which of its walls are open or closed, calculated from the 4-bits booleans of each direction (0 is open, 1 is walled), in this order:
+
+| 3 | 2 | 1 | 0 (LSB) |
+|---|---|---|---|
+| West | South | East | North |
+
+So for example, a cell with the East and North sides walled (┐) is (0011) in binary, converted to 3.
+
+When every cell has been converted, the entry and exit coordinates are written down in (x,y) format, each on a line.
+
+Finally, the path found by the solving algorithm is written with each direction to take one after the other (NESW).
 
 # Flexibility of our code
 
