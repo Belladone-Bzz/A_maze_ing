@@ -4,7 +4,7 @@
 
 **“A labyrinth is not a place to be lost, but a path to be found.”**
 
-![Alt text](https://github.com/Belladone-Bzz/A_maze_ing/blob/documentation/docs/maze.jpg?raw=true)
+![Etching of Daedalus' Labyrinth from Greek mythology](https://github.com/Belladone-Bzz/A_maze_ing/blob/documentation/docs/maze.jpg?raw=true)
 
 A labyrinth, or maze, is a winding path, which may or may not feature junctions, dead ends and false leads, designed to mislead or slow down anyone attempting to navigate it. This motif, which first appeared in prehistoric times, can be found in many civilisations in various forms. In Greek mythology, the labyrinth is a series of passages built by the architect Daedalus to imprison the Minotaur.
 
@@ -50,7 +50,69 @@ The aim of this project is to create a programme capable of generating a maze an
 
 # Instructions
 
+To use this project, you can download its zip file from github, or by running this command in a terminal located in the chosen destination:
+
+```bash
+git clone https://github.com/Belladone-Bzz/A_maze_ing
+```
+
+And to run it, ensure python is installed on your computer or virtual environment, and run the following commands:
+
+```bash
+pip install -r requirements.txt
+python a_maze_ing.py config.txt
+```
+
+If you're unsure of these commands' action or want to run the program in a virtual environment without typing every command, see the instruction for the Makefile just below.
+
+## Makefile
+
+This project contains a Makefile, a file that is used to pre-enter commands to run to perform different tasks like installation, running and cleaning. The following rules are integrated here:
+- install: create a virtual environment and install dependencies
+- build: create a package file containing everything in the maze_gen folder
+- run: run the a_maze_ing file with arguments, ensuring everything is installed
+- debug: run the a_maze_ing file with arguments through pdb
+- clean: remove mypy cache, python cache, build files and output_file
+- fclean: run clean and remove the virtual environment
+- lint: run flake8 and mypy with flexible rules
+- lint-strict: run flake8 and mypy with strict rules
+
+To run any, enter 'make' followed by the selected rule in a terminal located at the project's root folder, like so:
+
+```bash
+make install
+```
+
+Executing `make` alone is an equivalent to `make run`.
+
 ## Configuration file
+
+To run this project, it's necessary for it to contain a file named 'config.txt' at its root. One is provided with comments to explain each value, and it can be updated with a text editor or through the program itself. Here are the variables it contains:
+
+Mandatory values:
+- WIDTH / HEIGHT : Positive integer above 3
+- ENTRY / EXIT : Positive integers forming coordinates like 0,0
+- PERFECT : Either True or False
+- GEN_ALGORITHM / SOL_ALGORITHM : Name of the selected algorithm
+- OUTPUT_FILE : Name of the file in which the maze will be saved
+
+Optional values:
+- SEED : Positive integer
+- THEME : Name of the selected theme
+- PATTERN : Name of the selected pattern
+- GEN_SPEED : Integer between 0 and 10 (0 generates the maze instantly)
+
+For more details on what each value does and the list of available algorithms, themes and patterns, see the integrated 'config.txt' file.
+
+## Integrated Maze package
+
+As stated below in the [flexibility of our code](#Flexibility-of-our-code) section, this project contains a buildable package to ensure an easy reusability of the Maze class, containing all generation related methods, as well as the configuration checking.
+
+To create it, install this project or clone it using `git clone` and open a terminal in its root folder (where Makefile is located). Run `make build`, and a folder named 'dist' should be created at 'a_maze_ing_project/maze_gen/dist'.
+
+It contains both `*.tar.gz` and `*.whl` files, both usable by pip to install the whole maze_gen folder in your python distribution or virtual environment. This will enable you to include our Maze class using `from mazegenerator import Maze`, as well as its related Enums and custom types.
+
+To instantiate this class, you must construct it with all expected config variables, which you can see an example of in the code at the bottom of the maze.py file. And for more details on how the class comes together with its attributes and methods, see the implemented readme file.
 
 # Generation algorithms
 
