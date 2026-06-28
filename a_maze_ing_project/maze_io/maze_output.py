@@ -5,6 +5,16 @@ from a_maze_ing_project.maze_solve import MazeSolver
 
 
 def write_out_config(config: dict[str, str]) -> str:
+    """Takes a dict of maze information to write out in a file named
+    'config.txt'.
+
+    Contains all currently contained variables that can be reparsed and used
+    to create a Maze using the a_maze_ing.py program. Includes comments for
+    guidance and explanations of each value's purpose.
+
+    Returns a potential error message for file opening issues, or an empty
+    string.
+    """
     try:
         config_str: str = (
             "# This is the configuration file in which you can enter variable"
