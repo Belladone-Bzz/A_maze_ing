@@ -18,7 +18,22 @@ Labyrinths can be divided into two categories:
 
 The aim of this project is to create a programme capable of generating a maze and then solving it by identifying the shortest path between the entrance and the exit. Before embarking on this project, we looked into the practical applications of maze generation and solving in computer science: this can prove extremely useful in many fields, including video games, robotics, geolocation, transport and art. Mastering the skills developed in this project will therefore be very useful for the rest of our educational and professional careers.
 
-This project allowed us to greatly improve the following skills:
+**Functionalities**:
+- Configuration file parsing
+- Maze displaying with applicable themes while its generation and solving
+- Menues displaying and navigation with WASD and arrow keys
+- Theme selection, maze and configuration saving, found path hiding
+- New maze generation with the following variables:
+	- Height / Width
+	- Entry / Exit coordinates
+	- Perfect or not
+	- Pattern (drawing, icon) that will be implemented at the center of the maze
+	- Generation / Solving algorithms
+	- Seed (randomizable)
+	- Output file for maze
+	- Generation speed
+
+**This project allowed us to greatly improve the following skills:**
 
 - Component conception
 - Graph generation
@@ -35,9 +50,7 @@ This project allowed us to greatly improve the following skills:
 
 # Instructions
 
-# Configuration file
-
-# Parsing
+## Configuration file
 
 # Generation algorithms
 
@@ -93,16 +106,38 @@ Visually, the generation looks like a well-organised backtracking process.
 
 The display felt for us to be an essential part for this project, equally to the generating and solving of the mazes. It's an occasion to show, organize and give the user control over the features we implemented. This is why the terminal interface of this project is divided between the maze displaying and the menues navigation.
 
-To go beyond displaying the maze once it's generated, we had to adapt both our Maze and MazeSolver classes.
+To go beyond displaying the maze once it's generated, we had to adapt both our Maze and MazeSolver classes. This is why you will find all maze generation and solving related methods actually return a `Generator`, used as a way to pause the running process and print an updated version of the maze, looking something like this: `for _ in maze.algorithm(): print(maze)`.
 
-# Menu
+## Maze display
+
+There are many simplified or over the top ways to print boxes in a terminal, and for this project, we chose not to give ourselves any limitation.
+
+Displaying the maze takes a list of special characters to print walls and cells content (if they are visited and such) line by line, and for each intersection, recovers a set of 4 boolean bits from the presence or absence of walls and converts it into an index to print the right character.
+
+This function is the one called during the maze's generation and solving, but it is complemented with the displaying of the central pattern (works the same but with different characters) once the maze is complete.
+
+## Themes
+
+To polish off the display, we integrated a theme-applying feature to control colors, characters and styling used in the maze and menues display. These variables are preset but can be easily customized by adding new Theme object to a dictionary.
+
+These themes pull their values from enumerations of special characters but also color and style codes used to create ASCII escape sequences (see resources for info). They take the form of subclasses passed to display functions for them to retrieve the right values to print.
+
+# Menues
+
+Menues could be considered their own module as they implement their own display, navigation and can perform numerous operations. All the functions related to this are nested together to keep access to few variables such as the configuration dictionary, the current menu and its currently selected options and a potential error message.
+
+Each menu is first implemented as a dictionary containing its options, their type, their associated configuration entry and a function to execute when applicable. To navigate them, the a_maze_ing program calls the navigation function with the user's input, and it is then parsed into multiple actions: confirm, back and directional arrows, to update itself or the maze's configuration.
 
 # Flexibility of our code
+
+To ensure a good development during the project's creation, as well as possible improvements and overall readability, we found it crucial to divide the code into modules that are as independant to each other as possible. Of course, there are limitations, as the displaying and solving of the maze necessitates one that respects the same structure as the one in the maze_gen module, but it still helped us a lot not to step on each-other's work, refactor it more easily and document it more clearly.
+
+As documentation is key to make a project easier to go back to and improve, we included multiple readme files for modules that could use the explanations, or could be usable on other projects. This is why, for our maze generating module, we included everything needed to create a package file that can be opened with pip.
 
 # Resources
 
 > [!NOTE]
-No AI was used in the making of this project.
+> No AI was used in the making of this project.
 
 ## Generation algorithms:
 
@@ -120,15 +155,15 @@ https://www.cs.cmu.edu/~112-n22/notes/student-tp-guides/Mazes.pdf
 - Backtracking algorithm:
 
   https://aryanab.medium.com/maze-generation-recursive-backtracking-5981bc5cc766
-  
+
   https://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking
-  
+
 - Hunt and kill algorithm:
-  
+
   https://weblog.jamisbuck.org/2011/1/24/maze-generation-hunt-and-kill-algorithm
 
 - Prim algorithm:
-  
+
   https://weblog.jamisbuck.org/2011/1/10/maze-generation-prim-s-algorithm
 
 ## Solving algorithms:
@@ -140,7 +175,7 @@ https://medium.com/@batu.senturk/maze-wars-which-is-the-best-maze-solving-algori
 - Breadth first search algorithm:
 
   https://medium.com/@prajun_t/breadth-first-search-bfs-db7ffb384da7
-  
+
   https://www.geeksforgeeks.org/dsa/breadth-first-search-or-bfs-for-a-graph/
 
 - Dead-end filling algortihm:
@@ -148,29 +183,45 @@ https://medium.com/@batu.senturk/maze-wars-which-is-the-best-maze-solving-algori
   https://medium.com/@batu.senturk/dead-end-filling-a-unique-approach-to-maze-solving-e79c8005e276
 
 - Dijkstra algorithm:
-  
+
+  https://www.maths-cours.fr/methode/algorithme-de-dijkstra-etape-par-etape
+
   https://medium.com/@batu.senturk/the-smartest-graph-traversals-a-and-dijkstras-algorithm-41dbbd5421b5
 
 - A star algorithm:
 
-  https://matteo-tosato7.medium.com/exploring-the-depths-solving-mazes-with-a-search-algorithm-c15253104899
+  https://www.redblobgames.com/pathfinding/a-star/introduction.html
 
   https://levelup.gitconnected.com/a-star-a-search-for-solving-a-maze-using-python-with-visualization-b0cae1c3ba92
 
+## Display:
 
+- Special characters:
+
+  https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
+
+  https://en.wikipedia.org/wiki/List_of_Unicode_characters#Box_Drawing
+
+- Menues navigation:
+
+  https://www.tutorialspoint.com/article/posix-style-tty-control-using-python
+
+  https://code.activestate.com/recipes/572182-how-to-implement-kbhit-on-linux/
 
 # Team and project management
 
 #### [Jolyne](https://github.com/jolyne-mangeot) :
 
+- Configuration file reading and parsing with BaseModel class
+- Maze and errors displaying, menues navigating and themes applying (maze_display module)
+- Graph generating and solving research (Dijkstra, A-star)
+- Maze output with found path in external file
 
 #### [Belladone-Bzz](https://github.com/Belladone-Bzz) :
 
-**Conception:**
-  - Ressources research (generation algorithms, solving algortihms).
-  - Documentation (Docstrings, Readme.md).
+- Ressource research (generation algorithms, solving algortihms).
+- Generation Algorithms (Backtraking, Prim, Hunt and kill).
+- Imperfect maze functions and overall testing (maze_gen module)
+- Solving algorithms (Breadth first search, Dead-end filling).
 
-**Programming:**
-  - Generation Algorithms (Backtraking, Prim, Hunt and kill, Imperfect maze generation).
-  - Solving algorithms (Breadth first search, Dead-end filling, Dijkstra, A-star).
-
+For each our work, we tested and documented it with either or both dedicated readme's and docstrings.
