@@ -128,7 +128,7 @@ To instantiate this class, you must construct it with all expected config variab
 
 ## Generation algorithms
 
-**A much more detailed description of these algorithms can be found in the README.md file of the relevant module (insert link here).**
+**A much more detailed description of these algorithms can be found in the [README.md file of the relevant module](a_maze_ing_project/maze_gen/README.md).**
 
 During our research, we found that there are many algorithms capable of generating mazes, each with their own advantages and disadvantages. We decided to develop several generation algorithms that operate in very different ways. As we opted for a dynamic display of the maze generation process, these differences are clearly visible. Beyond the aesthetic and playful appeal, we felt it was important to highlight the diversity of these algorithms.
 
@@ -173,8 +173,33 @@ Visually, the generation looks like a well-organised backtracking process.
 
 ### Imperfect maze generation
 
+We gave a great deal of thought to the generation of imperfect mazes. We could have simply broken down walls at random in our imperfect mazes to create loops. However, to make the imperfect mazes more aesthetically pleasing and avoid the creation of rooms, we employed several methods.
+
+- Firstly, we used a method that only breaks walls when there are at least three consecutive horizontal or vertical walls in a row; by breaking the one in the middle (with an 80% probability), this prevents the creation of rooms. In the case of small mazes, this method was not always feasible.
+- In such cases, all the dead ends in the maze were analysed. The priority was to break down the wall opposite the entrance to the dead end whenever possible. If this was not possible, we looked for a dead-end with two consecutive walls on at least one of its sides in order to break through a wall.
+- If this was still not feasible, only then would we randomly break through a side wall of a dead-end. This method has enabled us to minimise the generation of chambers, which only occur in rare cases in 3x3 mazes.
 
 ## Solving algorithms
+
+As for generation algorithm, we wanted to explore multiple existing methods of solving a maze. We chose the ones that seemed to align most with our way of thinking, and 2 weighted graph algorithms to also learn graph generation and solving. Here are summarized descriptions of each:
+
+### Breadth First Search
+
+Find the path from the entrance to the exit in a perfect or imperfect maze. The breadth first algorithm explore all unvisited cells in the maze from the entry and stop as soon as it find the exit cell. Each visited cell is marked as such along with its closest cell from the entrance (the one we come from), and the final found path (mathematically the shortest) is recovered from exit back to the entrance.
+
+### Dead End Filler
+
+Find the path from the entrance to the exit in a perfect maze only. This dead-end detection algorithm identifies all the dead ends in the maze (excluding the entrance and exit if they are part of them). These cells are marked as visited. The dead ends are then updated in a loop until the only cells remaining with `is_visited = False` are the path from the entrance to the exit. The algorithm then create a list of the cells that form the entrance-to-exit path.
+
+### Dijkstra's Algorithm
+
+Finds the shortest path in a perfect or imperfect maze. Sets a list of intersection_cells made of every cell with less than 1 wall and calculate the distance between each to generate a weighted graph, including the entry and exit. Checks then each of their distance out from the start, priorizing lighter distances, until all paths are counted.
+
+Goes back from the exit, adding to the shortest_path each path to take to go back an intersection that's the closest from the entry.
+
+### A* Star
+
+Uses the same methods as Dijkstra's algorithm, except for the order of accessing new cells when calculating the distances from the entry (as this part is the longest in time). It always accesses the cell considered to be the closest from the exit, in our method using the Manhattan distance, so it doesn't stray in every dead-end. See resources for more details on what all these notions mean.
 
 ## Display
 
