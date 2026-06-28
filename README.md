@@ -72,14 +72,17 @@ If you're unsure of these commands' action or want to run the program in a virtu
 ## Makefile
 
 This project contains a Makefile, a file that is used to pre-enter commands to run to perform different tasks like installation, running and cleaning. The following rules are integrated here:
-- install: create a virtual environment and install dependencies
-- build: create a package file containing everything in the maze_gen folder
-- run: run the a_maze_ing file with arguments, ensuring everything is installed
-- debug: run the a_maze_ing file with arguments through pdb
-- clean: remove mypy cache, python cache, build files and output_file
-- fclean: run clean and remove the virtual environment
-- lint: run flake8 and mypy with flexible rules
-- lint-strict: run flake8 and mypy with strict rules
+
+| Rules | Action |
+|---|---|
+| install | create a virtual environment and install dependencies |
+| build | create a package file containing everything in the maze_gen folder |
+| run | run the a_maze_ing file with arguments, ensuring everything is installed |
+| debug | run the a_maze_ing file with arguments through pdb |
+| clean | remove mypy cache, python cache, build files and output_file |
+| fclean | run clean and remove the virtual environment |
+| lint | run flake8 and mypy with flexible rules |
+| lint-strict | run flake8 and mypy with strict rules |
 
 To run any, enter 'make' followed by the selected rule in a terminal located at the project's root folder, like so:
 
@@ -93,18 +96,21 @@ Executing `make` alone is an equivalent to `make run`.
 
 To run this project, it's necessary for it to contain a file named 'config.txt' at its root. One is provided with comments to explain each value, and it can be updated with a text editor or through the program itself. Here are the variables it contains:
 
-Mandatory values:
-- WIDTH / HEIGHT : Positive integer above 3
-- ENTRY / EXIT : Positive integers forming coordinates like 0,0
-- PERFECT : Either True or False
-- GEN_ALGORITHM / SOL_ALGORITHM : Name of the selected algorithm
-- OUTPUT_FILE : Name of the file in which the maze will be saved
+| Mandatory values | Format | Effect |
+|---|---|---|
+| WIDTH / HEIGHT | Positive integer above 3 | Change the maze's dimensions |
+| ENTRY / EXIT | Positive integers forming coordinates like 0,0 | Place the entry and exit points in the maze (must be within dimensions and outside of pattern) |
+| PERFECT | Either True or False | Toggle the perfect attribute of the maze (False if the maze can contain loops and multiple paths) |
+| GEN_ALGORITHM | Name of the selected algorithm | Available: Backtracking, Prim, Hunt_and_kill
+| SOL_ALGORITHM | Name of the selected algorithm | Available: Breadth_search, Dead_end_filler, Dijkstra, A_star
+| OUTPUT_FILE | Name of the file in which the maze will be saved | The output format is explained below in the output section |
 
-Optional values:
-- SEED : Positive integer
-- THEME : Name of the selected theme
-- PATTERN : Name of the selected pattern
-- GEN_SPEED : Integer between 0 and 10 (0 generates the maze instantly)
+| Optional values | Format | Effect |
+|---|---|---|
+| SEED | Positive integer | Change the seed of all randomization during the maze's generation |
+| THEME | Name of the selected theme | Assign a theme to the generation and display of the first maze |
+| PATTERN | Name of the selected pattern | Assign a pattern to the first generated maze |
+| GEN_SPEED | Integer between 0 and 10 | Adapt the number of cells either accessed during generation or visited during solving between each display |
 
 For more details on what each value does and the list of available algorithms, themes and patterns, see the integrated 'config.txt' file.
 
@@ -118,7 +124,9 @@ It contains both `*.tar.gz` and `*.whl` files, both usable by pip to install the
 
 To instantiate this class, you must construct it with all expected config variables, which you can see an example of in the code at the bottom of the maze.py file. And for more details on how the class comes together with its attributes and methods, see the implemented readme file.
 
-# Generation algorithms
+# Functionalities explained
+
+## Generation algorithms
 
 **A much more detailed description of these algorithms can be found in the README.md file of the relevant module (insert link here).**
 
@@ -129,7 +137,7 @@ All the algorithms implemented begin with the following steps:
 - Start with a grid full of walls.
 - Choose a random cell as the starting point and mark it as part of the maze.
 
-## Backtracking algoritm
+### Backtracking algoritm
 
 This algorithm is based on a depth-first search (DFS) with backtracking when a dead end is encountered. The advantage of the backtracking algorithm is that it generates **complex** and **perfect** mazes with numerous twists and turns. The depth-first nature of this algorithm is why this happens. It explores each path deeply before backtracking, leading to long, winding corridors that twist and turn as they reach dead-ends and backtrack.
 
@@ -142,7 +150,7 @@ Visually, this algorithm will generate an initial winding path. As soon as it re
 - If a dead end is reached, backtracking mode is activated to go back and find another available neighbouring cell.
 - These steps are repeated until the very first starting cell is reached again.
 
-## Prim algorithm
+### Prim algorithm
 Rather than working edgewise across the entire graph, Prim algorithm starts at one point, and grows outward from that point. Mazes generated by Prim’s algorithm share many of the characteristics of those created via Kruskal’s algorithm, such as having an abundance of very short dead-ends, giving the maze a kind of "spiky" look. 
 
 Visually, mazes generated by a Prim algorithm will give the impression of sprouting like the roots of a tree or a coral.
@@ -152,7 +160,7 @@ Visually, mazes generated by a Prim algorithm will give the impression of sprout
 - One of these is chosen at random and becomes the new starting cell. Its neighbouring cells are also added to the ‘frontiers’ set.
 - These steps are repeated until the ‘frontiers’ set is empty.
 
-## Hunt and kill algorithm
+### Hunt and kill algorithm
 
 The hunt-and-kill algorithm is somewhat similar to backtracking. The difference lies in what happens when it encounters a dead end: instead of backtracking, it scans the grid from top to bottom and continue from the first cell found that has a neighbour belonging to the maze. On small mazes, the backtracking and hunt-and-kill algorithms are similar; the difference becomes apparent on large mazes.
 
@@ -163,18 +171,18 @@ Visually, the generation looks like a well-organised backtracking process.
 - This step is repeated until a dead end is reached (the starting cell has no more adjacent cells available).
 - If a dead end is reached, Hunt mode is activated to check the grid from top to bottom and find the first cell who has a neighbor in the incoming maze. The program stop when the check comes to the last cell of the grid.
 
-## Imperfect maze generation
+### Imperfect maze generation
 
 
-# Solving algorithms
+## Solving algorithms
 
-# Display
+## Display
 
 The display felt for us to be an essential part for this project, equally to the generating and solving of the mazes. It's an occasion to show, organize and give the user control over the features we implemented. This is why the terminal interface of this project is divided between the maze displaying and the menues navigation.
 
 To go beyond displaying the maze once it's generated, we had to adapt both our Maze and MazeSolver classes. This is why you will find all maze generation and solving related methods actually return a `Generator`, used as a way to pause the running process and print an updated version of the maze, looking something like this: `for _ in maze.algorithm(): print(maze)`.
 
-## Maze display
+### Maze display
 
 There are many simplified or over the top ways to print boxes in a terminal, and for this project, we chose not to give ourselves any limitation.
 
@@ -182,17 +190,21 @@ Displaying the maze takes a list of special characters to print walls and cells 
 
 This function is the one called during the maze's generation and solving, but it is complemented with the displaying of the central pattern (works the same but with different characters) once the maze is complete.
 
-## Themes
+### Themes
 
 To polish off the display, we integrated a theme-applying feature to control colors, characters and styling used in the maze and menues display. These variables are preset but can be easily customized by adding new Theme object to a dictionary.
 
 These themes pull their values from enumerations of special characters but also color and style codes used to create ASCII escape sequences (see resources for info). They take the form of subclasses passed to display functions for them to retrieve the right values to print.
 
-# Menues
+### Menues
 
 Menues could be considered their own module as they implement their own display, navigation and can perform numerous operations. All the functions related to this are nested together to keep access to few variables such as the configuration dictionary, the current menu and its currently selected options and a potential error message.
 
 Each menu is first implemented as a dictionary containing its options, their type, their associated configuration entry and a function to execute when applicable. To navigate them, the a_maze_ing program calls the navigation function with the user's input, and it is then parsed into multiple actions: confirm, back and directional arrows, to update itself or the maze's configuration.
+
+## Output
+
+
 
 # Flexibility of our code
 
