@@ -181,6 +181,8 @@ We gave a great deal of thought to the generation of imperfect mazes. We could h
 
 ## Solving algorithms
 
+**A much more detailed description of these algorithms can be found in the [README.md file of the relevant module](a_maze_ing_project/maze_solve/README.md).**
+
 As for generation algorithm, we wanted to explore multiple existing methods of solving a maze. We chose the ones that seemed to align most with our way of thinking, and 2 weighted graph algorithms to also learn graph generation and solving. Here are summarized descriptions of each:
 
 ### Breadth First Search
