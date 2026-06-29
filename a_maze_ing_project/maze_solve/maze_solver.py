@@ -33,7 +33,7 @@ class MazeSolver:
     Nested_class: Node.
     Attributes: maze, entry, exit, highlighted (for display purposes),
     shortest_path and intersection_cells (graph utility).
-    Methods: init, record_maze_intersections, find_next_intersection,
+    Methods: init, record_maze_intersections, find_next_intersect,
     generate_cell_graph, set_all_nodes_distance_from_entry, calc_node_priority,
     set_priority_nodes_distance_from_entry, get_neighbour_nodes,
     create_neighbours_list, get_dist_from_entry, set_distance_from_entry,
@@ -85,14 +85,13 @@ class MazeSolver:
         and exit cells. Yields None each time a cell is added to the set for
         display purposes.
         """
-        self.intersection_cells = {
-            self.ENTRY, self.EXIT}
+        self.intersection_cells = {self.ENTRY, self.EXIT}
         self.create_neighbours_list(self.ENTRY)
         self.set_distance_from_entry(self.ENTRY, (0, None))
-        self.maze.cells[self.ENTRY[0]][self.ENTRY[1]].is_visited = True
+        self.maze.get_cell(self.ENTRY).is_visited = True
         self.create_neighbours_list(self.EXIT)
         self.set_distance_from_entry(self.EXIT, (-1, None))
-        self.maze.cells[self.EXIT[0]][self.EXIT[1]].is_visited = True
+        self.maze.get_cell(self.EXIT).is_visited = True
         for x in range(self.maze.config.WIDTH):
             for y in range(self.maze.config.HEIGHT):
                 if sum(self.maze.cells[x][y].walls) <= 1:
@@ -102,42 +101,35 @@ class MazeSolver:
                     self.create_neighbours_list((x, y))
                     yield None
 
-    def find_next_intersection(
-            self, cell: CellCoordinates, dir: Directions
-            ) -> Node:
+    def find_next_intersect(
+            self, cell: CellCoordinates, dir: Directions) -> Node:
         """Given a cell and a direction, connects to the first found
         intersection_cell and returns a Node object from the information found
         during navigation. Raise FoundDeadEnd error when hitting a wall.
         Automatically turns when the path winds.
         """
-        temp_x: int
-        temp_y: int
-        x: int = cell[0]
-        y: int = cell[1]
         distance_bet_cells: int = 1
-        temp_x, temp_y = self.maze.get_neighbor_coords(
-            (x, y), Movements[dir.name].value)
-        route_taken: list[CellCoordinates] = [(temp_x, temp_y)]
-        while (temp_x, temp_y) not in self.intersection_cells:
-            if self.maze.cells[temp_x][temp_y].walls[dir] is False:
+        next_cell = self.maze.get_neighbor_coords(
+            cell, Movements[dir.name].value)
+        route_taken: list[CellCoordinates] = [next_cell]
+        while next_cell not in self.intersection_cells:
+            if self.maze.get_cell(next_cell).walls[dir] is False:
                 pass
-            elif self.maze.cells[temp_x][temp_y].walls[(dir + 1) % 4]\
-                    is False:
+            elif self.maze.get_cell(next_cell).walls[(dir + 1) % 4] is False:
                 dir = Directions((dir + 1) % 4)
-            elif self.maze.cells[temp_x][temp_y].walls[(dir + 3) % 4]\
-                    is False:
+            elif self.maze.get_cell(next_cell).walls[(dir + 3) % 4] is False:
                 dir = Directions((dir + 3) % 4)
             else:
                 raise FoundDeadEnd
-            temp_x, temp_y = self.maze.get_neighbor_coords(
-                (temp_x, temp_y), Movements[dir.name].value)
+            next_cell = self.maze.get_neighbor_coords(
+                next_cell, Movements[dir.name].value)
             distance_bet_cells += 1
-            route_taken.append((temp_x, temp_y))
+            route_taken.append(next_cell)
         return MazeSolver.Node(
-            (temp_x, temp_y), distance_bet_cells, tuple(route_taken))
+            next_cell, distance_bet_cells, tuple(route_taken))
 
     def generate_cell_graph(self) -> Generator[None]:
-        """Calls record_maze_intersections and find_next_intersection methods
+        """Calls record_maze_intersections and find_next_intersect methods
         to instantiate the intersection_cells set and a Node object for each
         neighbour of an intersection that's inserted into a list added as
         attribute to Cell objects for future reference. Yields None
@@ -146,25 +138,24 @@ class MazeSolver:
         for _ in self.record_maze_intersections():
             yield None
         found_node: MazeSolver.Node
-        for x, y in self.intersection_cells:
+        for inter in self.intersection_cells:
             for direction in filter(
-                    lambda dir: not self.maze.cells[x][y].walls[dir],
+                    lambda dir: not self.maze.get_cell(inter).walls[dir],
                     Directions):
                 try:
-                    found_node = (
-                        self.find_next_intersection((x, y), direction))
+                    found_node = (self.find_next_intersect(inter, direction))
                 except FoundDeadEnd:
                     continue
-                if found_node.coords == (x, y):
+                if found_node.coords == inter:
                     continue
-                for neighbour in self.get_neighbour_nodes((x, y)):
+                for neighbour in self.get_neighbour_nodes(inter):
                     if neighbour.coords == found_node.coords:
                         if found_node.distance < neighbour.distance:
                             neighbour.distance = found_node.distance
                             neighbour.path = found_node.path
                         break
                 else:
-                    self.get_neighbour_nodes((x, y)).append(found_node)
+                    self.get_neighbour_nodes(inter).append(found_node)
 
     def set_all_nodes_distance_from_entry(self) -> Generator[None]:
         """From the entry intersection, calculates the distance from it
@@ -174,24 +165,20 @@ class MazeSolver:
         display purposes.
         """
         known_nodes: list[CellCoordinates] = [self.ENTRY]
-        distance_from_entry: float
-        entry_to_next_node: float
-        current_node: CellCoordinates
         while len(known_nodes) > 0:
-            current_node = known_nodes.pop(0)
+            current_node: CellCoordinates = known_nodes.pop(0)
             for next_node in self.get_neighbour_nodes(current_node):
-                distance_from_entry = self.get_dist_from_entry(
+                distance_from_entry: float = self.get_dist_from_entry(
                     next_node.coords)[0]
-                entry_to_next_node = (
+                entry_to_next_node: float = (
                     self.get_dist_from_entry(current_node)[0]
                     + next_node.distance)
                 if (distance_from_entry == -1
                         or distance_from_entry > entry_to_next_node):
                     self.highlighted = next_node.path
-                    self.set_distance_from_entry(
-                        next_node.coords, (
-                            entry_to_next_node,
-                            tuple([current_node, *next_node.path][-2::-1])))
+                    self.set_distance_from_entry(next_node.coords, (
+                        entry_to_next_node,
+                        tuple([current_node, *next_node.path][-2::-1])))
                     known_nodes.append(next_node.coords)
                     yield None
         self.highlighted = ()
@@ -215,24 +202,20 @@ class MazeSolver:
         """
         known_nodes: list[tuple[int, CellCoordinates]] = []
         heappush(known_nodes, (0, self.ENTRY))
-        distance_from_entry: float
-        entry_to_next_node: float
-        current_node: CellCoordinates
         while len(known_nodes) > 0:
-            current_node = heappop(known_nodes)[1]
+            current_node: CellCoordinates = heappop(known_nodes)[1]
             if current_node == self.EXIT:
                 break
             for next_node in self.get_neighbour_nodes(current_node):
-                distance_from_entry = self.get_dist_from_entry(
+                distance_from_entry: float = self.get_dist_from_entry(
                     next_node.coords)[0]
-                entry_to_next_node = (
+                entry_to_next_node: float = (
                     self.get_dist_from_entry(current_node)[0]
                     + next_node.distance)
                 if (distance_from_entry == -1
                         or distance_from_entry > entry_to_next_node):
                     self.highlighted = next_node.path
-                    self.set_distance_from_entry(
-                        next_node.coords, (
+                    self.set_distance_from_entry(next_node.coords, (
                             entry_to_next_node,
                             tuple([current_node, *next_node.path][-2::-1])))
                     heappush(
@@ -250,7 +233,7 @@ class MazeSolver:
         attribute contains a list of Node object.
         """
         return cast(list[MazeSolver.Node], getattr(
-            self.maze.cells[cell[0]][cell[1]], "neighbour_nodes"))
+            self.maze.get_cell(cell), "neighbour_nodes"))
 
     def create_neighbours_list(self, cell: CellCoordinates) -> None:
         """Declare the neighbour_nodes attribute to a Cell and assign it
@@ -259,7 +242,7 @@ class MazeSolver:
         destined to be a list of Node object.
         """
         setattr(
-            self.maze.cells[cell[0]][cell[1]], "neighbour_nodes", [])
+            self.maze.get_cell(cell), "neighbour_nodes", [])
 
     def get_dist_from_entry(
             self, cell: CellCoordinates
@@ -273,7 +256,7 @@ class MazeSolver:
         to take to reach the neighbouring node closest to the entry.
         """
         return cast(tuple[int, tuple[CellCoordinates, ...]], getattr(
-            self.maze.cells[cell[0]][cell[1]], "distance_from_entry"))
+            self.maze.get_cell(cell), "distance_from_entry"))
 
     def set_distance_from_entry(
             self, cell: CellCoordinates,
@@ -282,7 +265,7 @@ class MazeSolver:
         value can be None in declaring purposes.
         """
         setattr(
-            self.maze.cells[cell[0]][cell[1]], "distance_from_entry", distance)
+            self.maze.get_cell(cell), "distance_from_entry", distance)
 
     # _________________________________________________________________________
     #                             SOLVING UTILS
@@ -301,15 +284,13 @@ class MazeSolver:
                 coords, movement.value)
             if self.maze.is_available(potential_neighbor) is False:
                 continue
-            if self.maze.cells[
-                    potential_neighbor[0]][
-                        potential_neighbor[1]].is_visited is True:
+            if self.maze.get_cell(potential_neighbor).is_visited is True:
                 continue
             if (in_maze is not None
                     and self.maze.is_in_maze(potential_neighbor)
                     is not in_maze):
                 continue
-            if (self.maze.cells[coords[0]][coords[1]].walls[
+            if (self.maze.get_cell(coords).walls[
                     Directions[movement.name]] is True):
                 continue
             neighbors.append(potential_neighbor)
@@ -325,8 +306,8 @@ class MazeSolver:
                         coords, movement.value)
             if self.maze.is_available(neighbor) is False:
                 continue
-            if (self.maze.cells[neighbor[0]][neighbor[1]].is_visited
-                    and self.maze.cells[coords[0]][coords[1]].walls[
+            if (self.maze.get_cell(neighbor).is_visited
+                    and self.maze.get_cell(coords).walls[
                         Directions[movement.name]] is False):
                 visited_neighbor += 1
         return visited_neighbor
@@ -359,15 +340,14 @@ class MazeSolver:
         while current != self.EXIT:
             for movement in Movements:
                 neighbor = self.maze.get_neighbor_coords(
-                            current, movement.value)
+                    current, movement.value)
                 if (len(self.shortest_path) > 1
                         and neighbor == self.shortest_path[-2]):
                     continue
                 if self.maze.is_available(neighbor) is False:
                     continue
-                if (self.maze.cells[
-                        neighbor[0]][neighbor[1]].is_visited is False
-                        and self.maze.cells[current[0]][current[1]].walls[
+                if (self.maze.get_cell(neighbor).is_visited is False
+                        and self.maze.get_cell(current).walls[
                             Directions[movement.name]] is False):
                     self.shortest_path.append(neighbor)
                     current = neighbor
@@ -429,7 +409,7 @@ class MazeSolver:
             dead_end.remove(self.EXIT)
         while dead_end != []:
             for cell in dead_end:
-                self.maze.cells[cell[0]][cell[1]].is_visited = True
+                self.maze.get_cell(cell).is_visited = True
                 yield None
             dead_end = self.update_dead_end()
         for _ in self.find_path_to_exit():
@@ -443,9 +423,8 @@ class MazeSolver:
         the MazeSolver Class.
         """
         known_cells: list[CellCoordinates] = [self.ENTRY]
-        setattr(self.maze.cells[
-            self.ENTRY[0]][self.ENTRY[1]], "prev_cell", self.ENTRY)
-        self.maze.cells[self.ENTRY[0]][self.ENTRY[1]].is_visited = True
+        setattr(self.maze.get_cell(self.ENTRY), "prev_cell", self.ENTRY)
+        self.maze.get_cell(self.ENTRY).is_visited = True
         while known_cells:
             self.highlighted = tuple(known_cells)
             cell = known_cells.pop(0)
@@ -455,21 +434,18 @@ class MazeSolver:
                 cell, True)
             for frontier in frontiers:
                 try:
-                    getattr(self.maze.cells[
-                        frontier[0]][frontier[1]], "prev_cell")
+                    getattr(self.maze.get_cell(frontier), "prev_cell")
                 except AttributeError:
-                    setattr(self.maze.cells[frontier[0]][
-                        frontier[1]], "prev_cell", (cell[0], cell[1]))
-                    self.maze.cells[frontier[0]][frontier[1]].is_visited = True
+                    setattr(self.maze.get_cell(frontier), "prev_cell", cell)
+                    self.maze.get_cell(frontier).is_visited = True
                     known_cells.append(frontier)
                     yield None
         self.highlighted = ()
         self.shortest_path = [self.EXIT]
         while self.ENTRY != self.shortest_path[0]:
             self.shortest_path.insert(
-                0,
-                getattr(self.maze.cells[self.shortest_path[0][0]][
-                    self.shortest_path[0][1]], "prev_cell"))
+                0, getattr(self.maze.get_cell(
+                    self.shortest_path[0]), "prev_cell"))
             yield None
 
     # _________________________________________________________________________
