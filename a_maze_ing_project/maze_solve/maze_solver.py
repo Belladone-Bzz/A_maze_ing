@@ -30,12 +30,16 @@ class MazeSolver:
     methods for the Dijkstra algorithm and mostly works with the Maze-nested
     class Cell for navigating.
 
-    Attributes: maze, highlighted (for display purposes), shortest_path and
-    intersection_cells (graph utility).
-    Notable algorithm methods: dijkstra_algorithm(), dead_end_filler(),
-    stepped_maze_solving(algo: str) and maze_solving(algo: str) which are
-    essentially the same except for stepped which is a Generator that yields
-    None during key moment of the solving.
+    Nested_class: Node.
+    Attributes: maze, entry, exit, highlighted (for display purposes),
+    shortest_path and intersection_cells (graph utility).
+    Methods: init, record_maze_intersections, find_next_intersection,
+    generate_cell_graph, set_all_nodes_distance_from_entry, calc_node_priority,
+    set_priority_nodes_distance_from_entry, get_neighbour_nodes,
+    create_neighbours_list, get_dist_from_entry, set_distance_from_entry,
+    get_connected_neighbors, number_visited_neighbors, update_dead_end,
+    find_path_to_exit, graph_algorithms, dead_end_filler,
+    breadth_first_search_algorithm, stepped_maze_solving, maze_solving.
     """
     solving_algorithms: tuple[str, ...] = (
         "Dijkstra", "Dead_end_filler", "A_star", "Breadth_search")
