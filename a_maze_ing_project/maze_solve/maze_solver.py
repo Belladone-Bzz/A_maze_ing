@@ -526,17 +526,5 @@ if __name__ == "__main__":
     for _ in solv.breadth_first_search_algorithm():
         pass
 
-    # if len(argv) < 2 or argv[1] == "dijkstra":
-    #     for _ in solv.stepped_maze_solving():
-    #         pass
-        # for cell in solv.intersection_cells:
-        #     print(
-        #         f"Cell {cell}: Dist {solv.get_dist_from_entry(cell)} "
-        #         "from entry, neighbours:\n",
-        #         "\n".join(
-        #             f"  Neighbour {neigh.coords}, At dist {neigh.distance}"
-        #             for neigh in solv.get_neighbour_nodes(cell)), sep="")
-        #     print()
-
     print("Solutions found:")
     print(solv.shortest_path)

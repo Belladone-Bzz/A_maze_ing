@@ -51,7 +51,7 @@ def instantiate_maze(
             raise ValueError(
                 "The Dead end filler algorithm can only be "
                 "used in perfect Maze")
-        maze = Maze(
+        maze: Maze = Maze(
             width=int(config["width"]),
             height=int(config["height"]),
             entry=(
@@ -122,7 +122,6 @@ def main() -> int:
     input(
         "\nCorrect configuration found and loaded. "
         "Starting A_maze_ing program... ⏎ ")
-    user_input: str
     function_output = ""
     menu_module: Callable[[str, str], str] = instantiate_menues(config)
     maze_display: Callable[[str, Maze, MazeSolver], None] =\
@@ -133,7 +132,7 @@ def main() -> int:
         while True:
             maze_display("display_maze", maze, solver)
             menu_module("print_menu", "")
-            user_input = stdin.read(1)
+            user_input: str = stdin.read(1)
             if user_input == "\x1b" and stdin.read(1) == "[":
                 user_input = stdin.read(1)
             else:
@@ -174,7 +173,11 @@ if __name__ == "__main__":
         output = 4
     except ProgramQuit:
         output = 0
+    except Exception as error:
+        print_error(f"\nUnexpected exception occured:\n- {error}")
+        output = 5
+
     exits: tuple[str, ...] = (
         "Success", "Not enough argument", "File parsing error",
-        "Config parsing error", "Keyboard interrupt")
+        "Config parsing error", "Keyboard interrupt", "Unknown error")
     print(f"\r\nEnding program with code : {output} ({exits[output]})")

@@ -220,42 +220,42 @@ class Maze:
         for x in range(self.config.WIDTH):
             self.cells[x][0].walls[Directions.NORTH] = True
             self.cells[x][-1].walls[Directions.SOUTH] = True
-        self.cells[self.config.ENTRY[0]][self.config.ENTRY[1]].entry = True
-        self.cells[self.config.EXIT[0]][self.config.EXIT[1]].exit = True
+        self.get_cell(self.config.ENTRY).entry = True
+        self.get_cell(self.config.EXIT).exit = True
         self.integrate_pattern()
 
     # _________________________________________________________________________
     #                            GENERATION UTILS
     # _________________________________________________________________________
 
+    def get_cell(self, cell: CellCoordinates) -> Cell:
+        return self.cells[cell[0]][cell[1]]
+
     def get_neighbor_coords(self, coords: CellCoordinates,
                             movement: tuple[int, int]) -> CellCoordinates:
         """Return the coordinates of the neighbor of the given cell(coords),
         in the specified direction.
         """
-        neighbor: CellCoordinates = (coords[0] + movement[0],
-                                     coords[1] + movement[1])
+        neighbor: CellCoordinates = (
+            coords[0] + movement[0], coords[1] + movement[1])
         return neighbor
 
     def is_available(self, coords: CellCoordinates) -> bool:
         """Check that a cell is accessible: within the grid and not reserved
         for the central pattern.
         """
-        if (
-                coords[0] < 0 or coords[1] < 0
+        if (coords[0] < 0 or coords[1] < 0
                 or coords[0] >= self.config.WIDTH
                 or coords[1] >= self.config.HEIGHT):
             return False
-        if (
-                self.config.PATTERN != [] and
-                self.cells[coords[0]][
-                coords[1]].pattern is True):
+        if (self.config.PATTERN != [] and
+                self.get_cell(coords).pattern is True):
             return False
         return True
 
     def is_in_maze(self, coords: CellCoordinates) -> bool:
         """Check whether a cell is in the maze or not."""
-        return self.cells[coords[0]][coords[1]].is_in_maze
+        return self.get_cell(coords).is_in_maze
 
     def get_neighbors(self, coords: CellCoordinates,
                       in_maze: bool | None) -> list[CellCoordinates]:
@@ -280,18 +280,16 @@ class Maze:
         """Break down the wall between two cells. They must be directly
         adjacent to each other.
         """
-        direction = Movements(((neighbor[0] - coords[0]),
-                               (neighbor[1] - coords[1])))
-        opposite = Movements((-(neighbor[0] - coords[0]),
-                              -(neighbor[1] - coords[1])))
-        self.cells[coords[0]][coords[1]].walls[
-            Directions[direction.name]] = False
-        self.cells[neighbor[0]][neighbor[1]].walls[
-            Directions[opposite.name]] = False
+        direction = Movements(
+            ((neighbor[0] - coords[0]), (neighbor[1] - coords[1])))
+        opposite = Movements(
+            (-(neighbor[0] - coords[0]), -(neighbor[1] - coords[1])))
+        self.get_cell(coords).walls[Directions[direction.name]] = False
+        self.get_cell(neighbor).walls[Directions[opposite.name]] = False
 
     def add_to_maze(self, coords: CellCoordinates) -> None:
         """Set the cell to is_in_maze = True."""
-        self.cells[coords[0]][coords[1]].is_in_maze = True
+        self.get_cell(coords).is_in_maze = True
 
     def path_to_not_in_maze(self,
                             coords: CellCoordinates) -> CellCoordinates | None:
@@ -304,41 +302,39 @@ class Maze:
         if neighbors == []:
             return None
         shuffle(neighbors)
-        next_cell = neighbors[0]
+        next_cell: CellCoordinates = neighbors[0]
         self.break_wall(coords, next_cell)
         self.add_to_maze(next_cell)
         return next_cell
 
-    def check_consec_walls(self, axes: str) -> list[CellCoordinates]:
+    def check_consec_walls(self) -> list[list[CellCoordinates]]:
         """Check if a wall is part of a sequence of 3+ consecutive walls
         along the horizontal or vertical axes of the grid. If it's the case
         it has 80% chance to be added to the list of walls to be broken.
         Return the list of these walls."""
-        walls_to_broke: list[CellCoordinates] = []
+        walls_to_break: list[list[CellCoordinates]] = [[], []]
         consecutive_walls: int = 0
-        if axes == "horizontal":
-            for y in range(0, (self.config.HEIGHT - 1)):
-                for x in range(0, (self.config.WIDTH)):
-                    if self.cells[x][y].walls[Directions.SOUTH] is True:
-                        consecutive_walls += 1
-                        if consecutive_walls >= 3 and randint(0, 100) < 80:
-                            walls_to_broke.append((x - 1, y))
-                            consecutive_walls = 1
-                    else:
-                        consecutive_walls = 0
-                consecutive_walls = 0
-        if axes == "vertical":
-            for x in range(0, (self.config.WIDTH - 1)):
-                for y in range(0, (self.config.HEIGHT)):
-                    if self.cells[x][y].walls[Directions.EAST] is True:
-                        consecutive_walls += 1
-                        if consecutive_walls >= 3 and randint(0, 100) < 80:
-                            walls_to_broke.append((x, y - 1))
-                            consecutive_walls = 1
-                    else:
-                        consecutive_walls = 0
-                consecutive_walls = 0
-        return walls_to_broke
+        for y in range(0, (self.config.HEIGHT - 1)):
+            for x in range(0, (self.config.WIDTH)):
+                if self.cells[x][y].walls[Directions.SOUTH] is True:
+                    consecutive_walls += 1
+                    if consecutive_walls >= 3 and randint(0, 100) < 80:
+                        walls_to_break[0].append((x - 1, y))
+                        consecutive_walls = 1
+                else:
+                    consecutive_walls = 0
+            consecutive_walls = 0
+        for x in range(0, (self.config.WIDTH - 1)):
+            for y in range(0, (self.config.HEIGHT)):
+                if self.cells[x][y].walls[Directions.EAST] is True:
+                    consecutive_walls += 1
+                    if consecutive_walls >= 3 and randint(0, 100) < 80:
+                        walls_to_break[1].append((x, y - 1))
+                        consecutive_walls = 1
+                else:
+                    consecutive_walls = 0
+            consecutive_walls = 0
+        return walls_to_break
 
     def find_dead_end(self) -> list[CellCoordinates]:
         """Search all dead end in the maze, make a list of their coordinate
@@ -364,58 +360,46 @@ class Maze:
         """
         dead_end: list[CellCoordinates] = self.find_dead_end()
 
-        for coord in dead_end:
-            entry_dir: int = self.cells[
-                coord[0]][coord[1]].walls.index(False)
+        for coords in dead_end:
+            entry_dir: int = self.get_cell(coords).walls.index(False)
             opposite_dir: int = ((entry_dir + 2) % 4)
             opposite_mov: tuple[int, int] = Movements[
                 Directions(opposite_dir).name].value
-            ideal_cell: CellCoordinates = ((coord[0] + opposite_mov[0]),
-                                           (coord[1] + opposite_mov[1]))
+            ideal_cell: CellCoordinates = (
+                (coords[0] + opposite_mov[0]), (coords[1] + opposite_mov[1]))
             if self.is_available(ideal_cell) is False:
                 continue
-            self.break_wall(coord, ideal_cell)
+            self.break_wall(coords, ideal_cell)
             return
 
-        for coord in dead_end:
-            entry_dir = self.cells[
-                coord[0]][coord[1]].walls.index(False)
+        for coords in dead_end:
+            entry_dir = self.get_cell(coords).walls.index(False)
             entry_mov: tuple[int, int] = Movements[
                 Directions(entry_dir).name].value
+            side_dir: tuple[int, int] = (
+                ((entry_dir + 1) % 4), ((entry_dir + 3) % 4))
             cell_before_entry: CellCoordinates = (
-                    (coord[0] + entry_mov[0]),
-                    (coord[1] + entry_mov[1]))
-            side_dir: list[int] = [((entry_dir + 1) % 4),
-                                   ((entry_dir + 3) % 4)]
+                    (coords[0] + entry_mov[0]), (coords[1] + entry_mov[1]))
             for side in side_dir:
-                dead_end_walled: bool = self.cells[
-                    coord[0]][coord[1]].walls[side]
-                before_walled: bool = self.cells[
-                    cell_before_entry[0]][cell_before_entry[1]].walls[side]
+                dead_end_walled: bool = self.get_cell(coords).walls[side]
+                before_walled: bool = self.get_cell(
+                    cell_before_entry).walls[side]
                 if before_walled != dead_end_walled:
                     continue
                 side_mov: CellCoordinates = Movements[
                     Directions(side).name].value
-                side_cell: CellCoordinates = ((coord[0] + side_mov[0]),
-                                              (coord[1] + side_mov[1]))
+                side_cell: CellCoordinates = (
+                    (coords[0] + side_mov[0]), (coords[1] + side_mov[1]))
                 if self.is_available(side_cell) is True:
-                    self.break_wall(coord, side_cell)
+                    self.break_wall(coords, side_cell)
                     return
 
-        for coord in dead_end:
-            entry_dir = self.cells[
-                coord[0]][coord[1]].walls.index(False)
-            side_dir = [((entry_dir + 1) % 4),
-                        ((entry_dir + 3) % 4)]
         for side in side_dir:
-            side_mov = Movements[
-                Directions(side).name].value
-            side_cell = (
-                (coord[0] + side_mov[0]),
-                (coord[1] + side_mov[1]))
+            side_mov = Movements[Directions(side).name].value
+            side_cell = ((coords[0] + side_mov[0]), (coords[1] + side_mov[1]))
             if self.is_available(side_cell) is False:
                 continue
-            self.break_wall(coord, side_cell)
+            self.break_wall(coords, side_cell)
             return
 
     # _________________________________________________________________________
@@ -434,7 +418,7 @@ class Maze:
         self.add_to_maze(start)
 
         back_track: list[CellCoordinates] = [start]
-        while back_track:
+        while len(back_track) > 0:
             current: CellCoordinates = back_track[-1]
             next_cell = self.path_to_not_in_maze(current)
             if next_cell is not None:
@@ -501,15 +485,14 @@ class Maze:
                     continue
             return None
 
-        new_start: CellCoordinates | None
         while True:
-            next_cell = self.path_to_not_in_maze(start)
+            next_cell: CellCoordinates | None = self.path_to_not_in_maze(start)
             if next_cell is not None:
                 self.add_to_maze(next_cell)
                 self.break_wall(start, next_cell)
                 start = next_cell
             else:
-                new_start = hunt_mode()
+                new_start: CellCoordinates | None = hunt_mode()
                 if new_start is None:
                     return
                 else:
@@ -523,28 +506,27 @@ class Maze:
         """
         def break_east_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and its right neighbor."""
-            if (self.cells[coords[0]][coords[1]].pattern is False
-                    and self.cells[coords[0] + 1][coords[1]].pattern is False):
-                self.cells[coords[0]][coords[1]].walls[
-                    Directions.EAST] = False
-                self.cells[coords[0] + 1][coords[1]].walls[
-                    Directions.WEST] = False
+            right_neighbor: CellCoordinates = (coords[0] + 1, coords[1])
+            if (self.get_cell(coords).pattern is False
+                    and self.get_cell(right_neighbor).pattern is False):
+                self.get_cell(coords).walls[Directions.EAST] = False
+                self.get_cell(right_neighbor).walls[Directions.WEST] = False
             else:
                 v_walls.remove(coords)
 
         def break_south_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and its down neighbor."""
-            if (self.cells[coords[0]][coords[1]].pattern is False
-                    and self.cells[coords[0]][coords[1] + 1].pattern is False):
-                self.cells[coords[0]][coords[1]].walls[
-                    Directions.SOUTH] = False
-                self.cells[coords[0]][coords[1] + 1].walls[
-                    Directions.NORTH] = False
+            south_neighbor: CellCoordinates = (coords[0], coords[1] + 1)
+            if (self.get_cell(coords).pattern is False
+                    and self.get_cell(south_neighbor).pattern is False):
+                self.get_cell(coords).walls[Directions.SOUTH] = False
+                self.get_cell(south_neighbor).walls[Directions.NORTH] = False
             else:
                 h_walls.remove(coords)
 
-        v_walls: list[CellCoordinates] = self.check_consec_walls("vertical")
-        h_walls: list[CellCoordinates] = self.check_consec_walls("horizontal")
+        h_walls: list[CellCoordinates]
+        v_walls: list[CellCoordinates]
+        h_walls, v_walls = self.check_consec_walls()
         for wall in v_walls:
             break_east_wall(wall)
             yield None
@@ -598,12 +580,12 @@ class Maze:
         for y in range(self.config.HEIGHT):
             maze += "|" + "".join(
                 "   |" if cell.walls[Directions.EAST] is True else "    "
-                for cell in (self.cells[x][y]
-                             for x in range(self.config.WIDTH))) + "\n"
+                for cell in (
+                    self.cells[x][y] for x in range(self.config.WIDTH))) + "\n"
             maze += "+" + "".join(
                 "---+" if cell.walls[Directions.SOUTH] is True else "   +"
-                for cell in (self.cells[x][y]
-                             for x in range(self.config.WIDTH))) + "\n"
+                for cell in (
+                    self.cells[x][y] for x in range(self.config.WIDTH))) + "\n"
         return maze
 
 

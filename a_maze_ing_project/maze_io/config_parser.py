@@ -61,7 +61,7 @@ def generate_config(
     Mandatory config values: WIDTH, HEIGHT, ENTRY, EXIT, PERFECT,
     GEN_ALGORITHM, SOL_ALGORITHM, OUTPUT_FILE
 
-    Optional config values: SEED, PATTERN, THEME
+    Optional config values: SEED, PATTERN, THEME, GEN_SPEED
     """
     output: str = parse_config_file(config_file, config, mandatory_values)
     if output != "":
