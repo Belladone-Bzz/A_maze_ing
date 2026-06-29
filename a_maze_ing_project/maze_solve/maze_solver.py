@@ -168,9 +168,9 @@ class MazeSolver:
         while len(known_nodes) > 0:
             current_node: CellCoordinates = known_nodes.pop(0)
             for next_node in self.get_neighbour_nodes(current_node):
-                distance_from_entry: float = self.get_dist_from_entry(
+                distance_from_entry: int = self.get_dist_from_entry(
                     next_node.coords)[0]
-                entry_to_next_node: float = (
+                entry_to_next_node: int = (
                     self.get_dist_from_entry(current_node)[0]
                     + next_node.distance)
                 if (distance_from_entry == -1
@@ -207,9 +207,9 @@ class MazeSolver:
             if current_node == self.EXIT:
                 break
             for next_node in self.get_neighbour_nodes(current_node):
-                distance_from_entry: float = self.get_dist_from_entry(
+                distance_from_entry: int = self.get_dist_from_entry(
                     next_node.coords)[0]
-                entry_to_next_node: float = (
+                entry_to_next_node: int = (
                     self.get_dist_from_entry(current_node)[0]
                     + next_node.distance)
                 if (distance_from_entry == -1

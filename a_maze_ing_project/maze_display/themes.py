@@ -116,8 +116,8 @@ class Themes(Enum):
         path_chars=(BasicWalls, RoundedAngles),
 
         walls_style=styling(),
-        path_style=styling([Styling.BOLD], Colors.YELLOW),
-        start_style=styling([Styling.BOLD], Colors.YELLOW),
+        path_style=styling([Styling.BOLD], Colors.RED),
+        start_style=styling([Styling.BOLD], Colors.RED),
         exit_style=styling([Styling.BOLD], Colors.RED),
         visited_style=styling([], Colors.GRAY),
         highlighted_style=styling([], Colors.WHITE),
@@ -193,8 +193,8 @@ class Themes(Enum):
 
         walls_style=styling([], Colors.MAGENTA, Colors.BLACK),
         path_style=styling([], Colors.RED, Colors.BLACK),
-        start_style=styling(),
-        exit_style=styling(),
+        start_style=styling(bg_color=Colors.BLACK),
+        exit_style=styling(bg_color=Colors.BLACK),
         visited_style=styling([], "253", Colors.BLACK),
         highlighted_style=styling([], "200", Colors.BLACK),
 

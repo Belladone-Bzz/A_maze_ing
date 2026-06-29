@@ -1,6 +1,6 @@
 [project]
 name = "A_maze_ing"
-version = "0.1.0"
+version = "1.0.0"
 description = "Team project to test out mazes generation, solving and displaying using different algorithms."
 authors = [
 	{name = "Belladone-Bzz"},

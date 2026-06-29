@@ -2,13 +2,13 @@
 
 # Positive numerical values (may exceed terminal maximum display size)
 
-WIDTH=3
-HEIGHT=3
+WIDTH=20
+HEIGHT=15
 
 # Positive numerical coordinates separated by a comma (may not exceed maze size)
 
-ENTRY=0,0
-EXIT=2,2
+ENTRY=1,1
+EXIT=17,13
 
 # File to overwrite with hexadecimal maze layout and more
 
@@ -22,15 +22,15 @@ OUTPUT_FILE=output_file
 # - gen_speed, for generation speed, concerns the displaying of the maze generating (0 to 10).
 #     the speed relates to the number of cells added to the maze between each print, a speed of 0 will skip this display.
 
-PERFECT=False
-SEED=635023603745
-PATTERN=None
-GEN_SPEED=10
+PERFECT=True
+SEED=123456789
+PATTERN=Forty_two
+GEN_SPEED=1
 
 # Color, characters and styling theme to apply when printing the generated maze.
 #     Themes available: Default, Bee, Metamorphosis, Meuuh, Boss_lady
 
-THEME=Bees
+THEME=Default
 
 # Generation algorithms available: Backtracking, Prim, Hunt_and_kill
 
