@@ -1,5 +1,29 @@
 # A_maze_ing
 
+## Installing the module
+
+This module described below is made to be directly installed into your python library or virtual environment. This will enable you to include our Maze class using `from mazegenerator import Maze`, as well as its related Enums and custom types. To do so, download or clone this repository or at least this folder, and open a terminal that will be located at its root. When your command line is ready, you can build a package by running this command, and it will create an archive later accessible by pip:
+
+```bash
+python -m build .
+```
+
+This will create a `dist` folder, containing a *.tar.gz and *.whl files. They can be installed by pip using this command:
+
+```bash
+pip install dist/mazegenerator-1.0.0-py3-none-any.whl
+```
+
+If you encounter no error, you should then be able to access all content from the mazegenerator/maze.py code file by importing mazegenerator in your own project !
+
+To instantiate the Maze class, you must construct it with all expected config variables, which you can see an example of in the code at the bottom of the maze.py file. And for more details on how the class comes together with its attributes and methods, see the implemented readme file.
+
+Side note, to uninstall this package, run:
+
+```bash
+pip uninstall mazegenerator
+```
+
 ## Maze_gen module
 
 > [!NOTE]
