@@ -105,10 +105,10 @@ def instantiate_menues(
         Takes a string and returns one to respect Callable typing, but
         does nothing of them.
         """
-        temp: int = int(config["seed"])
+        current_seed: int = int(config["seed"])
         seed()
         config["seed"] = str(randint(0, 1000000000000))
-        seed(temp)
+        seed(current_seed)
         return ""
 
     class Option:
@@ -239,8 +239,7 @@ def instantiate_menues(
             elif user_input in Keyboard.RIGHT.value:
                 self.value_right()
             elif user_input in Keyboard.CONFIRM.value:
-                if (
-                        self.option_type == "double_slider"
+                if (self.option_type == "double_slider"
                         and self.current_option == 0):
                     self.current_option = 1
                 else:
@@ -251,104 +250,57 @@ def instantiate_menues(
     menues: dict[str, list[Option]]
     menues = {
         "main": [
-            Option(
-                name="show_path",
-                option_type="toggle",
-                text="Show found path: {value}"),
-            Option(
-                name="theme",
-                option_type="selection",
-                options=[theme.name.capitalize() for theme in Themes],
-                text="Current theme: {value}"),
-            Option(
-                name="save maze",
-                option_type="validate",
-                text="Save maze to output file",
-                exec=partial(lambda _: "save_maze", "")),
-            Option(
-                name="save config",
-                option_type="validate",
-                text="Save configuration to config.txt",
-                exec=partial(lambda _: "save_config", "")),
-            Option(
-                name="generate",
-                option_type="validate",
-                text="Generate new maze",
-                exec=partial(change_menu, "maze_config")),
-            Option(
-                name="quit",
-                option_type="validate",
-                text="Quit A_maze_ing",
-                exec=partial(leave_program, ""))],
+            Option(name="show_path", option_type="toggle",
+                   text="Show found path: {value}"),
+            Option(name="theme", option_type="selection",
+                   options=[theme.name.capitalize() for theme in Themes],
+                   text="Current theme: {value}"),
+            Option(name="save maze", option_type="validate",
+                   text="Save maze to output file",
+                   exec=partial(lambda _: "save_maze", "")),
+            Option(name="save config", option_type="validate",
+                   text="Save configuration to config.txt",
+                   exec=partial(lambda _: "save_config", "")),
+            Option(name="generate", option_type="validate",
+                   text="Generate new maze",
+                   exec=partial(change_menu, "maze_config")),
+            Option(name="quit", option_type="validate",
+                   text="Quit A_maze_ing",
+                   exec=partial(leave_program, ""))],
         "maze_config": [
-            Option(
-                name="width",
-                option_type="slider",
-                text=f"{"Width:":<22}""{value:>13}"),
-            Option(
-                name="height",
-                option_type="slider",
-                text=f"{"Height:":<22}""{value:>13}"),
-            Option(
-                name="entry",
-                option_type="double_slider",
-                text=f"{"Entry:":<22}""{value:>13}"),
-            Option(
-                name="exit",
-                option_type="double_slider",
-                text=f"{"Exit:":<22}""{value:>13}"),
-            Option(
-                name="perfect",
-                option_type="toggle",
-                text=f"{"Perfect:":<22}""{value:>13}"),
-            Option(
-                name="pattern",
-                option_type="selection",
-                options=[pattern.name.capitalize() for pattern in Patterns],
-                text=f"{"Central pattern:":<22}""{value:>13}"),
-            Option(
-                name="gen_algorithm",
-                option_type="selection",
-                options=list(Maze.generation_algorithms),
-                text=(
-                    f"{"Generation algorithm:":<22}"
-                    "{value:>13}")),
-            Option(
-                name="sol_algorithm",
-                option_type="selection",
-                options=list(MazeSolver.solving_algorithms),
-                text=(
-                    f"{"Solving algorithm:":<20}"
-                    "{value:>15}")),
-            Option(
-                name="seed",
-                option_type="slider",
-                text=f"{"Generation seed:":<22}""{value:>13}"),
-            Option(
-                name="randomize seed",
-                option_type="validate",
-                text="Randomize seed",
-                exec=partial(randomize_seed, "")),
-            Option(
-                name="output_file",
-                option_type="validate",
-                text=f"{'Output file:':<15}""{value:>20.20}",
-                exec=partial(lambda _: "file_rename", "")),
-            Option(
-                name="gen_speed",
-                option_type="slider",
-                text=f"{"Generation speed:":<22}""{value:>13}"),
-            Option(
-                name="generate maze",
-                option_type="validate",
-                text="- Generate maze -",
-                exec=partial(lambda _: "maze_gen", "")),
-            Option(
-                name="back",
-                option_type="validate",
-                text="return",
-                exec=partial(change_menu, "main"))],
-    }
+            Option(name="width", option_type="slider",
+                   text=f"{"Width:":<22}""{value:>13}"),
+            Option(name="height", option_type="slider",
+                   text=f"{"Height:":<22}""{value:>13}"),
+            Option(name="entry", option_type="double_slider",
+                   text=f"{"Entry:":<22}""{value:>13}"),
+            Option(name="exit", option_type="double_slider",
+                   text=f"{"Exit:":<22}""{value:>13}"),
+            Option(name="perfect", option_type="toggle",
+                   text=f"{"Perfect:":<22}""{value:>13}"),
+            Option(name="pattern", option_type="selection",
+                   options=[pattern.name.capitalize() for pattern in Patterns],
+                   text=f"{"Central pattern:":<22}""{value:>13}"),
+            Option(name="gen_algorithm", option_type="selection",
+                   options=list(Maze.generation_algorithms),
+                   text=f"{"Generation algorithm:":<22}""{value:>13}"),
+            Option(name="sol_algorithm", option_type="selection",
+                   options=list(MazeSolver.solving_algorithms),
+                   text=f"{"Solving algorithm:":<20}""{value:>15}"),
+            Option(name="seed", option_type="slider",
+                   text=f"{"Generation seed:":<22}""{value:>13}"),
+            Option(name="randomize seed", option_type="validate",
+                   text="Randomize seed", exec=partial(randomize_seed, "")),
+            Option(name="output_file", option_type="validate",
+                   text=f"{'Output file:':<15}""{value:>20.20}",
+                   exec=partial(lambda _: "file_rename", "")),
+            Option(name="gen_speed", option_type="slider",
+                   text=f"{"Generation speed:":<22}""{value:>13}"),
+            Option(name="generate maze", option_type="validate",
+                   text="- Generate maze -",
+                   exec=partial(lambda _: "maze_gen", "")),
+            Option(name="back", option_type="validate", text="return",
+                   exec=partial(change_menu, "main"))]}
 
     def browse_menu(user_input: str) -> str:
         """Takes the user input as argument.
@@ -435,11 +387,10 @@ def instantiate_menues(
                     print_error(errors.center(menu_width),  end="")
                     style_print(theme.walls_style, theme.walls.VERTICAL, "\n")
             if index == current_index:
-                line = (
-                    ("\033[4m" if focused_option == entry else "")
-                    + (
-                        f"{SmallIcons.LEFT_ARROW} {entry} "
-                        f"{SmallIcons.RIGHT_ARROW}").center(menu_width))
+                line = (("\033[4m" if focused_option == entry else "")
+                        + (
+                            f"{SmallIcons.LEFT_ARROW} {entry} "
+                            f"{SmallIcons.RIGHT_ARROW}").center(menu_width))
             else:
                 line = (str(entry).center(menu_width))
             style_print(
@@ -456,8 +407,7 @@ def instantiate_menues(
         style_print(theme.walls_style, line.center(
             justify_menues * 4 + 1), "\n")
 
-    def menues_module(
-            current_action: str, user_input: str) -> str:
+    def menues_module(current_action: str, user_input: str) -> str:
         """Function returned by the instantiate function, handling the
         selected action and user input to browse, display and update
         menues.
