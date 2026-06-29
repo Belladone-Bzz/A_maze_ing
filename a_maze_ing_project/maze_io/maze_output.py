@@ -5,6 +5,16 @@ from a_maze_ing_project.maze_solve import MazeSolver
 
 
 def write_out_config(config: dict[str, str]) -> str:
+    """Takes a dict of maze information to write out in a file named
+    'config.txt'.
+
+    Contains all currently contained variables that can be reparsed and used
+    to create a Maze using the a_maze_ing.py program. Includes comments for
+    guidance and explanations of each value's purpose.
+
+    Returns a potential error message for file opening issues, or an empty
+    string.
+    """
     try:
         config_str: str = (
             "# This is the configuration file in which you can enter variable"
@@ -37,8 +47,8 @@ def write_out_config(config: dict[str, str]) -> str:
             f"Boss_lady\n\nTHEME={config["theme"]}\n\n"
             "# Generation algorithms available: Backtracking, Prim, "
             f"Hunt_and_kill\n\nGEN_ALGORITHM={config["gen_algorithm"]}\n\n"
-            "# Solving algorithms available: Dijkstra, Dead_end_filler, "
-            f"A_star\n\nSOL_ALGORITHM={config["sol_algorithm"]}")
+            "# Solving algorithms available: Breadth_search, Dead_end_filler, "
+            f"Dijkstra, A_star\n\nSOL_ALGORITHM={config["sol_algorithm"]}")
         with open("config.txt", 'w') as file:
             print(config_str, end="", file=file)
     except FileNotFoundError:

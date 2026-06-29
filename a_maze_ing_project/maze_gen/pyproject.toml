@@ -12,7 +12,7 @@ dependencies = [
     "pydantic (>=2.13.4)"
 ]
 license = "MIT"
-license-files = ["LICEN[CS]E*"]
+license-files = ["LICENCE"]
 
 [project.urls]
 Homepage = "https://github.com/Belladone-Bzz/A_maze_ing"

@@ -12,6 +12,8 @@ dependencies = [
 	"pydantic (==2.13.4)",
 	"mypy (>=2.1.0)"
 ]
+license = "MIT"
+license-files = ["LICENCE"]
 
 [project.urls]
 Homepage = "https://github.com/Belladone-Bzz/A_maze_ing"
