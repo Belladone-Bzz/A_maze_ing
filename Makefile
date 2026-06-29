@@ -33,7 +33,7 @@ clean:
 	find ./$(PROJECT) | grep -E "(__pycache__|\.pyc$$)" | xargs rm -rf
 
 fclean: clean
-	rm -rf $(venv)
+	rm -rf $(VENV)
 
 lint: install
 	source venv/bin/activate\
