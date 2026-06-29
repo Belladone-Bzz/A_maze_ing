@@ -1,6 +1,3 @@
-
-from enum import Enum
-
 """Utility file with accessible Classes, Enums and functions to
 centralize the printing of colored or stylized text within a project.
 Walls and Angles classes are not made to be instantiated and rather
@@ -15,6 +12,8 @@ be inserted as value from the Colors enum, a string or an int of the
 values. No verification of range is made, feel free to experiment
 until the output style is to your liking.
 """
+
+from enum import Enum
 
 
 class Keyboard(Enum):

@@ -1,10 +1,3 @@
-
-from pydantic import BaseModel, Field, model_validator
-from typing import Annotated
-from collections.abc import Generator, Callable
-from enum import IntEnum, Enum
-from random import seed as set_seed, choice, randint, shuffle
-
 """This module manages all the classes, enumerations, methods and algorithms
 required to generate a maze, within the maze.py file. Several generation
 algorithms have been implemented: Backtracking, Prim, Hunt and kill, and
@@ -13,6 +6,12 @@ and complexity of the various existing algorithms. This module contain Maze,
 Config, and Cell classes, Directions and Movements Enum, and all functions used
 to generate a perfect or imperfect maze.
 """
+
+from pydantic import BaseModel, Field, model_validator
+from typing import Annotated
+from collections.abc import Generator, Callable
+from enum import IntEnum, Enum
+from random import seed as set_seed, choice, randint, shuffle
 
 
 MazeDimension = Annotated[int, Field(ge=3)]

@@ -1,12 +1,3 @@
-
-from typing import Generator, cast
-from heapq import heappush, heappop
-from functools import partial
-from collections import deque
-from collections.abc import Callable
-from a_maze_ing_project.maze_gen.mazegenerator import (
-    Maze, Directions, Movements, CellCoordinates)
-
 """This module manages all the classes, enumerations, methods and algorithms
 required to solve a maze, within the maze_solver.py file. Several resolution
 algorithms have been implemented: Dijkstra, dead end filler, breadth first
@@ -16,6 +7,15 @@ complexity of the various existing algorithms.
 This module contain MazeSolver and Node classes. FoudDeadEnd Exception. And
 all functions used to solve a perfect or imperfect maze.
 """
+
+from typing import Generator, cast
+from heapq import heappush, heappop
+from functools import partial
+from collections import deque
+from collections.abc import Callable
+from a_maze_ing_project.maze_gen.mazegenerator import (
+    Maze, Directions, Movements, CellCoordinates)
+
 
 class FoundDeadEnd(Exception):
     """Exception to be raised by algorithms when finding a dead-end, useful
