@@ -201,6 +201,12 @@ class Maze:
             for y in range(len(self.config.PATTERN)):
                 if self.cells[x + self.pattern_h_offset][
                         y + self.pattern_v_offset].is_in_maze is False:
+                    if (x + self.pattern_h_offset,
+                            y + self.pattern_v_offset) in (
+                            self.config.ENTRY, self.config.EXIT):
+                        raise ValueError(
+                            "The entry or exit point was placed in an "
+                            "inaccessible cell (due to pattern).")
                     self.cells[x + self.pattern_h_offset][
                         y + self.pattern_v_offset].pattern = True
 

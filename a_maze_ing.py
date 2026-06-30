@@ -51,6 +51,10 @@ def instantiate_maze(
             raise ValueError(
                 "The Dead end filler algorithm can only be "
                 "used in perfect Maze")
+        if (len(config["entry"].split(",")) != 2
+                or len(config["exit"].split(",")) != 2):
+            raise ValueError(
+                "The entry or exit tuple contains too many values")
         maze: Maze = Maze(
             width=int(config["width"]),
             height=int(config["height"]),
@@ -173,11 +177,15 @@ if __name__ == "__main__":
         output = 4
     except ProgramQuit:
         output = 0
+    except ValueError as error:
+        print_error(f"\n- {error}")
+        output = 5
     except Exception as error:
         print_error(f"\nUnexpected exception occured:\n- {error}")
-        output = 5
+        output = 6
 
     exits: tuple[str, ...] = (
         "Success", "Not enough argument", "File parsing error",
-        "Config parsing error", "Keyboard interrupt", "Unknown error")
+        "Config parsing error", "Keyboard interrupt", "Generation Error",
+        "Unknown error")
     print(f"\r\nEnding program with code : {output} ({exits[output]})")
