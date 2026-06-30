@@ -327,6 +327,12 @@ https://medium.com/@batu.senturk/maze-wars-which-is-the-best-maze-solving-algori
 > [!NOTE]
 > No AI was used in the making of this project.
 
+## Planning
+- Week 1: Project conception and documentation.
+- Week 2: Parsing, creation of the grid and generation algorithms.
+- Week 3: Display, Menu, solving algorithms.
+- Week 4: Docstring, Readme and optimisation.
+
 #### [Jolyne](https://github.com/jolyne-mangeot) :
 
 - Configuration file reading and parsing with BaseModel class
