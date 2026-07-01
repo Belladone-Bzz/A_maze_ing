@@ -67,6 +67,17 @@ def generate_config(
     if output != "":
         return output
     try:
+        missing_vars: list[str] = [
+            mandatory for mandatory in mandatory_values
+            if mandatory.lower() not in config.keys()]
+        if len(missing_vars) > 0:
+            raise ValueError(
+                "Missing mandatory configuration values: "
+                + ", ".join(missing_vars))
+        if config.get("perfect", "") not in ("True", "False"):
+            raise ValueError(
+                "The given perfect value is incorrect, "
+                "should be True or False")
         if "seed" not in config.keys():
             config.update({"seed": str(randint(0, 1000000000000))})
         int(config["seed"])
