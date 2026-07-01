@@ -114,6 +114,28 @@ To run this project, it's necessary for it to contain a file named 'config.txt' 
 
 For more details on what each value does and the list of available algorithms, themes and patterns, see the integrated 'config.txt' file.
 
+## Menu navigation
+
+See here the keys recognized by the program for different actions:
+
+| Key | Action |
+|---|---|
+| Space, Enter | CONFIRM |
+| W, Arrow-up | UP |
+| A, Arrow-left | LEFT |
+| S, Arrow-down | DOWN |
+| D, Arrow-right | RIGHT |
+
+To navigate the menues, use up and down keys to update the highlighted option. When an option is highlighted (with small arrow characters), press a confirm key to perform a task, or select a value to modify. When modifying a value, it will be underlined, and the behavior changes based on its type:
+
+| Value type | Values concerned (example) | Type of navigation |
+|---|---|---|
+| Slider | WIDTH, HEIGHT, SEED, GEN_SPEED (integer: 0) | When selected, will append ou sustract the value: 1 by 1 with up and down keys, 10 by 10 with left and right keys. Click confirm to unselect. |
+| Double Slider | ENTRY, EXIT (tuple: 0,0) | When selected, acts the same as a slider. When the first value has been modified, pressing a confirm key will allow you to modify the second value. Click confirm to unselect. |
+| Selection | THEME, PATTERN, GEN_ALGORITHM, SOL_ALGORITHM | When selected, pressing left and right keys with browse the available values for the selection. Click confirm to unselect. |
+| Toggle | SHOW_PATH, PERFECT (True, False) | When pressed a confirm key on, switch the value from True or False. Cannot be selected. |
+| Text Field | OUTPUT_FILE | When selected, an input field will appear under the menu box. Enter text, and press enter to confirm. |
+
 ## Integrated Maze package
 
 As stated below in the [flexibility of our code](#Flexibility-of-our-code) section, this project contains a buildable package to ensure an easy reusability of the Maze class, containing all generation related methods, as well as the configuration checking.
