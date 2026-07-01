@@ -220,13 +220,13 @@ As for generation algorithm, we wanted to explore multiple existing methods of s
 
 Finds the path from the entrance to the exit in a perfect or imperfect maze. The breadth first algorithm explore all unvisited cells in the maze from the entry and stop as soon as it find the exit cell. Each visited cell is marked as such along with its closest cell from the entrance (the one we come from), and the final found path (mathematically the shortest) is recovered from exit back to the entrance.
 
-<img src="docs/solving_algo/bfs_demo.gif" alt="Gif demonstrating the breadth first search or bfs solving algorithm." align="center" width="300px"/>
+<img src="docs/solving_algo/bfs_demo.gif" alt="Gif demonstrating the breadth first search or bfs solving algorithm." align="center" width="500px"/>
 
 ### Dead End Filler
 
 Finds the path from the entrance to the exit in a perfect maze only. This dead-end detection algorithm identifies all the dead ends in the maze (excluding the entrance and exit if they are part of them). These cells are marked as visited. The dead ends are then updated in a loop until the only cells remaining with `is_visited = False` are the path from the entrance to the exit. The algorithm then create a list of the cells that form the entrance-to-exit path.
 
-<img src="docs/solving_algo/dead-end_demo.gif" alt="Gif demonstrating the dead-end filler solving algorithm." align="center" width="300px"/>
+<img src="docs/solving_algo/dead-end_demo.gif" alt="Gif demonstrating the dead-end filler solving algorithm." align="center" width="500px"/>
 
 ### Dijkstra's Algorithm
 
@@ -234,13 +234,13 @@ Finds the shortest path in a perfect or imperfect maze. Sets a list of intersect
 
 Goes back from the exit, adding to the shortest_path each path to take to go back an intersection that's the closest from the entry.
 
-<img src="docs/solving_algo/dijkstra_demo.gif" alt="Gif demonstrating the dijkstra solving algorithm." align="center" width="300px"/>
+<img src="docs/solving_algo/dijkstra_demo.gif" alt="Gif demonstrating the dijkstra solving algorithm." align="center" width="500px"/>
 
 ### A* Star
 
 Uses the same methods as Dijkstra's algorithm, except for the order of accessing new cells when calculating the distances from the entry (as this part is the longest in time). It always accesses the cell considered to be the closest from the exit, in our method using the Manhattan distance, so it doesn't stray in every dead-end. See resources for more details on what all these notions mean.
 
-<img src="docs/solving_algo/a-star_demo.gif" alt="Gif demonstrating the a star solving algorithm." align="center" width="300px"/>
+<img src="docs/solving_algo/a-star_demo.gif" alt="Gif demonstrating the a star solving algorithm." align="center" width="500px"/>
 
 ## Display
 
