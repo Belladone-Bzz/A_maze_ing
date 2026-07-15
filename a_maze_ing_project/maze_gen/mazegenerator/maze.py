@@ -3,8 +3,8 @@ required to generate a maze, within the maze.py file. Several generation
 algorithms have been implemented: Backtracking, Prim, Hunt and kill, and
 one to made an imperfect maze. We made this choice to highlight the diversity
 and complexity of the various existing algorithms. This module contain Maze,
-Config, and Cell classes, Directions and Movements Enum, and all functions used
-to generate a perfect or imperfect maze.
+Config, Cell and GenerationError classes, Directions and Movements Enum, and
+all functions used to generate a perfect or imperfect maze.
 """
 
 from pydantic import BaseModel, Field, model_validator
@@ -20,6 +20,10 @@ CellCoordinates = Annotated[
         Annotated[int, Field(ge=0)],
         Annotated[int, Field(ge=0)]],
     Field(min_length=2, max_length=2)]
+
+
+class GenerationError(Exception):
+    pass
 
 
 class Directions(IntEnum):
@@ -48,7 +52,7 @@ class Maze:
     """Class Maze.
     Nested_class: Config, Cell.
     Attributes: width, height, entry, exit, perfect,
-    gen_algorithm, seed, pattern, config, cells.
+    gen_algorithm, imperfect_algorithm, seed, pattern, config, cells.
     Methods: init, integrate_pattern, add_enclosed_cells_to_pattern,
     grid_generation,get_neighbor_coord, is_available, is_in_maze,
     get_neighbors, break_wall, add_to_maze, path_to_not_in_maze,
@@ -59,10 +63,14 @@ class Maze:
     generation_algorithms: tuple[str, ...] = (
         "Backtracking", "Prim", "Hunt_and_kill")
 
+    imperfect_algorithms: tuple[str, str] = (
+        "Choke_points", "Braided")
+
     def __init__(
             self, width: int, height: int,
             entry: tuple[int, int], exit: tuple[int, int],
-            perfect: bool, gen_algorithm: str, seed: int,
+            perfect: bool, gen_algorithm: str,
+            imperfect_algorithm: str, seed: int,
             pattern: list[list[bool]] = []) -> None:
         """Initialises the attributes of the Maze instance."""
         if gen_algorithm not in self.generation_algorithms:
@@ -76,6 +84,7 @@ class Maze:
             EXIT=exit,
             PERFECT=perfect,
             GEN_ALGORITHM=gen_algorithm,
+            IMPERFECT_ALGORITHM=imperfect_algorithm,
             SEED=seed,
             PATTERN=pattern)
         set_seed(self.config.SEED)
@@ -90,8 +99,8 @@ class Maze:
 
     class Config(BaseModel):
         """Class Config
-        Attributes: WIDTH, HEIGHT, ENTRY, EXIT, GEN_ALGORITHM,
-        PATTERN, PERFECT, SEED.
+        Attributes: WIDTH, HEIGHT, ENTRY, EXIT, GEN_ALGORITHM
+        IMPERFECT_ALGORITHM, PATTERN, PERFECT, SEED.
         Methods: validate_config.
         """
         WIDTH: MazeDimension
@@ -100,6 +109,7 @@ class Maze:
         EXIT: CellCoordinates
 
         GEN_ALGORITHM: Annotated[str, Field(min_length=1, max_length=15)]
+        IMPERFECT_ALGORITHM: Annotated[str, Field(min_length=1, max_length=15)]
 
         PATTERN: Annotated[list[list[bool]], Field(default=[])]
         PERFECT: Annotated[bool, Field()]
@@ -204,7 +214,7 @@ class Maze:
                     if (x + self.pattern_h_offset,
                             y + self.pattern_v_offset) in (
                             self.config.ENTRY, self.config.EXIT):
-                        raise ValueError(
+                        raise GenerationError(
                             "The entry or exit point was placed in an "
                             "inaccessible cell (due to pattern).")
                     self.cells[x + self.pattern_h_offset][
@@ -316,7 +326,7 @@ class Maze:
     def check_consec_walls(self) -> list[list[CellCoordinates]]:
         """Check if a wall is part of a sequence of 3+ consecutive walls
         along the horizontal or vertical axes of the grid. If it's the case
-        it has 80% chance to be added to the list of walls to be broken.
+        it's added to the list of walls to be broken.
         Return the list of these walls."""
         walls_to_break: list[list[CellCoordinates]] = [[], []]
         consecutive_walls: int = 0
@@ -324,7 +334,7 @@ class Maze:
             for x in range(0, (self.config.WIDTH)):
                 if self.cells[x][y].walls[Directions.SOUTH] is True:
                     consecutive_walls += 1
-                    if consecutive_walls >= 3 and randint(0, 100) < 80:
+                    if consecutive_walls >= 3:
                         walls_to_break[0].append((x - 1, y))
                         consecutive_walls = 1
                 else:
@@ -334,7 +344,7 @@ class Maze:
             for y in range(0, (self.config.HEIGHT)):
                 if self.cells[x][y].walls[Directions.EAST] is True:
                     consecutive_walls += 1
-                    if consecutive_walls >= 3 and randint(0, 100) < 80:
+                    if consecutive_walls >= 3:
                         walls_to_break[1].append((x, y - 1))
                         consecutive_walls = 1
                 else:
@@ -505,7 +515,11 @@ class Maze:
                     start = new_start
             yield None
 
-    def make_maze_imperfect(self) -> Generator[None]:
+    # _________________________________________________________________________
+    #                    IMPERFECT GENERATION AND DISPLAY
+    # _________________________________________________________________________
+
+    def choke_points_algo(self) -> Generator[None]:
         """Make an imperfect maze from a perfect one. Use check_consec_walls()
         method to have all the walls to broke. If there is none, use
         dead_end_opener() method.
@@ -534,16 +548,18 @@ class Maze:
         v_walls: list[CellCoordinates]
         h_walls, v_walls = self.check_consec_walls()
         for wall in v_walls:
-            break_east_wall(wall)
+            if randint(0, 100) < 85:
+                break_east_wall(wall)
             yield None
         for wall in h_walls:
-            break_south_wall(wall)
+            if randint(0, 100) < 85:
+                break_south_wall(wall)
             yield None
         if v_walls == [] and h_walls == []:
             self.dead_end_opener()
 
     # _________________________________________________________________________
-    #                         MAZE GENERATION AND DISPLAY
+    #                       MAZE GENERATION AND DISPLAY
     # _________________________________________________________________________
 
     def generate_maze(self) -> None:
@@ -555,12 +571,13 @@ class Maze:
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo,
-            "Hunt_and_kill": self.hunt_and_kill_algo}
+            "Hunt_and_kill": self.hunt_and_kill_algo,
+            "Choke_points": self.choke_points_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             pass
         self.add_enclosed_cells_to_pattern()
         if self.config.PERFECT is False:
-            for _ in self.make_maze_imperfect():
+            for _ in algorithms[self.config.IMPERFECT_ALGORITHM]():
                 pass
 
     def stepped_generation(self) -> Generator[None]:
@@ -572,12 +589,13 @@ class Maze:
         algorithms: dict[str, Callable[[], Generator[None]]] = {
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo,
-            "Hunt_and_kill": self.hunt_and_kill_algo}
+            "Hunt_and_kill": self.hunt_and_kill_algo,
+            "Choke_points": self.choke_points_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             yield None
         self.add_enclosed_cells_to_pattern()
         if self.config.PERFECT is False:
-            for _ in self.make_maze_imperfect():
+            for _ in algorithms[self.config.IMPERFECT_ALGORITHM]():
                 yield None
 
     def __repr__(self) -> str:

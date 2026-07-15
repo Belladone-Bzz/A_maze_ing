@@ -6,7 +6,7 @@ from typing import cast
 from collections.abc import Callable
 
 from a_maze_ing_project import (
-    Maze, MazeSolver,
+    Maze, GenerationError, MazeSolver,
     write_out_maze, write_out_config, generate_config,
     print_error, instantiate_maze_display,
     instantiate_menues, ProgramQuit, Patterns)
@@ -45,8 +45,7 @@ def instantiate_maze(
     or an error message.
     """
     try:
-        if (
-                config["sol_algorithm"] == "Dead_end_filler"
+        if (config["sol_algorithm"] == "Dead_end_filler"
                 and config["perfect"] == "False"):
             raise ValueError(
                 "The Dead end filler algorithm can only be "
@@ -66,6 +65,7 @@ def instantiate_maze(
                 int(config["exit"].split(",")[1])),
             perfect=(True if config["perfect"] == "True" else False),
             gen_algorithm=config["gen_algorithm"],
+            imperfect_algorithm=config["imperfect_algorithm"],
             seed=int(config["seed"]),
             pattern=getattr(Patterns, config["pattern"].upper()).value)
         return maze
@@ -106,7 +106,7 @@ def main() -> int:
     config: dict[str, str] = {}
     mandatory_values: tuple[str, ...] = (
         "WIDTH", "HEIGHT", "ENTRY", "EXIT", "PERFECT", "GEN_ALGORITHM",
-        "SOL_ALGORITHM", "OUTPUT_FILE")
+        "IMPERFECT_ALGORITHM", "SOL_ALGORITHM", "OUTPUT_FILE")
     function_output: str = generate_config(argv[1], config, mandatory_values)
     if function_output != "":
         print_error(
@@ -177,7 +177,7 @@ if __name__ == "__main__":
         output = 4
     except ProgramQuit:
         output = 0
-    except ValueError as error:
+    except GenerationError as error:
         print_error(f"\n- {error}")
         output = 5
     except Exception as error:

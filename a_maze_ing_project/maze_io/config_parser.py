@@ -59,7 +59,7 @@ def generate_config(
     Returns a string containing either an error message or nothing.
 
     Mandatory config values: WIDTH, HEIGHT, ENTRY, EXIT, PERFECT,
-    GEN_ALGORITHM, SOL_ALGORITHM, OUTPUT_FILE
+    GEN_ALGORITHM, IMPERFECT_ALGORITHM, SOL_ALGORITHM, OUTPUT_FILE
 
     Optional config values: SEED, PATTERN, THEME, GEN_SPEED
     """

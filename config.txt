@@ -22,7 +22,7 @@ OUTPUT_FILE=output_file
 # - gen_speed, for generation speed, concerns the displaying of the maze generating (0 to 10).
 #     the speed relates to the number of cells added to the maze between each print, a speed of 0 will skip this display.
 
-PERFECT=True
+PERFECT=False
 SEED=123456789
 PATTERN=Forty_two
 GEN_SPEED=1
@@ -35,6 +35,10 @@ THEME=Default
 # Generation algorithms available: Backtracking, Prim, Hunt_and_kill
 
 GEN_ALGORITHM=Prim
+
+# Imperfect maze generation algorithms available (used if PERFECT=False): Choke_points
+
+IMPERFECT_ALGORITHM=Choke_points
 
 # Solving algorithms available: Breadth_search, Dead_end_filler, Dijkstra, A_star
 
