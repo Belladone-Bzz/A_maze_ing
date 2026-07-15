@@ -304,7 +304,7 @@ class CursorOperations(StyleEnum):
     LINE_CLEAR = "\033[2K"
     LIGHT_LINE_CLEAR = "\033[0K"
     LIGHT_CLEAR = "\033[0J"
-    HEAVY_CLEAR = "\033[3J\033[1;0H\033[0J"
+    HEAVY_CLEAR = "\033[3J\033[0;0H\033[0J"
     STYLE_CLEAR = "\033[0m"
 
 

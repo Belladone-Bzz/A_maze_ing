@@ -364,7 +364,7 @@ class Maze:
         shuffle(dead_end)
         return dead_end
 
-    def dead_end_opener(self) -> None:
+    def dead_end_opener(self) -> Generator[None]:
         """Search dead end and make a path in an optimal way to avoid chambers
         in the maze. In order of priority: 1.Open the wall opposite the
         dead-end opening if the opposite cell is available. 2.Search for a
@@ -386,7 +386,9 @@ class Maze:
             if self.is_available(ideal_cell) is False:
                 continue
             self.break_wall(coords, ideal_cell)
-            return
+            yield None
+
+        dead_end = self.find_dead_end()
 
         for coords in dead_end:
             entry_dir = self.get_cell(coords).walls.index(False)
@@ -408,15 +410,21 @@ class Maze:
                     (coords[0] + side_mov[0]), (coords[1] + side_mov[1]))
                 if self.is_available(side_cell) is True:
                     self.break_wall(coords, side_cell)
-                    return
+                    yield None
 
-        for side in side_dir:
-            side_mov = Movements[Directions(side).name].value
-            side_cell = ((coords[0] + side_mov[0]), (coords[1] + side_mov[1]))
-            if self.is_available(side_cell) is False:
-                continue
-            self.break_wall(coords, side_cell)
-            return
+    def break_random_wall(self) -> None:
+        for coords in self.find_dead_end():
+            entry_dir = self.get_cell(coords).walls.index(False)
+            side_dir: tuple[int, int] = (
+                ((entry_dir + 1) % 4), ((entry_dir + 3) % 4))
+            for side in side_dir:
+                side_mov = Movements[Directions(side).name].value
+                side_cell = ((coords[0] + side_mov[0]),
+                             (coords[1] + side_mov[1]))
+                if self.is_available(side_cell) is False:
+                    continue
+                self.break_wall(coords, side_cell)
+                return
 
     # _________________________________________________________________________
     #                         GENERATION ALGORITHMS
@@ -556,7 +564,15 @@ class Maze:
                 break_south_wall(wall)
             yield None
         if v_walls == [] and h_walls == []:
-            self.dead_end_opener()
+            for _ in self.dead_end_opener():
+                break
+            else:
+                self.break_random_wall()
+
+    def braided_algo(self) -> Generator[None]:
+        for _ in self.dead_end_opener():
+            input()
+            yield None
 
     # _________________________________________________________________________
     #                       MAZE GENERATION AND DISPLAY
@@ -572,7 +588,8 @@ class Maze:
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo,
             "Hunt_and_kill": self.hunt_and_kill_algo,
-            "Choke_points": self.choke_points_algo}
+            "Choke_points": self.choke_points_algo,
+            "Braided": self.braided_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             pass
         self.add_enclosed_cells_to_pattern()
@@ -590,7 +607,8 @@ class Maze:
             "Backtracking": self.backtracking_algo,
             "Prim": self.prim_algo,
             "Hunt_and_kill": self.hunt_and_kill_algo,
-            "Choke_points": self.choke_points_algo}
+            "Choke_points": self.choke_points_algo,
+            "Braided": self.braided_algo}
         for _ in algorithms[self.config.GEN_ALGORITHM]():
             yield None
         self.add_enclosed_cells_to_pattern()

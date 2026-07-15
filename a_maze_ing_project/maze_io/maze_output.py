@@ -48,7 +48,7 @@ def write_out_config(config: dict[str, str]) -> str:
             "# Generation algorithms available: Backtracking, Prim, "
             f"Hunt_and_kill\n\nGEN_ALGORITHM={config["gen_algorithm"]}\n\n"
             "# Imperfect maze generation algorithms available (used if PERFECT"
-            f"=False): Choke_points\n\nIMPERFECT_ALGORITHM="
+            f"=False): Choke_points, Braided\n\nIMPERFECT_ALGORITHM="
             f"{config["imperfect_algorithm"]}\n\n"
             "# Solving algorithms available: Breadth_search, Dead_end_filler, "
             f"Dijkstra, A_star\n\nSOL_ALGORITHM={config["sol_algorithm"]}\n")
