@@ -623,6 +623,7 @@ if __name__ == "__main__":
         exit=(0, 1),
         perfect=False,
         gen_algorithm="Prim",
+        imperfect_algorithm="Choke_points",
         seed=randint(0, 99999999),
         pattern=[
             [False, False, True, False, True, True, True],

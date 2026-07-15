@@ -496,6 +496,7 @@ if __name__ == "__main__":
         exit=(4, 1),
         perfect=True,
         gen_algorithm="Prim",
+        imperfect_algorithm="Choke_points",
         seed=randint(0, 99999999),
         pattern=[])
     maze.generate_maze()
