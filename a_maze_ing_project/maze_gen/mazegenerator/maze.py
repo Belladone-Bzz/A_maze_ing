@@ -23,6 +23,9 @@ CellCoordinates = Annotated[
 
 
 class GenerationError(Exception):
+    """Custom exception raised in the single case scenario where the entry or
+    exit coordinates are stuck inside the central pattern.
+    """
     pass
 
 
@@ -50,15 +53,22 @@ class Movements(Enum):
 
 class Maze:
     """Class Maze.
-    Nested_class: Config, Cell.
+    Nested classes: Config, Cell.
+
     Attributes: width, height, entry, exit, perfect,
     gen_algorithm, imperfect_algorithm, seed, pattern, config, cells.
-    Methods: init, integrate_pattern, add_enclosed_cells_to_pattern,
-    grid_generation,get_neighbor_coord, is_available, is_in_maze,
-    get_neighbors, break_wall, add_to_maze, path_to_not_in_maze,
-    check_consec_walls, find_dead_end, dead_end_opener, backtracking_algo,
-    prim_algo, hunt_and_kill_algo, make_maze_imperfect, generate_maze,
-    stepped_generation, repr.
+
+    Methods:
+    - init, repr,
+    - grid_generation, integrate_pattern, add_enclosed_cells_to_pattern,
+    - get_cell, get_movement, get_neighbor_coord, get_neighbors, find_dead_end,
+    is_available, is_in_maze,
+    - break_wall, add_wall, add_to_maze, path_to_not_in_maze,
+    - check_consec_walls, dead_end_opener, angles_opener,
+    room_closer, break_random_wall
+    - backtracking_algo, prim_algo, hunt_and_kill_algo,
+    - choke_points_algo, braided_algo,
+    - generate_maze, stepped_generation.
     """
     generation_algorithms: tuple[str, ...] = (
         "Backtracking", "Prim", "Hunt_and_kill")
@@ -73,10 +83,6 @@ class Maze:
             imperfect_algorithm: str, seed: int,
             pattern: list[list[bool]] = []) -> None:
         """Initialises the attributes of the Maze instance."""
-        if gen_algorithm not in self.generation_algorithms:
-            raise ValueError(
-                f"Invalid generation algorithm entered: {gen_algorithm}. "
-                f"Available: {", ".join(self.generation_algorithms)}")
         self.config = Maze.Config(
             WIDTH=width,
             HEIGHT=height,
@@ -96,6 +102,20 @@ class Maze:
             self.pattern_v_offset: int = (
                 int(self.config.HEIGHT / 2)
                 - int(len(self.config.PATTERN) / 2))
+
+    def __repr__(self) -> str:
+        """Method to display debug mode of the maze walls."""
+        maze: str = "+---" * self.config.WIDTH + "+\n"
+        for y in range(self.config.HEIGHT):
+            maze += "|" + "".join(
+                "   |" if cell.walls[Directions.EAST] is True else "    "
+                for cell in (
+                    self.cells[x][y] for x in range(self.config.WIDTH))) + "\n"
+            maze += "+" + "".join(
+                "---+" if cell.walls[Directions.SOUTH] is True else "   +"
+                for cell in (
+                    self.cells[x][y] for x in range(self.config.WIDTH))) + "\n"
+        return maze
 
     class Config(BaseModel):
         """Class Config
@@ -119,6 +139,16 @@ class Maze:
         def validate_config(self) -> "Maze.Config":
             """Model validator for maze's configuration."""
             error_message: str = ""
+            if self.GEN_ALGORITHM not in Maze.generation_algorithms:
+                error_message += (
+                    f"Invalid generation algorithm entered:"
+                    f"{self.GEN_ALGORITHM}. "
+                    f"Available: {", ".join(Maze.generation_algorithms)}")
+            if self.IMPERFECT_ALGORITHM not in Maze.imperfect_algorithms:
+                error_message += (
+                    f"Invalid imperfect maze generation algorithm entered:"
+                    f"{self.IMPERFECT_ALGORITHM}. "
+                    f"Available: {", ".join(Maze.imperfect_algorithms)}")
             if self.PATTERN != []:
                 if all(
                         len(line) == len(self.PATTERN[0])
@@ -183,6 +213,30 @@ class Maze:
             self.is_in_maze: bool = False
             self.is_visited: bool = False
 
+    # _________________________________________________________________________
+    #                         INITIALIZATION METHODS
+    # _________________________________________________________________________
+
+    def grid_generation(self, walled: bool) -> None:
+        """Method to generate all the cells in the maze grid in a
+        list[list[Maze.Cell]] Only the outer walls are set to True.
+        Entry and Exit cells are memorized.
+        """
+        for x in range(self.config.WIDTH):
+            self.cells.append([])
+            for y in range(self.config.HEIGHT):
+                self.cells[x].append(Maze.Cell((x, y), walled))
+        for cell in self.cells[0]:
+            cell.walls[Directions.WEST] = True
+        for cell in self.cells[-1]:
+            cell.walls[Directions.EAST] = True
+        for x in range(self.config.WIDTH):
+            self.cells[x][0].walls[Directions.NORTH] = True
+            self.cells[x][-1].walls[Directions.SOUTH] = True
+        self.get_cell(self.config.ENTRY).entry = True
+        self.get_cell(self.config.EXIT).exit = True
+        self.integrate_pattern()
+
     def integrate_pattern(self) -> None:
         """Method that reads the given PATTERN and applies it to the current
         Maze, marking all concerned cells as pattern (attribute set to True),
@@ -220,32 +274,23 @@ class Maze:
                     self.cells[x + self.pattern_h_offset][
                         y + self.pattern_v_offset].pattern = True
 
-    def grid_generation(self, walled: bool) -> None:
-        """Method to generate all the cells in the maze grid in a
-        list[list[Maze.Cell]] Only the outer walls are set to True.
-        Entry and Exit cells are memorized.
-        """
-        for x in range(self.config.WIDTH):
-            self.cells.append([])
-            for y in range(self.config.HEIGHT):
-                self.cells[x].append(Maze.Cell((x, y), walled))
-        for cell in self.cells[0]:
-            cell.walls[Directions.WEST] = True
-        for cell in self.cells[-1]:
-            cell.walls[Directions.EAST] = True
-        for x in range(self.config.WIDTH):
-            self.cells[x][0].walls[Directions.NORTH] = True
-            self.cells[x][-1].walls[Directions.SOUTH] = True
-        self.get_cell(self.config.ENTRY).entry = True
-        self.get_cell(self.config.EXIT).exit = True
-        self.integrate_pattern()
-
     # _________________________________________________________________________
-    #                            GENERATION UTILS
+    #                            MAZE INFO GETTERS
     # _________________________________________________________________________
 
     def get_cell(self, cell: CellCoordinates) -> Cell:
+        """Returns the Cell object present at the given coordinates.
+        Raises an IndexError if the cell is outside the maze.
+        """
         return self.cells[cell[0]][cell[1]]
+
+    def get_movement(
+            self, source: CellCoordinates, dest: CellCoordinates) -> Movements:
+        """Get the movement to apply when moving from the source cell to the
+        destination. Because it fetches it from the Movements enum, if the
+        given cells aren't neighbors, it will raise an AttributeError.
+        """
+        return Movements(((dest[0] - source[0]), (dest[1] - source[1])))
 
     def get_neighbor_coords(self, coords: CellCoordinates,
                             movement: tuple[int, int]) -> CellCoordinates:
@@ -256,25 +301,8 @@ class Maze:
             coords[0] + movement[0], coords[1] + movement[1])
         return neighbor
 
-    def is_available(self, coords: CellCoordinates) -> bool:
-        """Check that a cell is accessible: within the grid and not reserved
-        for the central pattern.
-        """
-        if (coords[0] < 0 or coords[1] < 0
-                or coords[0] >= self.config.WIDTH
-                or coords[1] >= self.config.HEIGHT):
-            return False
-        if (self.config.PATTERN != [] and
-                self.get_cell(coords).pattern is True):
-            return False
-        return True
-
-    def is_in_maze(self, coords: CellCoordinates) -> bool:
-        """Check whether a cell is in the maze or not."""
-        return self.get_cell(coords).is_in_maze
-
     def get_neighbors(self, coords: CellCoordinates,
-                      in_maze: bool | None) -> list[CellCoordinates]:
+                      in_maze: bool | None = None) -> list[CellCoordinates]:
         """Return a list of available neighbors. The list can be filtered to
         include only neighbors that have been added to maze, those that aren't,
         or all of them without distinction.
@@ -291,17 +319,62 @@ class Maze:
             neighbors.append(potential_neighbor)
         return neighbors
 
+    def find_dead_end(self) -> list[CellCoordinates]:
+        """Search all dead end in the maze, make a list of their coordinate
+        and return it. Doesn't include dead-ends encased into the pattern.
+        """
+        dead_end: list[CellCoordinates] = []
+        for y in range(0, (self.config.HEIGHT)):
+            for x in range(0, (self.config.WIDTH)):
+                if (sum(not self.is_available(self.get_neighbor_coords((x, y),
+                        move.value)) for move in Movements) < 3
+                        and sum(self.cells[x][y].walls) == 3):
+                    dead_end.append((x, y))
+        shuffle(dead_end)
+        return dead_end
+
+    def is_available(self, coords: CellCoordinates) -> bool:
+        """Check that a cell is accessible: within the grid and not reserved
+        for the central pattern.
+        """
+        if (coords[0] < 0 or coords[1] < 0
+                or coords[0] >= self.config.WIDTH
+                or coords[1] >= self.config.HEIGHT):
+            return False
+        if (self.config.PATTERN != [] and
+                self.get_cell(coords).pattern is True):
+            return False
+        return True
+
+    def is_in_maze(self, coords: CellCoordinates) -> bool:
+        """Check whether a cell is part of the maze or not yet explored by
+        the generation algorithm.
+        """
+        return self.get_cell(coords).is_in_maze
+
+    # _________________________________________________________________________
+    #                            GENERATION UTILS
+    # _________________________________________________________________________
+
     def break_wall(self, coords: CellCoordinates,
                    neighbor: CellCoordinates) -> None:
         """Break down the wall between two cells. They must be directly
         adjacent to each other.
         """
-        direction = Movements(
-            ((neighbor[0] - coords[0]), (neighbor[1] - coords[1])))
-        opposite = Movements(
-            (-(neighbor[0] - coords[0]), -(neighbor[1] - coords[1])))
+        direction: Movements = self.get_movement(coords, neighbor)
+        opposite: Movements = self.get_movement(neighbor, coords)
         self.get_cell(coords).walls[Directions[direction.name]] = False
         self.get_cell(neighbor).walls[Directions[opposite.name]] = False
+
+    def add_wall(self, coords: CellCoordinates,
+                 neighbor: CellCoordinates) -> None:
+        """Add up a wall between two cells. They must be directly
+        adjacent to each other.
+        """
+        direction: Movements = self.get_movement(coords, neighbor)
+        opposite: Movements = self.get_movement(neighbor, coords)
+        self.get_cell(coords).walls[Directions[direction.name]] = True
+        self.get_cell(neighbor).walls[Directions[opposite.name]] = True
 
     def add_to_maze(self, coords: CellCoordinates) -> None:
         """Set the cell to is_in_maze = True."""
@@ -309,10 +382,10 @@ class Maze:
 
     def path_to_not_in_maze(self,
                             coords: CellCoordinates) -> CellCoordinates | None:
-        """Find the neighbors of the cell with the coordinates passed as an
-        argument. Break down the walls between that cell and one of its
-        randomly selected neighbors. Return the coordinate of the new cell in
-        the maze, or None if the initial cell has no neighbors.
+        """Find the neighbors that aren't yet in the maze of the cell with the
+        coordinates passed as argument. Break down the walls between that cell
+        and one of its randomly selected neighbors. Return the coordinate of
+        the new cell in the maze, or None if the initial cell has no neighbors.
         """
         neighbors: list[CellCoordinates] = self.get_neighbors(coords, False)
         if neighbors == []:
@@ -322,6 +395,10 @@ class Maze:
         self.break_wall(coords, next_cell)
         self.add_to_maze(next_cell)
         return next_cell
+
+    # _________________________________________________________________________
+    #                       IMPERFECT MAZE GENERATION UTILS
+    # _________________________________________________________________________
 
     def check_consec_walls(self) -> list[list[CellCoordinates]]:
         """Check if a wall is part of a sequence of 3+ consecutive walls
@@ -352,19 +429,7 @@ class Maze:
             consecutive_walls = 0
         return walls_to_break
 
-    def find_dead_end(self) -> list[CellCoordinates]:
-        """Search all dead end in the maze, make a list of their coordinate
-        and return it.
-        """
-        dead_end: list[CellCoordinates] = []
-        for y in range(0, (self.config.HEIGHT)):
-            for x in range(0, (self.config.WIDTH)):
-                if sum(self.cells[x][y].walls) == 3:
-                    dead_end.append((x, y))
-        shuffle(dead_end)
-        return dead_end
-
-    def dead_end_opener(self) -> Generator[None]:
+    def dead_end_opener(self, anti_room: bool = True) -> Generator[None]:
         """Search dead end and make a path in an optimal way to avoid chambers
         in the maze. In order of priority: 1.Open the wall opposite the
         dead-end opening if the opposite cell is available. 2.Search for a
@@ -381,8 +446,8 @@ class Maze:
             opposite_dir: int = ((entry_dir + 2) % 4)
             opposite_mov: tuple[int, int] = Movements[
                 Directions(opposite_dir).name].value
-            ideal_cell: CellCoordinates = (
-                (coords[0] + opposite_mov[0]), (coords[1] + opposite_mov[1]))
+            ideal_cell: CellCoordinates = self.get_neighbor_coords(
+                coords, opposite_mov)
             if self.is_available(ideal_cell) is False:
                 continue
             self.break_wall(coords, ideal_cell)
@@ -396,23 +461,80 @@ class Maze:
                 Directions(entry_dir).name].value
             side_dir: tuple[int, int] = (
                 ((entry_dir + 1) % 4), ((entry_dir + 3) % 4))
-            cell_before_entry: CellCoordinates = (
-                    (coords[0] + entry_mov[0]), (coords[1] + entry_mov[1]))
+            cell_before_entry: CellCoordinates = self.get_neighbor_coords(
+                coords, entry_mov)
             for side in side_dir:
                 dead_end_walled: bool = self.get_cell(coords).walls[side]
                 before_walled: bool = self.get_cell(
                     cell_before_entry).walls[side]
-                if before_walled != dead_end_walled:
+                if before_walled != dead_end_walled and anti_room is True:
                     continue
                 side_mov: CellCoordinates = Movements[
                     Directions(side).name].value
-                side_cell: CellCoordinates = (
-                    (coords[0] + side_mov[0]), (coords[1] + side_mov[1]))
+                side_cell: CellCoordinates = self.get_neighbor_coords(
+                    coords, side_mov)
                 if self.is_available(side_cell) is True:
                     self.break_wall(coords, side_cell)
                     yield None
+                    break
+
+    def angles_opener(self) -> Generator[None]:
+        """Part of the braided algorithm, ensuring no dead-end remains in the
+        maze. This step is opening up angles of the maze. It first finds
+        which wall is closed, opens it, and places it back by 'rotating' it
+        inward. Yields None each time a wall is placed back.
+        """
+        angles: list[CellCoordinates] = [
+            (0, 0), (self.config.WIDTH - 1, 0), (0, self.config.HEIGHT - 1),
+            (self.config.WIDTH - 1, self.config.HEIGHT - 1)]
+        for angle in angles:
+            if sum(self.get_cell(angle).walls) > 2:
+                for neigh in self.get_neighbors(angle):
+                    dir: Directions = Directions[
+                        self.get_movement(angle, neigh).name]
+                    if not self.get_cell(angle).walls[dir]:
+                        continue
+                    self.break_wall(angle, neigh)
+                    sides: tuple[Directions, Directions] = (
+                        Directions((dir + 1) % 4), Directions((dir + 3) % 4))
+                    for side in sides:
+                        side_neigh: CellCoordinates = self.get_neighbor_coords(
+                                neigh, Movements[side.name].value)
+                        if self.is_available(side_neigh) is True:
+                            self.add_wall(neigh, side_neigh)
+                            yield None
+                            break
+
+    def room_closer(self) -> Generator[None]:
+        """Detect 'rooms', areas where four cells aren't separated by any wall,
+        and add a new wall randomly to ensure every hallway in the maze is only
+        1 cell large anywhere. Yields None every time a room is closed.
+        """
+        for x in range(0, self.config.WIDTH - 1):
+            for y in range(0, self.config.HEIGHT - 1):
+                cell_group: tuple[CellCoordinates, ...] = (
+                    (x, y), (x, y + 1), (x, y), (x + 1, y))
+                if any(self.get_cell(cell).walls[Directions.EAST]
+                        for cell in cell_group[:2]):
+                    continue
+                if any(self.get_cell(cell).walls[Directions.SOUTH]
+                        for cell in cell_group[2:]):
+                    continue
+                rand_index: int = randint(0, 3)
+                rand_cell: CellCoordinates = cell_group[rand_index]
+                self.add_wall(rand_cell, self.get_neighbor_coords(
+                    rand_cell, Movements.EAST.value
+                    if rand_index in (0, 1) else Movements.SOUTH.value))
+                yield None
 
     def break_random_wall(self) -> None:
+        """Pick a dead-end from the dead-end list returned by the dedicated
+        method, and break one of its side walls, because this method is only
+        called after all dead-end have been remove by deleting their back
+        wall. This is a fail-safe for the choke-points algorithm if the
+        maze generation can't ensure the prevention of room creation within
+        the maze.
+        """
         for coords in self.find_dead_end():
             entry_dir = self.get_cell(coords).walls.index(False)
             side_dir: tuple[int, int] = (
@@ -524,13 +646,14 @@ class Maze:
             yield None
 
     # _________________________________________________________________________
-    #                    IMPERFECT GENERATION AND DISPLAY
+    #                   IMPERFECT MAZE GENERATION ALGORITHMS
     # _________________________________________________________________________
 
     def choke_points_algo(self) -> Generator[None]:
-        """Make an imperfect maze from a perfect one. Use check_consec_walls()
-        method to have all the walls to broke. If there is none, use
-        dead_end_opener() method.
+        """Turn a perfect maze into an imperfect one by breaking walls that
+        are 3 cells long, ensuring no room are created. If no wall can be
+        broken that way, open up a single dead-end with dead-end opener.
+        Yields None when walls a broken.
         """
         def break_east_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and its right neighbor."""
@@ -570,12 +693,30 @@ class Maze:
                 self.break_random_wall()
 
     def braided_algo(self) -> Generator[None]:
-        for _ in self.dead_end_opener():
-            input()
-            yield None
+        """Imperfect algorithm which purpose is to open up loops within the
+        maze by eliminating every dead-end. Loops through 3 actions until the
+        only remaining dead-ends are caused by the pattern, ensuring no room
+        is created in the process.
+        - Open up dead-ends first through their back wall, then their side
+        wall if their back wall leads outside the maze, sometimes creating
+        rooms.
+        - Open up the angles of the maze by moving the sidewall that's inside
+        the maze inward, sometimes creating other dead-end.
+        - Close down rooms by placing randomly a wall inside each of them,
+        sometimes creating dead-ends.
+        Loops and yields None for each action until no dead-end are to be
+        found. Edge cases may generate infinite loops.
+        """
+        while len(self.find_dead_end()) != 0:
+            for _ in self.dead_end_opener(False):
+                yield None
+            for _ in self.angles_opener():
+                yield None
+            for _ in self.room_closer():
+                yield None
 
     # _________________________________________________________________________
-    #                       MAZE GENERATION AND DISPLAY
+    #                       MAZE GENERATION TRIGGERS
     # _________________________________________________________________________
 
     def generate_maze(self) -> None:
@@ -615,20 +756,6 @@ class Maze:
         if self.config.PERFECT is False:
             for _ in algorithms[self.config.IMPERFECT_ALGORITHM]():
                 yield None
-
-    def __repr__(self) -> str:
-        """Method to display debug mode of the maze walls."""
-        maze: str = "+---" * self.config.WIDTH + "+\n"
-        for y in range(self.config.HEIGHT):
-            maze += "|" + "".join(
-                "   |" if cell.walls[Directions.EAST] is True else "    "
-                for cell in (
-                    self.cells[x][y] for x in range(self.config.WIDTH))) + "\n"
-            maze += "+" + "".join(
-                "---+" if cell.walls[Directions.SOUTH] is True else "   +"
-                for cell in (
-                    self.cells[x][y] for x in range(self.config.WIDTH))) + "\n"
-        return maze
 
 
 if __name__ == "__main__":

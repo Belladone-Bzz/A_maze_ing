@@ -180,9 +180,9 @@ if __name__ == "__main__":
     except GenerationError as error:
         print_error(f"\n- {error}")
         output = 5
-    except Exception as error:
-        print_error(f"\nUnexpected exception occured:\n- {error}")
-        output = 6
+    # except Exception as error:
+    #     print_error(f"\nUnexpected exception occured:\n- {error}")
+    #     output = 6
 
     exits: tuple[str, ...] = (
         "Success", "Not enough argument", "File parsing error",

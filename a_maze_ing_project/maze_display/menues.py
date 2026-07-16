@@ -59,7 +59,9 @@ def instantiate_menues(
         values to cycle through them from the maze config menu.
         """
         match option:
-            case "height" | "width" | "seed":
+            case "height" | "width":
+                return range(3, 1000)
+            case "seed":
                 return range(0, 1000000000000)
             case "entry" | "exit":
                 return (
@@ -110,6 +112,13 @@ def instantiate_menues(
         config["seed"] = str(randint(0, 1000000000000))
         seed(current_seed)
         return ""
+
+    def regenerate_maze(_: str) -> str:
+        """Randomize the seed and return the 'maze_gen' string to trigger
+        the generation of a new maze.
+        """
+        randomize_seed("")
+        return "maze_gen"
 
     class Option:
         """Option class: takes various string, list of strings and sometimes
@@ -261,6 +270,9 @@ def instantiate_menues(
             Option(name="save config", option_type="validate",
                    text="Save configuration to config.txt",
                    exec=partial(lambda _: "save_config", "")),
+            Option(name="random regen", option_type="validate",
+                   text="Regenerate with random seed",
+                   exec=partial(regenerate_maze, "")),
             Option(name="generate", option_type="validate",
                    text="Generate new maze",
                    exec=partial(change_menu, "maze_config")),
@@ -287,6 +299,9 @@ def instantiate_menues(
             Option(name="sol_algorithm", option_type="selection",
                    options=list(MazeSolver.solving_algorithms),
                    text=f"{"Solving algorithm:":<20}""{value:>15}"),
+            Option(name="imperfect_algorithm", option_type="selection",
+                   options=list(Maze.imperfect_algorithms),
+                   text=f"{"Imperfect algorithm:":<20}""{value:>15}"),
             Option(name="seed", option_type="slider",
                    text=f"{"Generation seed:":<22}""{value:>13}"),
             Option(name="randomize seed", option_type="validate",
@@ -419,7 +434,7 @@ def instantiate_menues(
         elif current_action == "maze_error":
             nonlocal current_error
             current_error = user_input
-        elif current_action == "back_to_main":
+        elif current_action == "back_to_main" and current_menu != "main":
             for key, value in config.items():
                 config_save[key] = value
             change_menu("main")

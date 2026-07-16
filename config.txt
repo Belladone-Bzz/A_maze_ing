@@ -24,7 +24,7 @@ OUTPUT_FILE=output_file
 
 PERFECT=False
 SEED=123456789
-PATTERN=None
+PATTERN=Forty_two
 GEN_SPEED=1
 
 # Color, characters and styling theme to apply when printing the generated maze.
