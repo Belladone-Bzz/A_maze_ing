@@ -167,7 +167,20 @@ class Config(BaseModel):
 
 class Maze:
     """### Class Maze.
-    Nested class: Cell.
+
+    Uses various variables to be able to generate itself, first as a grid,
+    and if a pattern is given, locking all cells that are part of it as such.
+    Then using 1 of 3 maze generating algorithm (Backtracking, Prim's, Hunt
+    and Kill). If perfect is False, the Maze will use 1 of 2 imperfect
+    algorithms (Choke points, Braided) to create loops in paths, while
+    avoiding the creation of rooms at all cost.
+
+    Once done, the cells attribute of the Maze will be a matrix of nested class
+    Cell objects with walls in each direction either set to True or False. It
+    can then be used for solving purposes, or anything you'd need a maze for.
+
+    The Maze class provide str and repr methods to print out a simplified
+    version of the walls, as well as a detailed list of all of its attributes.
 
     #### Parameter:
     - Config object
@@ -179,7 +192,7 @@ class Maze:
         - seed, pattern.
     - From Maze itself:
         - cells,
-        - pattern_width, pattern_height, pattern_h_offset, pattern_v_offset,
+        - pattern_h_offset, pattern_v_offset,
         - initialized, generated, imperfected, pattern_implemented.
 
     #### Methods:
