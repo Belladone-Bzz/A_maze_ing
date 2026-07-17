@@ -19,27 +19,52 @@ This file can be found as a [Github Gist here](https://gist.github.com/Belladone
 
 #### Enums:
 - `Directions(IntEnum)`: Enum for WEST(0), SOUTH(1), EAST(2) and NORTH(3) directions.
-- `Movements(Enum)`: Enum for WEST(-1, 0), SOUTH(0, +1), EAST(+1, 0) and NORTH(0, -1) movements. Each direction is associated with a tuple of x, y movements to go in the given direction.
+- `Movements(Enum)`: Enum for:
+	- west(-1, 0),
+	- south(0, +1),
+	- east(+1, 0),
+	- north(0, -1).
+
+	Each direction is associated with a tuple of x, y movements to go on in the given direction.
 
 #### Classes:
 - `Maze`: Class Maze.
 	- **Utility:** Contain all classes, methods and algorithms used to generate a maze.
-	- **Nested_class:** Config, Cell.
-	- **Attributes:** width, height, entry, exit, perfect, gen_algorithm, seed, pattern, config, cells.
-	- **Methods:** init, integrate_pattern, add_enclosed_cells_to_pattern, grid_generation, get_neighbor_coord, is_available, is_in_maze, get_neighbors, break_wall, add_to_maze, path_to_not_in_maze, check_consec_walls, find_dead_end, dead_end_opener, backtracking_algo, prim_algo, hunt_and_kill_algo, make_maze_imperfect, generate_maze, stepped_generation, repr   
+	- **Nested_class:** Cell.
+	- **Attributes:**
+		- <u>Maze Config Attributes:</u> width, height, entry, exit, perfect, gen_algorithm, imperfect_algorithm, pattern,
+		- <u>Cell Matrix:</u> cells,
+		- <u>Pattern Attributes:</u> pattern_h_offset, pattern_v_offset,
+		- <u>Generation flags:</u> initialized, pattern_implemented, generated, imperfected.
+	- **Methods:**
+		- init, str, repr,
+		- <u>Maze initialization:</u> grid_generation, integrate_pattern, add_enclosed_cells_to_pattern,
+		- <u>Maze info getters:</u> get_cell, get_movement, get_neighbor_coord, get_neighbors, find_dead_end, is_available, is_in_maze,
+		- <u>Generation utility:</u> break_wall, add_wall, add_to_maze, path_to_not_in_maze,
+		- <u>Imperfect maze generation utility:</u> check_consec_walls, dead_end_opener, room_closer, break_random_wall,
+		- <u>Generation algorithms:</u> backtracking_algo, prim_algo, hunt_and_kill_algo,
+		- <u>Imperfect algorithms:</u> choke_points_algo, braided_algo,
+		- <u>Maze generation triggers:</u> generate_maze, stepped_generation.
 
--  `Config`: Class Config, nested in Maze class. Inherit from BaseModel from Pydantic module.
-	- **Utility:** Check that the maze configuration given is correct.
-	- **Attributes:** WIDTH, HEIGHT, ENTRY, EXIT, GEN_ALGORITHM, PATTERN, PERFECT, SEED.
-	- **Methods:** validate_config.
-
--  `Cell`: Class Cell, nested in Maze class.
+- `Cell`: Class Cell, nested in Maze class.
 	- **Utility:** Allows you to instantiate, store and manipulate each cell in the grid.
 	- **Attributes:** coordinates, walls, entry, exit, pattern, is_in_maze, is_visited.
 	- **Methods:** init.
 
+- `Config`: Class Config, nested in Maze class. Inherit from BaseModel from Pydantic module.
+	- **Utility:** Check that the maze configuration given is correct.
+	- **Attributes:** WIDTH, HEIGHT, ENTRY, EXIT, GEN_ALGORITHM, PATTERN, PERFECT, SEED.
+	- **Methods:** validate_config, check_pattern.
+
 - `GenerationError`: Custom Exception.
-	- **Utility:** Raised in the unique instance where the entry or exit points are found stuck inside the pattern AFTER the maze has been generated (because some cells could be inaccessible inside the pattern, this cannot be verified by the Config nested class before the Maze is generated).
+	- **Utility:** Custom exception raised at specific times if the maze generation steps have not been correctly called, which would result in unexpected errors.
+
+	Otherwise raised in the single case scenario where the entry or exit coordinates are stuck inside the central pattern.
+
+	- **Parameters:**
+		- Maze object that has raised the error (to print with str or repr method)
+		- msg, a string message containing a specialized notice on the exception
+		that occured
 
 #### Functions:
 
@@ -70,7 +95,7 @@ This file can be found as a [Github Gist here](https://gist.github.com/Belladone
 	- `prim_algo(self) -> Generator[None]`: Generate a perfect maze with a Prim algorithm. Return a Generator to display a dynamic maze.
 	- `hunt_and_kill_algo(self) -> Generator[None]`: Generate a perfect maze with a Hunt and Kill algorithm. Return a Generator to display a dynamic maze.
 - **Imperfect maze generation algorithms**
-	- `make_maze_imperfect(self) -> Generator[None]`: Turn a perfect maze into an imperfect one by breaking walls that are 3 cells long, ensuring no room are created. If no wall can be broken that way, open up a single dead-end with dead-end opener. Yields None when walls a broken.
+	- `choke_points_algo(self) -> Generator[None]`: Turn a perfect maze into an imperfect one by breaking walls that are 3 cells long, ensuring no room are created. If no wall can be broken that way, open up a single dead-end with dead-end opener. Yields None when walls a broken.
 	- `braided_algo(self) -> Generator[None]`: Imperfect algorithm which purpose is to open up loops within the maze by eliminating every dead-end. Loops through 3 actions until the only remaining dead-ends are caused by the pattern, ensuring no room is created in the process.
 		- Open up dead-ends first through their back wall, then their side wall if their back wall leads outside the maze, sometimes creating rooms.
 		- Open up the angles of the maze by moving the sidewall that's inside the maze inward, sometimes creating other dead-end.
