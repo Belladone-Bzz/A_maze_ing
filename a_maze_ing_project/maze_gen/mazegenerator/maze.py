@@ -64,8 +64,7 @@ class Maze:
     - get_cell, get_movement, get_neighbor_coord, get_neighbors, find_dead_end,
     is_available, is_in_maze,
     - break_wall, add_wall, add_to_maze, path_to_not_in_maze,
-    - check_consec_walls, dead_end_opener, angles_opener,
-    room_closer, break_random_wall
+    - check_consec_walls, dead_end_opener, room_closer, break_random_wall,
     - backtracking_algo, prim_algo, hunt_and_kill_algo,
     - choke_points_algo, braided_algo,
     - generate_maze, stepped_generation.
@@ -478,33 +477,6 @@ class Maze:
                     yield None
                     break
 
-    def angles_opener(self) -> Generator[None]:
-        """Part of the braided algorithm, ensuring no dead-end remains in the
-        maze. This step is opening up angles of the maze. It first finds
-        which wall is closed, opens it, and places it back by 'rotating' it
-        inward. Yields None each time a wall is placed back.
-        """
-        angles: list[CellCoordinates] = [
-            (0, 0), (self.config.WIDTH - 1, 0), (0, self.config.HEIGHT - 1),
-            (self.config.WIDTH - 1, self.config.HEIGHT - 1)]
-        for angle in angles:
-            if sum(self.get_cell(angle).walls) > 2:
-                for neigh in self.get_neighbors(angle):
-                    dir: Directions = Directions[
-                        self.get_movement(angle, neigh).name]
-                    if not self.get_cell(angle).walls[dir]:
-                        continue
-                    self.break_wall(angle, neigh)
-                    sides: tuple[Directions, Directions] = (
-                        Directions((dir + 1) % 4), Directions((dir + 3) % 4))
-                    for side in sides:
-                        side_neigh: CellCoordinates = self.get_neighbor_coords(
-                                neigh, Movements[side.name].value)
-                        if self.is_available(side_neigh) is True:
-                            self.add_wall(neigh, side_neigh)
-                            yield None
-                            break
-
     def room_closer(self) -> Generator[None]:
         """Detect 'rooms', areas where four cells aren't separated by any wall,
         and add a new wall randomly to ensure every hallway in the maze is only
@@ -709,8 +681,6 @@ class Maze:
         """
         while len(self.find_dead_end()) != 0:
             for _ in self.dead_end_opener(False):
-                yield None
-            for _ in self.angles_opener():
                 yield None
             for _ in self.room_closer():
                 yield None
