@@ -27,12 +27,12 @@ We gave a great deal of thought to the generation of imperfect mazes. We could h
 	- **Utility:** Contain all classes, methods and algorithms used to generate a maze.
 	- **Nested_class:** Cell.
 	- **Attributes:**
-		- <u>Maze Config Attributes:</u> width, height, entry, exit, perfect, gen_algorithm, imperfect_algorithm, pattern,
+		- <u>Maze Config Attributes / Parameters:</u> width, height, entry, exit, perfect, gen_algorithm, imperfect_algorithm, pattern,
 		- <u>Cell Matrix:</u> cells,
 		- <u>Pattern Attributes:</u> pattern_h_offset, pattern_v_offset,
 		- <u>Generation flags:</u> initialized, pattern_implemented, generated, imperfected.
 	- **Methods:**
-		- init, str, repr,
+		- init, from_config, parse_config, instantiate_attributes, str, repr,
 		- <u>Maze initialization:</u> grid_generation, integrate_pattern, add_enclosed_cells_to_pattern,
 		- <u>Maze info getters:</u> get_cell, get_movement, get_neighbor_coord, get_neighbors, find_dead_end, is_available, is_in_maze,
 		- <u>Generation utility:</u> break_wall, add_wall, add_to_maze, path_to_not_in_maze,
@@ -63,6 +63,13 @@ We gave a great deal of thought to the generation of imperfect mazes. We could h
 
 ## Functions:
 
+- **Maze instantiation:**
+	- `__init__(self, config: Config) -> None`: Constructor of a Maze instance. Updates its own attributes using the valid Config object and  instantiated other necessary variables.
+	- `from_values(cls, width: MazeDimension, height: MazeDimension, entry: CellCoordinates, exit: CellCoordinates, perfect: bool, gen_algorithm: str, imperfect_algorithm: str, seed: int, pattern: list[list[bool]]) -> 'Maze'`: In case of handling bare values, this method will return a Maze  instance through the creation of a Config object. MazeDimensions are integers, and CellCoordinates are of type tuple[int, int]. Will raise a Validation error if the variables cannot work together.
+	- `__parse_config__(self, config: Config) -> None`: Using a valid Config object, retrieve its attributes and add them to self.
+	- `__instantiate_attributes__(self) -> None`: Called after parsing a Config object, initialize other necessary Maze attributes.
+	- `__str__(self) -> str`: Method to display a simplified view of the maze walls.
+	- `__repr__(self) -> str`: Debug method displaying all information about the Maze.
 - **Maze grid and pattern:**
 	- `grid_generation(self, walled: bool) -> None`: Method to generate all the cells in the maze grid in a list[list[Maze.Cell]] Only the outer walls are set to True. Entry and Exit cells are memorized.
 	- `integrate_pattern(self) -> None`: Method that reads the given PATTERN and applies it to the current Maze, marking all concerned cells as pattern (attribute set to True), and marking up all their walls.

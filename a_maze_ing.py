@@ -6,7 +6,7 @@ from typing import cast
 from collections.abc import Callable
 
 from a_maze_ing_project import (
-    Maze, Config, GenerationError, MazeSolver,
+    Maze, GenerationError, MazeSolver,
     write_out_maze, write_out_config, generate_config,
     print_error, instantiate_maze_display,
     instantiate_menues, ProgramQuit, Patterns)
@@ -54,21 +54,20 @@ def instantiate_maze(
                 or len(config["exit"].split(",")) != 2):
             raise ValueError(
                 "The entry or exit tuple contains too many values")
-        maze_config: Config = Config(
-            WIDTH=int(config["width"]),
-            HEIGHT=int(config["height"]),
-            ENTRY=(
+        return Maze.from_values(
+            width=int(config["width"]),
+            height=int(config["height"]),
+            entry=(
                 int(config["entry"].split(",")[0]),
                 int(config["entry"].split(",")[1])),
-            EXIT=(
+            exit=(
                 int(config["exit"].split(",")[0]),
                 int(config["exit"].split(",")[1])),
-            PERFECT=(True if config["perfect"] == "True" else False),
-            GEN_ALGORITHM=config["gen_algorithm"],
-            IMPERFECT_ALGORITHM=config["imperfect_algorithm"],
-            SEED=int(config["seed"]),
-            PATTERN=getattr(Patterns, config["pattern"].upper()).value)
-        return Maze(maze_config)
+            perfect=(True if config["perfect"] == "True" else False),
+            gen_algorithm=config["gen_algorithm"],
+            imperfect_algorithm=config["imperfect_algorithm"],
+            seed=int(config["seed"]),
+            pattern=getattr(Patterns, config["pattern"].upper()).value)
     except (KeyError, TypeError, IndexError,
             ValueError, ValidationError) as error:
         message: str

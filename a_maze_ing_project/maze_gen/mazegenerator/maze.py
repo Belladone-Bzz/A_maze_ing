@@ -24,8 +24,9 @@ An example of execution is present at the bottom of the main file.
 skipped before the next.
 - Config: Parameter of the Maze class, taking in all necessary variables to
 check them before passing them to the Maze. Inherits BaseModel from Pydantic.
-- Maze: Hosts all methods related to its own generation, takes a Config
-as argument and duplicates all its attributes.
+- Maze: Hosts all methods related to its own generation, takes multiple
+variables as argument and checks them using a Config object. Can use a Config
+instance as argument directly using `from_config` class method.
     - Cell: Nested into Maze, contains a list of walls for each direction
     (booleans) and multiple useful flags.
 
@@ -206,6 +207,10 @@ class Config(BaseModel):
 class Maze:
     """### Class Maze.
 
+    This Maze class can be instantiated either using an already valid Config
+    object or with all parameters individually through the class method
+    `from_values`
+
     Uses various variables to be able to generate itself, first as a grid,
     and if a pattern is given, locking all cells that are part of it as such.
     Then using 1 of 3 maze generating algorithm (Backtracking, Prim's, Hunt
@@ -220,20 +225,17 @@ class Maze:
     The Maze class provide str and repr methods to print out a simplified
     version of the walls, as well as a detailed list of all of its attributes.
 
-    #### Parameter:
-    - Config object
+    #### Attributes taken from Config (or through from_values class method):
+    - width, height, entry, exit, perfect,
+    - gen_algorithm, imperfect_algorithm,
+    - seed, pattern.
 
-    #### Attributes:
-    - From Config object:
-        - width, height, entry, exit, perfect,
-        - gen_algorithm, imperfect_algorithm,
-        - seed, pattern.
-    - From Maze itself:
-        - cells,
-        - pattern_h_offset, pattern_v_offset,
-        - initialized, generated, imperfected, pattern_implemented.
+    #### Additional attributes:
+    - cells,
+    - pattern_h_offset, pattern_v_offset,
+    - initialized, generated, imperfected, pattern_implemented.
 
-    #### Methods:
+    #### Accessible methods:
     - init, str, repr,
     - grid_generation, integrate_pattern, add_enclosed_cells_to_pattern,
     - get_cell, get_movement, get_neighbor_coord, get_neighbors, find_dead_end,
@@ -258,9 +260,42 @@ class Maze:
     imperfect_algorithms: tuple[str, str] = (
         "Choke_points", "Braided")
 
-    def __init__(self, config: Config) -> None:
-        """Initialises the attributes of the Maze instance."""
+    def __init__(
+            self, config: Config) -> None:
+        """Constructor of a Maze instance.
 
+        Updates its own attributes using the valid Config object and
+        instantiated other necessary variables.
+
+        Note: the class method `from_values` can be used to input raw values
+        directly and retrive a Maze instance that way.
+        """
+        self.__parse_config__(config)
+        self.__instantiate_attributes__()
+
+    @classmethod
+    def from_values(
+            cls, width: MazeDimension, height: MazeDimension,
+            entry: CellCoordinates, exit: CellCoordinates,
+            perfect: bool, gen_algorithm: str, imperfect_algorithm: str,
+            seed: int, pattern: list[list[bool]]) -> 'Maze':
+        """In case of handling bare values, this method will return a Maze
+        instance through the creation of a Config object.
+
+        MazeDimensions are integers, and CellCoordinates are of type
+        tuple[int, int]
+
+        Will raise a Validation error if the variables cannot work together.
+        """
+        return cls(Config(
+            WIDTH=width, HEIGHT=height, ENTRY=entry, EXIT=exit,
+            PERFECT=perfect, GEN_ALGORITHM=gen_algorithm, SEED=seed,
+            IMPERFECT_ALGORITHM=imperfect_algorithm, PATTERN=pattern))
+
+    def __parse_config__(self, config: Config) -> None:
+        """Using a valid Config object, retrieve its attributes and add them
+        to self.
+        """
         self.width: MazeDimension = config.WIDTH
         self.height: MazeDimension = config.HEIGHT
         self.entry: CellCoordinates = config.ENTRY
@@ -269,9 +304,12 @@ class Maze:
         self.gen_algorithm: str = config.GEN_ALGORITHM
         self.imperfect_algorithm: str = config.IMPERFECT_ALGORITHM
         self.seed: int = config.SEED
-        set_seed(self.seed)
-
         self.pattern: list[list[bool]] = config.PATTERN
+
+    def __instantiate_attributes__(self) -> None:
+        """Called after parsing a Config object, initialize other necessary
+        Maze attributes.
+        """
         self.pattern_h_offset: int = -1
         self.pattern_v_offset: int = -1
         if self.pattern != []:
@@ -280,6 +318,7 @@ class Maze:
             self.pattern_v_offset = (
                 int(self.height / 2) - int(len(self.pattern) / 2))
 
+        set_seed(self.seed)
         self.cells: list[list[Maze.Cell]] = []
         self.initialized: bool = False
         self.generated: bool = False
@@ -352,6 +391,10 @@ class Maze:
         list[list[Maze.Cell]] Only the outer walls are set to True.
         Entry and Exit cells have their respective boolean set to True.
         """
+        if self.initialized is True:
+            raise GenerationError(
+                self,
+                "The Maze's grid of cells have already been initialized.")
         for x in range(self.width):
             self.cells.append([])
             for y in range(self.height):
@@ -379,6 +422,10 @@ class Maze:
             raise GenerationError(
                 self, "The maze was not initialized using the grid_generation "
                 "or a global generation method before pattern implementation.")
+        if self.pattern_implemented is True:
+            raise GenerationError(
+                self,
+                "The pattern has already been implemented into the Maze.")
         for x in range(len(self.pattern[0])):
             for y in range(len(self.pattern)):
                 if self.pattern[y][x] is False:
@@ -397,10 +444,10 @@ class Maze:
         """
         if self.pattern == []:
             return
-        if self.initialized is False:
+        if self.generated is False:
             raise GenerationError(
-                self, "The maze was not initialized using the grid_generation "
-                "or a global generation method before pattern implementation.")
+                self, "The maze was not generated by an algorithm or a global "
+                "generation method before checking for enclosed cells.")
         for x in range(self.pattern_h_offset,
                        self.pattern_h_offset + len(self.pattern[0])):
             for y in range(self.pattern_v_offset,
@@ -698,6 +745,10 @@ class Maze:
             raise GenerationError(
                 self, "Maze was not initialized using one of the implemented "
                 "grid_generation, stepped_generation or generate_maze method.")
+        if self.generated is True:
+            raise GenerationError(
+                self, "The Maze's hallways have already been generated using "
+                "a generation algorithm")
 
         start: CellCoordinates = self.get_starting_point()
         self.add_to_maze(start)
@@ -721,6 +772,10 @@ class Maze:
             raise GenerationError(
                 self, "Maze was not initialized using one of the implemented "
                 "grid_generation, stepped_generation or generate_maze method.")
+        if self.generated is True:
+            raise GenerationError(
+                self, "The Maze's hallways have already been generated using "
+                "a generation algorithm")
 
         starts: tuple[CellCoordinates, ...] = (
             (int((self.width - 1)/2), 0),
@@ -755,6 +810,10 @@ class Maze:
             raise GenerationError(
                 self, "Maze was not initialized using one of the implemented "
                 "grid_generation, stepped_generation or generate_maze method.")
+        if self.generated is True:
+            raise GenerationError(
+                self, "The Maze's hallways have already been generated using "
+                "a generation algorithm")
 
         start: CellCoordinates = self.get_starting_point()
         self.add_to_maze(start)
@@ -808,6 +867,10 @@ class Maze:
             raise GenerationError(
                 self, "Maze was not generated using an implemented algorithm "
                 "before attempting to imperfect it")
+        if self.imperfected is True:
+            raise GenerationError(
+                self, "The Maze has already been imperfected by an imperfect "
+                "algorithm.")
 
         def break_east_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and its right neighbor."""
@@ -866,6 +929,11 @@ class Maze:
             raise GenerationError(
                 self, "Maze was not generated using an implemented algorithm "
                 "before attempting to imperfect it")
+        if self.imperfected is True:
+            raise GenerationError(
+                self, "The Maze has already been imperfected by an imperfect "
+                "algorithm.")
+
         while len(self.find_dead_end()) != 0:
             for _ in self.dead_end_opener(False):
                 yield None

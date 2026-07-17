@@ -1,5 +1,5 @@
 
-from .maze_gen.mazegenerator import Maze, Config, GenerationError
+from .maze_gen.mazegenerator import Maze, GenerationError
 from .maze_solve import MazeSolver
 from .maze_io import write_out_maze, write_out_config, generate_config
 from .maze_display import (
@@ -8,7 +8,7 @@ from .maze_display import (
 
 
 __all__ = [
-    "Maze", "Config", "GenerationError", "MazeSolver",
+    "Maze", "GenerationError", "MazeSolver",
     "write_out_maze", "write_out_config", "generate_config",
     "print_error", "instantiate_maze_display", "instantiate_menues",
     "ProgramQuit", "Patterns"]

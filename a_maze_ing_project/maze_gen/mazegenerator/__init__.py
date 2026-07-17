@@ -24,8 +24,9 @@ An example of execution is present at the bottom of the main file.
 skipped before the next.
 - Config: Parameter of the Maze class, taking in all necessary variables to
 check them before passing them to the Maze. Inherits BaseModel from Pydantic.
-- Maze: Hosts all methods related to its own generation, takes a Config
-as argument and duplicates all its attributes.
+- Maze: Hosts all methods related to its own generation, takes multiple
+variables as argument and checks them using a Config object. Can use a Config
+instance as argument directly using `from_config` class method.
     - Cell: Nested into Maze, contains a list of walls for each direction
     (booleans) and multiple useful flags.
 
