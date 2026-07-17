@@ -87,9 +87,55 @@ class Config(BaseModel):
     PERFECT: Annotated[bool, Field()]
     SEED: Annotated[int, Field()]
 
+    def check_pattern(self) -> str:
+        """Run every test related to pattern validation:
+        - Check if every line and column is the same length,
+        - Check if the pattern is taller or wider than the maze,
+        - Check if the entry or exit coordinates are on a True value of the
+        pattern.
+
+        Returns an error message if any check encounter an error, else an empty
+        string.
+        """
+        message: str = ""
+        if self.PATTERN == []:
+            return ""
+        if all(len(line) == len(self.PATTERN[0])
+                for line in self.PATTERN) is False:
+            message += (
+                "The integrated pattern must be a tuple of tuple containing "
+                "boolean values only, with each line being the same length.")
+        if (self.WIDTH < len(self.PATTERN[0]) + 2
+                or self.HEIGHT < len(self.PATTERN) + 2):
+            message += (
+                "Generating a maze when integrating the central "
+                "pattern must be done with appropriate dimensions.")
+        h_offset: int = (int(self.WIDTH / 2) - int(len(self.PATTERN[0]) / 2))
+        v_offset: int = (int(self.HEIGHT / 2) - int(len(self.PATTERN) / 2))
+        h_range: range = range(h_offset, h_offset + len(self.PATTERN[0]))
+        v_range: range = range(v_offset, v_offset + len(self.PATTERN))
+        if (self.ENTRY[0] in h_range and self.ENTRY[1] in v_range
+                and self.PATTERN[self.ENTRY[1] - v_offset]
+                [self.ENTRY[0] - h_offset] is True):
+            message += ("Entry coordinates cannot be placed in pattern cells.")
+        if (self.EXIT[0] in h_range and self.EXIT[1] in v_range
+                and self.PATTERN[self.EXIT[1] - v_offset]
+                [self.EXIT[0] - h_offset] is True):
+            message += ("Exit coordinates cannot be placed in pattern cells.")
+        return message
+
     @model_validator(mode='after')
-    def validate_config(self) -> "Maze.Config":
-        """Model validator for maze's configuration."""
+    def validate_config(self) -> "Config":
+        """Model validator for maze's configuration, run these verifications:
+        - Check the generation and imperfect algorithms provided are
+        implemented in the Maze class,
+        - Check if the entry and exit coordinates are different and in range
+        of the maze,
+        - Run the check_pattern method with all pattern related validations.
+
+        Returns an error message made of every error encountered, otherwise
+        an empty string.
+        """
         error_message: str = ""
         if self.GEN_ALGORITHM not in Maze.generation_algorithms:
             error_message += (
@@ -101,38 +147,6 @@ class Config(BaseModel):
                 f"Invalid imperfect maze generation algorithm entered:"
                 f"{self.IMPERFECT_ALGORITHM}. "
                 f"Available: {", ".join(Maze.imperfect_algorithms)}")
-        if self.PATTERN != []:
-            if all(
-                    len(line) == len(self.PATTERN[0])
-                    for line in self.PATTERN) is False:
-                error_message += (
-                    "The integrated pattern must be a tuple of tuple "
-                    "containing boolean values only, with each line "
-                    "being the same length.")
-            if (
-                    self.WIDTH < len(self.PATTERN[0]) + 2
-                    or self.HEIGHT < len(self.PATTERN) + 2):
-                error_message += (
-                    "Generating a maze when integrating the central "
-                    "pattern must be done with appropriate dimensions.")
-            for x in range(len(self.PATTERN[0])):
-                for y in range(len(self.PATTERN)):
-                    if self.PATTERN[y][x] is True:
-                        pattern_h_offset: int = (
-                            int(self.WIDTH / 2)
-                            - int(len(self.PATTERN[0]) / 2))
-                        pattern_v_offset: int = (
-                            int(self.HEIGHT / 2)
-                            - int(len(self.PATTERN) / 2))
-                        in_pattern_coords: CellCoordinates = (
-                            x + pattern_h_offset,
-                            y + pattern_v_offset)
-                        if (
-                                in_pattern_coords == self.ENTRY
-                                or in_pattern_coords == self.EXIT):
-                            error_message += (
-                                "Entry and Exit coordinates cannot be "
-                                "placed in pattern cells.")
         if self.ENTRY == self.EXIT:
             error_message += (
                 "Entry and exit coordinates cannot be "
@@ -145,9 +159,11 @@ class Config(BaseModel):
             error_message += (
                 "Exit coordinates (x, y) "
                 "cannot exceed the maze's dimensions.")
+        error_message += self.check_pattern()
         if error_message != "":
             raise ValueError(error_message)
         return self
+
 
 class Maze:
     """### Class Maze.
@@ -196,35 +212,28 @@ class Maze:
 
         self.width: MazeDimension = config.WIDTH
         self.height: MazeDimension = config.HEIGHT
-        self.entry: CellCoordinates = config.ENTRY.copy()
-        self.exit: CellCoordinates = config.EXIT.copy()
+        self.entry: CellCoordinates = config.ENTRY
+        self.exit: CellCoordinates = config.EXIT
         self.perfect: bool = config.PERFECT
         self.gen_algorithm: str = config.GEN_ALGORITHM
         self.imperfect_algorithm: str = config.IMPERFECT_ALGORITHM
         self.seed: int = config.SEED
         set_seed(self.seed)
 
-        self.pattern: list[list[bool]] = config.PATTERN.copy()
-        self.pattern_width: int = -1
-        self.pattern_height: int = -1
+        self.pattern: list[list[bool]] = config.PATTERN
         self.pattern_h_offset: int = -1
         self.pattern_v_offset: int = -1
+        if self.pattern != []:
+            self.pattern_h_offset = (
+                int(self.width / 2) - int(len(self.pattern[0]) / 2))
+            self.pattern_v_offset = (
+                int(self.height / 2) - int(len(self.pattern) / 2))
 
         self.cells: list[list[Maze.Cell]] = []
         self.initialized: bool = False
         self.generated: bool = False
         self.imperfected: bool = False
         self.pattern_implemented: bool = False
-
-        if self.pattern != []:
-            self.pattern_width = len(self.pattern[0])
-            self.pattern_h_offset = (
-                int(self.width / 2)
-                - int(self.pattern_width / 2))
-            self.pattern_height = len(self.pattern)
-            self.pattern_v_offset = (
-                int(self.height / 2)
-                - int(self.pattern_height / 2))
 
     def __str__(self) -> str:
         """Method to display a simplified view of the maze walls."""
@@ -243,28 +252,28 @@ class Maze:
     def __repr__(self) -> str:
         """Debug method displaying all information about the Maze."""
         return (
-            f"{f"Maze Attributes:":^33}\n"
-            f"{"Width:":<23}{self.width}\n"
-            f"{"Height:":<23}{self.height}\n"
-            f"{"Entry:":<23}{self.entry}\n"
-            f"{"Exit:":<23}{self.exit}\n"
-            f"{"Perfect:":<23}{self.perfect}\n"
-            f"{"Generation algorithm:":<23}{self.gen_algorithm}\n"
-            f"{"Imperfect algorithm:":<23}{self.imperfect_algorithm}\n"
-            f"{"Seed:":<23}{self.seed}\n\n"
-            f"{f"Pattern Attributes:":^40}\n"
-            f"{"Pattern width:":<35}{self.pattern_width}\n"
-            f"{"Pattern height:":<35}{self.pattern_height}\n"
-            f"{"Pattern horizontal offset:":<35}{self.pattern_h_offset}\n"
-            f"{"Pattern vertical offset:":<35}{self.pattern_v_offset}\n"
-            f"{f"Effective Maze Information:":^40}\n"
-            f"{"Cell matrix width:":<35}{len(self.cells)}\n"
-            f"{"Cell matrix height:":<35}{(
+            f"{f"* Maze Attributes *":^40}\n"
+            f"{"- Width:":<35}{self.width}\n"
+            f"{"- Height:":<35}{self.height}\n"
+            f"{"- Entry:":<35}{self.entry}\n"
+            f"{"- Exit:":<35}{self.exit}\n"
+            f"{"- Perfect:":<35}{self.perfect}\n"
+            f"{"- Generation algorithm:":<35}{self.gen_algorithm}\n"
+            f"{"- Imperfect algorithm:":<35}{self.imperfect_algorithm}\n"
+            f"{"- Seed:":<35}{self.seed}\n\n"
+            f"{f"* Pattern Attributes *":^40}\n"
+            f"{"- Pattern width:":<35}{len(self.pattern[0])}\n"
+            f"{"- Pattern height:":<35}{len(self.pattern)}\n"
+            f"{"- Pattern horizontal offset:":<35}{self.pattern_h_offset}\n"
+            f"{"- Pattern vertical offset:":<35}{self.pattern_v_offset}\n\n"
+            f"{f"* Effective Maze Information *":^40}\n"
+            f"{"- Cell matrix width:":<35}{len(self.cells)}\n"
+            f"{"- Cell matrix height:":<35}{(
                 len(self.cells[0]) if len(self.cells) > 0 else "-")}\n"
-            f"{"Initialized (existing grid):":<35}{self.initialized}\n"
-            f"{"Pattern implemented:":<35}{self.pattern_implemented}\n"
-            f"{"Generated (gen algorithm done):":<35}{self.generated}\n"
-            f"{"Imperfected (maze imperfected):":<35}{self.imperfected}\n"
+            f"{"- Initialized (existing grid):":<35}{self.initialized}\n"
+            f"{"- Pattern implemented:":<35}{self.pattern_implemented}\n"
+            f"{"- Generated (gen algorithm done):":<35}{self.generated}\n"
+            f"{"- Imperfected (maze imperfected):":<35}{self.imperfected}\n"
         )
 
     class Cell:
@@ -290,7 +299,7 @@ class Maze:
     def grid_generation(self, walled: bool) -> None:
         """Method to generate all the cells in the maze grid in a
         list[list[Maze.Cell]] Only the outer walls are set to True.
-        Entry and Exit cells are memorized.
+        Entry and Exit cells have their respective boolean set to True.
         """
         for x in range(self.width):
             self.cells.append([])
@@ -317,11 +326,10 @@ class Maze:
             return
         if self.initialized is False:
             raise GenerationError(
-                self,
-                "The maze was not initialized using the grid_generation "
+                self, "The maze was not initialized using the grid_generation "
                 "or a global generation method before pattern implementation.")
-        for x in range(self.pattern_width):
-            for y in range(self.pattern_height):
+        for x in range(len(self.pattern[0])):
+            for y in range(len(self.pattern)):
                 if self.pattern[y][x] is False:
                     continue
                 self.cells[x + self.pattern_h_offset][
@@ -340,22 +348,19 @@ class Maze:
             return
         if self.initialized is False:
             raise GenerationError(
-                self,
-                "The maze was not initialized using the grid_generation "
+                self, "The maze was not initialized using the grid_generation "
                 "or a global generation method before pattern implementation.")
-        for x in range(self.pattern_width):
-            for y in range(self.pattern_height):
-                if self.cells[x + self.pattern_h_offset][
-                        y + self.pattern_v_offset].is_in_maze is False:
-                    if (x + self.pattern_h_offset,
-                            y + self.pattern_v_offset) in (
-                            self.entry, self.exit):
-                        raise GenerationError(
-                            self,
-                            "The entry or exit point was placed in an "
-                            "inaccessible cell (due to pattern).")
-                    self.cells[x + self.pattern_h_offset][
-                        y + self.pattern_v_offset].pattern = True
+        for x in range(self.pattern_h_offset,
+                       self.pattern_h_offset + len(self.pattern[0])):
+            for y in range(self.pattern_v_offset,
+                           self.pattern_v_offset + len(self.pattern)):
+                if self.cells[x][y].is_in_maze is True:
+                    continue
+                if (x, y) in (self.entry, self.exit):
+                    raise GenerationError(
+                        self, "The entry or exit point was placed in an "
+                        "inaccessible cell (due to pattern).")
+                self.cells[x][y].pattern = True
 
     # _________________________________________________________________________
     #                            MAZE INFO GETTERS
@@ -475,12 +480,12 @@ class Maze:
                 x for x in range(0, (self.width - 1))
                 if x not in range(
                     self.pattern_h_offset,
-                    self.pattern_h_offset + self.pattern_width))
+                    self.pattern_h_offset + len(self.pattern[0])))
             y_range = tuple(
                 y for y in range(0, (self.height - 1))
                 if y not in range(
                     self.pattern_v_offset,
-                    self.pattern_v_offset + self.pattern_height))
+                    self.pattern_v_offset + len(self.pattern)))
         else:
             x_range = tuple(x for x in range(0, self.width))
             y_range = tuple(y for y in range(0, self.height))
@@ -640,8 +645,7 @@ class Maze:
         """
         if self.initialized is False:
             raise GenerationError(
-                self,
-                "Maze was not initialized using one of the implemented "
+                self, "Maze was not initialized using one of the implemented "
                 "grid_generation, stepped_generation or generate_maze method.")
 
         start: CellCoordinates = self.get_starting_point()
@@ -664,8 +668,7 @@ class Maze:
         """
         if self.initialized is False:
             raise GenerationError(
-                self,
-                "Maze was not initialized using one of the implemented "
+                self, "Maze was not initialized using one of the implemented "
                 "grid_generation, stepped_generation or generate_maze method.")
 
         starts: tuple[CellCoordinates, ...] = (
@@ -699,8 +702,7 @@ class Maze:
         """
         if self.initialized is False:
             raise GenerationError(
-                self,
-                "Maze was not initialized using one of the implemented "
+                self, "Maze was not initialized using one of the implemented "
                 "grid_generation, stepped_generation or generate_maze method.")
 
         start: CellCoordinates = self.get_starting_point()
@@ -753,9 +755,8 @@ class Maze:
         """
         if self.generated is False:
             raise GenerationError(
-                self,
-                "Maze was not generated using an implemented algorithm before "
-                "attempting to imperfect it")
+                self, "Maze was not generated using an implemented algorithm "
+                "before attempting to imperfect it")
 
         def break_east_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and its right neighbor."""
@@ -812,9 +813,8 @@ class Maze:
         """
         if self.generated is False:
             raise GenerationError(
-                self,
-                "Maze was not generated using an implemented algorithm before "
-                "attempting to imperfect it")
+                self, "Maze was not generated using an implemented algorithm "
+                "before attempting to imperfect it")
         while len(self.find_dead_end()) != 0:
             for _ in self.dead_end_opener(False):
                 yield None
@@ -869,13 +869,13 @@ if __name__ == "__main__":
     """Entry point of the program"""
     from time import sleep
     config: Config = Config(
-        WIDTH=25,
-        HEIGHT=25,
+        WIDTH=10,
+        HEIGHT=10,
         ENTRY=(0, 0),
         EXIT=(0, 1),
         PERFECT=False,
         GEN_ALGORITHM="Prim",
-        IMPERFECT_ALGORITHM="Choke_points",
+        IMPERFECT_ALGORITHM="Braided",
         SEED=randint(0, 99999999),
         PATTERN=[
             [False, False, True, False, True, True, True],
@@ -889,4 +889,4 @@ if __name__ == "__main__":
         print("\033[3J\033[1;0H\033[0J")
         print(maze)
         sleep(0.01)
-    print(maze)
+    print(maze.__repr__())

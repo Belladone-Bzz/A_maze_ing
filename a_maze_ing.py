@@ -54,7 +54,7 @@ def instantiate_maze(
                 or len(config["exit"].split(",")) != 2):
             raise ValueError(
                 "The entry or exit tuple contains too many values")
-        config: Config = Config(
+        maze_config: Config = Config(
             WIDTH=int(config["width"]),
             HEIGHT=int(config["height"]),
             ENTRY=(
@@ -68,7 +68,7 @@ def instantiate_maze(
             IMPERFECT_ALGORITHM=config["imperfect_algorithm"],
             SEED=int(config["seed"]),
             PATTERN=getattr(Patterns, config["pattern"].upper()).value)
-        return Maze(config)
+        return Maze(maze_config)
     except (KeyError, TypeError, IndexError,
             ValueError, ValidationError) as error:
         message: str

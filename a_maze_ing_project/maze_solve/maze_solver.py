@@ -14,7 +14,7 @@ from functools import partial
 from collections import deque
 from collections.abc import Callable
 from a_maze_ing_project.maze_gen.mazegenerator import (
-    Maze, Directions, Movements, CellCoordinates)
+    Maze, Config, Directions, Movements, CellCoordinates)
 
 
 class FoundDeadEnd(Exception):
@@ -92,8 +92,8 @@ class MazeSolver:
         self.create_neighbours_list(self.EXIT)
         self.set_distance_from_entry(self.EXIT, (-1, None))
         self.maze.get_cell(self.EXIT).is_visited = True
-        for x in range(self.maze.config.WIDTH):
-            for y in range(self.maze.config.HEIGHT):
+        for x in range(self.maze.width):
+            for y in range(self.maze.height):
                 if sum(self.maze.cells[x][y].walls) <= 1:
                     self.intersection_cells.add((x, y))
                     self.maze.cells[x][y].is_visited = True
@@ -319,8 +319,8 @@ class MazeSolver:
         they are added to the list of dead ends returned.
         """
         dead_end: list[CellCoordinates] = []
-        for y in range(0, (self.maze.config.HEIGHT)):
-            for x in range(0, (self.maze.config.WIDTH)):
+        for y in range(0, (self.maze.height)):
+            for x in range(0, (self.maze.width)):
                 if self.maze.cells[x][y].is_visited is True:
                     continue
                 visited_neighbors: int = self.number_visited_neighbors((x, y))
@@ -397,7 +397,7 @@ class MazeSolver:
         path from the entrance to the exit. The algorithm then create a list
         of the cells that form the entrance-to-exit path.
         """
-        if self.maze.config.PERFECT is False:
+        if self.maze.perfect is False:
             print("Dead end filler algorithm can only be used for perfect"
                   "mazes.")
             return
@@ -489,21 +489,21 @@ if __name__ == "__main__":
 
     from random import randint
 
-    maze: Maze = Maze(
-        width=5,
-        height=5,
-        entry=(0, 0),
-        exit=(4, 1),
-        perfect=True,
-        gen_algorithm="Prim",
-        imperfect_algorithm="Choke_points",
-        seed=randint(0, 99999999),
-        pattern=[])
+    maze: Maze = Maze(Config(
+        WIDTH=5,
+        HEIGHT=5,
+        ENTRY=(0, 0),
+        EXIT=(4, 1),
+        PERFECT=True,
+        GEN_ALGORITHM="Prim",
+        IMPERFECT_ALGORITHM="Choke_points",
+        SEED=randint(0, 99999999),
+        PATTERN=[]))
     maze.generate_maze()
     print(maze)
-    print(maze.config.SEED)
+    print(maze.seed)
     solv: MazeSolver = MazeSolver(
-        maze, maze.config.ENTRY, maze.config.EXIT, "A_star")
+        maze, maze.entry, maze.exit, "A_star")
     for _ in solv.breadth_first_search_algorithm():
         pass
 

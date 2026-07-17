@@ -75,8 +75,8 @@ def write_out_maze(
     the shortest found path to resolve the Maze.
     """
     maze_str: str = ""
-    for y in range(maze.config.HEIGHT):
-        for x in range(maze.config.WIDTH):
+    for y in range(maze.height):
+        for x in range(maze.width):
             maze_str += hex(int("".join([str(
                 int(wall)) for wall in maze.cells[x][y].walls]), 2))[2].upper()
         maze_str += "\n"
