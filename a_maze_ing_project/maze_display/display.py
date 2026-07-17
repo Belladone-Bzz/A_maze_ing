@@ -90,11 +90,11 @@ def instantiate_maze_display(
         line: str = str(theme.angles.TOP_LEFT)
         line += "".join(
             str(theme.walls.HORIZONTAL) * 3 + (
-                "" if cell.coordinates[0] == maze.config.WIDTH - 1
+                "" if cell.coordinates[0] == maze.width - 1
                 else str(theme.walls.HORIZONTAL_D)
                 if cell.walls[Directions.EAST] is True
                 else str(theme.walls.HORIZONTAL))
-            for cell in (maze.cells[x][0] for x in range(maze.config.WIDTH)))
+            for cell in (maze.cells[x][0] for x in range(maze.width)))
         line += str(theme.angles.TOP_RIGHT)
         style_print(
             theme.walls_style, line,
@@ -110,9 +110,9 @@ def instantiate_maze_display(
             str(theme.walls.HORIZONTAL), str(theme.walls.HORIZONTAL_D),
             str(theme.walls.HORIZONTAL_U), str(theme.walls.CROSS))
 
-        for y in range(maze.config.HEIGHT):
+        for y in range(maze.height):
             line = str(theme.walls.VERTICAL)
-            for x in range(maze.config.WIDTH):
+            for x in range(maze.width):
                 line += get_fill_character((x, y), Movements.WEST)
                 line += get_fill_character((x, y))
                 line += get_fill_character((x, y), Movements.EAST)
@@ -124,21 +124,21 @@ def instantiate_maze_display(
                 theme.walls_style, line,
                 f"{CursorOperations.LIGHT_LINE_CLEAR}\n")
 
-            if y == maze.config.HEIGHT - 1:
+            if y == maze.height - 1:
                 break
 
             line = (
                 str(theme.walls.VERTICAL_R)
                 if maze.cells[0][y].walls[Directions.SOUTH] is True
                 else str(theme.walls.VERTICAL))
-            for x in range(maze.config.WIDTH):
+            for x in range(maze.width):
                 line += (
                     str(theme.walls.HORIZONTAL) * 3
                     if maze.cells[x][y].walls[Directions.SOUTH] is True
                     else (
                         " " + get_fill_character((x, y), Movements.SOUTH)
                         + " "))
-                if x == maze.config.WIDTH - 1:
+                if x == maze.width - 1:
                     line += (
                         str(theme.walls.VERTICAL_L)
                         if maze.cells[x][y].walls[Directions.SOUTH] is True
@@ -157,11 +157,11 @@ def instantiate_maze_display(
         line += "".join(
             str(theme.walls.HORIZONTAL) * 3 + (
                 str(theme.angles.BOTTOM_RIGHT)
-                if cell.coordinates[0] == maze.config.WIDTH - 1
+                if cell.coordinates[0] == maze.width - 1
                 else str(theme.walls.HORIZONTAL_U)
                 if cell.walls[Directions.EAST] is True
                 else str(theme.walls.HORIZONTAL))
-            for cell in (maze.cells[x][-1] for x in range(maze.config.WIDTH)))
+            for cell in (maze.cells[x][-1] for x in range(maze.width)))
         style_print(theme.walls_style, line, "\n")
 
     def integrate_entry_exit(maze: Maze, theme: Theme) -> None:
@@ -173,7 +173,7 @@ def instantiate_maze_display(
         """
         print(CursorOperations.SAVE_CURSOR, end="")
         for coords, style, icon in zip(
-                (maze.config.ENTRY, maze.config.EXIT),
+                (maze.entry, maze.exit),
                 (theme.start_style, theme.exit_style),
                 (theme.start, theme.exit)):
             style_print(style, CursorOperations.MOVE_CURSOR(
@@ -202,7 +202,7 @@ def instantiate_maze_display(
             str(theme.icon_walls.HORIZONTAL_D), str(theme.icon_walls.CROSS),
             str(theme.icon_walls.CROSS), str(theme.icon_walls.CROSS))
 
-        pattern: list[list[bool]] = maze.config.PATTERN
+        pattern: list[list[bool]] = maze.pattern
         lines: str = ""
         for y in range(len(pattern)):
             for x in range(len(pattern[0])):
@@ -349,8 +349,8 @@ def instantiate_maze_display(
         print(CursorOperations.HEAVY_CLEAR, end="")
         window_size: terminal_size = get_terminal_size()
         if (
-                maze.config.WIDTH * 4 < window_size.columns
-                and maze.config.HEIGHT * 2 < window_size.lines
+                maze.width * 4 < window_size.columns
+                and maze.height * 2 < window_size.lines
                 and int(config["gen_speed"]) != 0):
             step: int = 0
             for _ in maze.stepped_generation():
@@ -375,8 +375,8 @@ def instantiate_maze_display(
         window_size: terminal_size = get_terminal_size()
 
         if (
-                maze.config.WIDTH * 4 < window_size.columns
-                and maze.config.HEIGHT * 2 < window_size.lines
+                maze.width * 4 < window_size.columns
+                and maze.height * 2 < window_size.lines
                 and int(config["gen_speed"]) != 0):
             step: int = 0
             for _ in solver.stepped_maze_solving():
@@ -398,10 +398,10 @@ def instantiate_maze_display(
         """
         window_size: terminal_size = get_terminal_size()
         if (
-                maze.config.WIDTH * 4 < window_size.columns
-                and maze.config.HEIGHT * 2 < window_size.lines):
+                maze.width * 4 < window_size.columns
+                and maze.height * 2 < window_size.lines):
             print_maze(maze, theme, solver)
-            if maze.config.PATTERN != []:
+            if maze.pattern != []:
                 integrate_pattern_design(maze, theme)
             if config["show_path"] == "True":
                 integrate_found_path(theme, solver.shortest_path)

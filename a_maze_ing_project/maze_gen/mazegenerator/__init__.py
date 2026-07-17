@@ -8,12 +8,12 @@ all functions used to generate a perfect or imperfect maze.
 """
 
 from .maze import (
-    Maze, GenerationError,
+    Maze, Config, GenerationError,
     MazeDimension, CellCoordinates,
     Directions, Movements)
 
 
 __all__ = [
-    "Maze", "GenerationError",
+    "Maze", "Config", "GenerationError",
     "MazeDimension", "CellCoordinates",
     "Directions", "Movements"]

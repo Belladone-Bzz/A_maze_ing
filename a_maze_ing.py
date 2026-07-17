@@ -6,7 +6,7 @@ from typing import cast
 from collections.abc import Callable
 
 from a_maze_ing_project import (
-    Maze, GenerationError, MazeSolver,
+    Maze, Config, GenerationError, MazeSolver,
     write_out_maze, write_out_config, generate_config,
     print_error, instantiate_maze_display,
     instantiate_menues, ProgramQuit, Patterns)
@@ -54,21 +54,21 @@ def instantiate_maze(
                 or len(config["exit"].split(",")) != 2):
             raise ValueError(
                 "The entry or exit tuple contains too many values")
-        maze: Maze = Maze(
-            width=int(config["width"]),
-            height=int(config["height"]),
-            entry=(
+        config: Config = Config(
+            WIDTH=int(config["width"]),
+            HEIGHT=int(config["height"]),
+            ENTRY=(
                 int(config["entry"].split(",")[0]),
                 int(config["entry"].split(",")[1])),
-            exit=(
+            EXIT=(
                 int(config["exit"].split(",")[0]),
                 int(config["exit"].split(",")[1])),
-            perfect=(True if config["perfect"] == "True" else False),
-            gen_algorithm=config["gen_algorithm"],
-            imperfect_algorithm=config["imperfect_algorithm"],
-            seed=int(config["seed"]),
-            pattern=getattr(Patterns, config["pattern"].upper()).value)
-        return maze
+            PERFECT=(True if config["perfect"] == "True" else False),
+            GEN_ALGORITHM=config["gen_algorithm"],
+            IMPERFECT_ALGORITHM=config["imperfect_algorithm"],
+            SEED=int(config["seed"]),
+            PATTERN=getattr(Patterns, config["pattern"].upper()).value)
+        return Maze(config)
     except (KeyError, TypeError, IndexError,
             ValueError, ValidationError) as error:
         message: str
@@ -121,7 +121,7 @@ def main() -> int:
             + maze)
         return 3
     solver: MazeSolver = MazeSolver(
-        maze, maze.config.ENTRY, maze.config.EXIT, config["sol_algorithm"])
+        maze, maze.entry, maze.exit, config["sol_algorithm"])
 
     input(
         "\nCorrect configuration found and loaded. "
@@ -150,7 +150,7 @@ def main() -> int:
                 else:
                     maze = new_maze
                     solver = MazeSolver(
-                        maze, maze.config.ENTRY, maze.config.EXIT,
+                        maze, maze.entry, maze.exit,
                         config["sol_algorithm"])
                     menu_module("back_to_main", "")
                     break
@@ -180,9 +180,9 @@ if __name__ == "__main__":
     except GenerationError as error:
         print_error(f"\n- {error}\n\n{error.maze.__repr__()}")
         output = 5
-    except Exception as error:
-        print_error(f"\nUnexpected exception occured:\n- {error}")
-        output = 6
+    # except Exception as error:
+    #     print_error(f"\nUnexpected exception occured:\n- {error}")
+    #     output = 6
 
     exits: tuple[str, ...] = (
         "Success", "Not enough argument", "File parsing error",
