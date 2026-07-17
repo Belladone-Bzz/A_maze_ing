@@ -202,13 +202,27 @@ Visually, the generation looks like a well-organised backtracking process.
 - This step is repeated until a dead end is reached (the starting cell has no more adjacent cells available).
 - If a dead end is reached, Hunt mode is activated to check the grid from top to bottom and find the first cell who has a neighbor in the incoming maze. The program stop when the check comes to the last cell of the grid.
 
-### Imperfect maze generation
+## Imperfect maze generation
 
 We gave a great deal of thought to the generation of imperfect mazes. We could have simply broken down walls at random in our imperfect mazes to create loops. However, to make the imperfect mazes more aesthetically pleasing and avoid the creation of rooms, we employed several methods.
 
-- Firstly, we used a method that only breaks walls when there are at least three consecutive horizontal or vertical walls in a row; by breaking the one in the middle (with an 80% probability), this prevents the creation of rooms. In the case of small mazes, this method was not always feasible.
-- In such cases, all the dead ends in the maze were analysed. The priority was to break down the wall opposite the entrance to the dead end whenever possible. If this was not possible, we looked for a dead-end with two consecutive walls on at least one of its sides in order to break through a wall.
+### Choke points algorithm
+
+This algorithm was called so as it break long stretches of walls, resulting in cut hallways and less bottleneck areas, depending on the generation algorithm applied beforehand. It won't try to eliminate any dead-end, giving imperfect mazes some sort of variety still.
+
+**Simplified method:**
+- First, we used a method that only breaks walls when there are at least three consecutive horizontal or vertical walls in a row; by breaking the one in the middle (with an 85% probability), this prevents the creation of rooms. In the case of small mazes, this method was not always feasible.
+- In such cases, all the dead ends in the maze were analysed. The priority was to break down the wall opposite the entrance to the dead end whenever possible. If this was not possible, we looked for a dead-end with two consecutive walls on at least one of its sides in order to break through a wall, still without creating any room.
 - If this was still not feasible, only then would we randomly break through a side wall of a dead-end. This method has enabled us to minimise the generation of chambers, which only occur in rare cases in 3x3 mazes.
+
+### Braided maze algorithm
+
+This imperfections algorithm was thought out after focusing a bit more on dead-ends, and how they make a difference in the making of an imperfect maze. As our generation algorithms, we wanted to give users more freedom in how they want their maze to come out, and offer wider visual possibilities. The purpose of this braided algorithm is to open up loops within the maze by eliminating every dead-end. It does so by looping through 2 actions until the only remaining dead-ends are caused by the pattern, ensuring no room is created in the process.
+
+**Simplified method:**
+- Open up dead-ends first through their back wall, then their side wall if their back wall leads outside the maze, sometimes creating rooms.
+- Close down rooms by placing randomly a wall inside each of them, sometimes creating dead-ends.
+- Loops and yields None for each action until no dead-end are to be found. Edge cases may generate infinite loops.
 
 ## Solving algorithms
 

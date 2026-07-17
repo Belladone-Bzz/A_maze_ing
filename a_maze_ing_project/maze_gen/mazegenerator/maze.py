@@ -852,13 +852,13 @@ class Maze:
         maze by eliminating every dead-end. Loops through 3 actions until the
         only remaining dead-ends are caused by the pattern, ensuring no room
         is created in the process.
+
         - Open up dead-ends first through their back wall, then their side
         wall if their back wall leads outside the maze, sometimes creating
         rooms.
-        - Open up the angles of the maze by moving the sidewall that's inside
-        the maze inward, sometimes creating other dead-end.
         - Close down rooms by placing randomly a wall inside each of them,
         sometimes creating dead-ends.
+
         Loops and yields None for each action until no dead-end are to be
         found. Edge cases may generate infinite loops.
         """

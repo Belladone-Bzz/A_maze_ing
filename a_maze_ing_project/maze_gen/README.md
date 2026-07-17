@@ -1,23 +1,18 @@
-# A_maze_ing
-
-## Maze_gen module
+# Maze_gen module
 
 > [!NOTE]
 > No AI was used in the making of this module nor README file. Documentation written by [Belladone-Bzz](https://github.com/Belladone-Bzz), changes updated by [Jolyne Mangeot](https://github.com/jolyne-mangeot)
 
 This module manages all the classes, enumerations, methods and algorithms required to generate a maze, within the maze.py file.
-This file can be found as a [Github Gist here](https://gist.github.com/Belladone-Bzz/98f3d80636ba63530c14b6fb08277536)
+This file can be found as a [Github Gist here](https://gist.github.com/Belladone-Bzz/98f3d80636ba63530c14b6fb08277536). For more visual representation of what this module can be used for and implemented, see the [A_maze_ing documentation here](https://github.com/Belladone-Bzz/A_maze_ing).
 
 **Key features of our maze generator:**
-- Several generation algorithms have been implemented. The dynamic display of these algorithms clearly illustrates the very different ways in which they generate a maze. The appearance of the final maze also varies depending on the algorithm chosen. We made this choice to highlight the diversity and complexity of the various existing algorithms
-- We gave a great deal of thought to the generation of imperfect mazes. We could have simply broken down walls at random in our imperfect mazes to create loops. However, to make the imperfect mazes more aesthetically pleasing and avoid the creation of rooms, we employed several methods, giving out two distinct algorithms described below.
-	- Firstly, we used a method that only breaks walls when there are at least three consecutive horizontal or vertical walls in a row; by breaking the one in the middle (with an 80% probability), this prevents the creation of rooms. In the case of small mazes, this method was not always feasible.
-	- In such cases, all the dead ends in the maze were analysed. The priority was to break down the wall opposite the entrance to the dead end whenever possible. If this was not possible, we looked for a dead-end with two consecutive walls on at least one of its sides in order to break through a wall.
-	- If this was still not feasible, only then would we randomly break through a side wall of a dead-end. This method has enabled us to minimise the generation of chambers, which only occur in rare cases in 3x3 mazes.
 
-### maze.py
+Several generation algorithms have been implemented. The dynamic display of these algorithms clearly illustrates the very different ways in which they generate a maze. The appearance of the final maze also varies depending on the algorithm chosen. We made this choice to highlight the diversity and complexity of the various existing algorithms
 
-#### Enums:
+We gave a great deal of thought to the generation of imperfect mazes. We could have simply broken down walls at random in our imperfect mazes to create loops. However, to make the imperfect mazes more aesthetically pleasing and avoid the creation of rooms, we employed several methods, giving out two distinct algorithms described below.
+
+## Enums:
 - `Directions(IntEnum)`: Enum for WEST(0), SOUTH(1), EAST(2) and NORTH(3) directions.
 - `Movements(Enum)`: Enum for:
 	- west(-1, 0),
@@ -27,7 +22,7 @@ This file can be found as a [Github Gist here](https://gist.github.com/Belladone
 
 	Each direction is associated with a tuple of x, y movements to go on in the given direction.
 
-#### Classes:
+## Classes:
 - `Maze`: Class Maze.
 	- **Utility:** Contain all classes, methods and algorithms used to generate a maze.
 	- **Nested_class:** Cell.
@@ -66,7 +61,7 @@ This file can be found as a [Github Gist here](https://gist.github.com/Belladone
 		- msg, a string message containing a specialized notice on the exception
 		that occured
 
-#### Functions:
+## Functions:
 
 - **Maze grid and pattern:**
 	- `grid_generation(self, walled: bool) -> None`: Method to generate all the cells in the maze grid in a list[list[Maze.Cell]] Only the outer walls are set to True. Entry and Exit cells are memorized.
@@ -103,3 +98,53 @@ This file can be found as a [Github Gist here](https://gist.github.com/Belladone
 - **Maze generation and display:**
 	- `generate_maze(self) -> Generator[None]`: Generate the maze with the algorithm given in config, and make it imperfect if perfect is set to False. The generation is done and the maze is display after it.
 	- `stepped_generation(self) -> Generator[None]`: Generate the maze with the algorithm given in config, and make it imperfect if perfect is set to False. The display is done during the generation, making it dynamic.
+
+## Algorithms
+
+### Generation algorithms
+
+All the algorithms implemented begin with the following steps:
+
+- Start with a grid full of walls.
+- Choose a random cell as the starting point and mark it as part of the maze.
+
+#### Backtracking algoritm
+
+<u>Simplified method:</u>
+
+- A random available cell adjacent to the starting cell is chosen and added to the maze and becomes the new starting cell. We use a list to keep track of the path.
+- This step is repeated until a dead end is reached (the starting cell has no more adjacent cells available).
+- If a dead end is reached, backtracking mode is activated to go back and find another available neighbouring cell.
+- These steps are repeated until the very first starting cell is reached again.
+
+#### Prim algorithm
+
+<u>Simplified method:</u>
+- We look at all the available cells adjacent to the starting cell and add them to a set called ‘frontiers’.
+- One of these is chosen at random and becomes the new starting cell. Its neighbouring cells are also added to the ‘frontiers’ set.
+- These steps are repeated until the ‘frontiers’ set is empty.
+
+#### Hunt and kill algorithm
+
+<u>Simplified method:</u>
+- A random available cell adjacent to the starting cell is chosen and added to the maze and becomes the new starting cell.
+- This step is repeated until a dead end is reached (the starting cell has no more adjacent cells available).
+- If a dead end is reached, Hunt mode is activated to check the grid from top to bottom and find the first cell who has a neighbor in the incoming maze. The program stop when the check comes to the last cell of the grid.
+
+### Imperfect maze generation
+
+Imperfecting algorithms can be called after any generation algorithm without restriction. Their purpose is to create loops within the maze, rendering null the purpose of a perfect maze to only contain a single path between each pair of its cells.
+
+#### Choke points algorithm
+
+<u>Simplified method:</u>
+- First, we used a method that only breaks walls if there are at least three consecutive horizontal or vertical walls in a row; by breaking the one in the middle (with an 85% probability), this prevents the creation of rooms. In the case of small mazes, this method was not always feasible.
+- In such cases, all the dead ends in the maze were analysed. The priority was to break down the wall opposite the entrance to the dead end whenever possible. If this was not possible, we looked for a dead-end with two consecutive walls on at least one of its sides in order to break through a wall, still without creating any room.
+- If this was still not feasible, only then would we randomly break through a side wall of a dead-end. This method has enabled us to minimise the generation of chambers, which only occur in rare cases in 3x3 mazes.
+
+#### Braided maze algorithm
+
+<u>Simplified method:</u>
+- Open up dead-ends first through their back wall, then their side wall if their back wall leads outside the maze, sometimes creating rooms.
+- Close down rooms by placing randomly a wall inside each of them, sometimes creating dead-ends.
+- Loops and yields None for each action until no dead-end are to be found. Edge cases may generate infinite loops.
