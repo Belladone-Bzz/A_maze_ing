@@ -23,10 +23,18 @@ CellCoordinates = Annotated[
 
 
 class GenerationError(Exception):
-    """Custom exception raised in the single case scenario where the entry or
+    """Custom exception raised at specific times if the maze generation steps
+    have not been correctly called, which would result in unexpected errors.
+
+    Otherwise raised in the single case scenario where the entry or
     exit coordinates are stuck inside the central pattern.
     """
-    pass
+    def __init__(self, maze: 'Maze', msg: str) -> None:
+        self.maze = maze
+        self.msg = msg
+
+    def __str__(self) -> str:
+        return self.msg
 
 
 class Directions(IntEnum):
@@ -41,9 +49,14 @@ class Directions(IntEnum):
 
 class Movements(Enum):
     """Class Movements.
-    Enum for west(-1, 0), south(0, +1), east(+1, 0)
-    and north(0, -1). Each direction is associated with
-    a tuple of x, y movements to go on the given direction.
+    Enum for:
+    - west(-1, 0),
+    - south(0, +1),
+    - east(+1, 0),
+    - north(0, -1).
+
+    Each direction is associated with
+    a tuple of x, y movements to go on in the given direction.
     """
     WEST = (-1, 0)
     SOUTH = (0, +1)
@@ -52,14 +65,21 @@ class Movements(Enum):
 
 
 class Maze:
-    """Class Maze.
+    """### Class Maze.
     Nested classes: Config, Cell.
 
-    Attributes: width, height, entry, exit, perfect,
-    gen_algorithm, imperfect_algorithm, seed, pattern, config, cells.
+    #### Parameters:
+    - width, height, entry, exit, perfect,
+    - gen_algorithm, imperfect_algorithm,
+    - seed, pattern.
 
-    Methods:
-    - init, repr,
+    #### Attributes: (parameters in config object)
+    - config, cells,
+    - pattern_width, pattern_height, pattern_h_offset, pattern_v_offset,
+    - initialized, generated, imperfected, pattern_implemented.
+
+    #### Methods:
+    - init, str, repr,
     - grid_generation, integrate_pattern, add_enclosed_cells_to_pattern,
     - get_cell, get_movement, get_neighbor_coord, get_neighbors, find_dead_end,
     is_available, is_in_maze,
@@ -68,6 +88,14 @@ class Maze:
     - backtracking_algo, prim_algo, hunt_and_kill_algo,
     - choke_points_algo, braided_algo,
     - generate_maze, stepped_generation.
+
+    #### Raises:
+    - ValidationError
+    - GenerationError
+
+    Other possible Exceptions:
+    - IndexError
+    - AttributeError
     """
     generation_algorithms: tuple[str, ...] = (
         "Backtracking", "Prim", "Hunt_and_kill")
@@ -92,18 +120,30 @@ class Maze:
             IMPERFECT_ALGORITHM=imperfect_algorithm,
             SEED=seed,
             PATTERN=pattern)
+
         set_seed(self.config.SEED)
         self.cells: list[list[Maze.Cell]] = []
-        if self.config.PATTERN != []:
-            self.pattern_h_offset: int = (
-                int(self.config.WIDTH / 2)
-                - int(len(self.config.PATTERN[0]) / 2))
-            self.pattern_v_offset: int = (
-                int(self.config.HEIGHT / 2)
-                - int(len(self.config.PATTERN) / 2))
+        self.initialized: bool = False
+        self.generated: bool = False
+        self.imperfected: bool = False
+        self.pattern_implemented: bool = False
+        self.pattern_width: int = -1
+        self.pattern_height: int = -1
+        self.pattern_h_offset: int = -1
+        self.pattern_v_offset: int = -1
 
-    def __repr__(self) -> str:
-        """Method to display debug mode of the maze walls."""
+        if self.config.PATTERN != []:
+            self.pattern_width = len(self.config.PATTERN[0])
+            self.pattern_h_offset = (
+                int(self.config.WIDTH / 2)
+                - int(self.pattern_width / 2))
+            self.pattern_height = len(self.config.PATTERN)
+            self.pattern_v_offset = (
+                int(self.config.HEIGHT / 2)
+                - int(self.pattern_height / 2))
+
+    def __str__(self) -> str:
+        """Method to display a simplified view of the maze walls."""
         maze: str = "+---" * self.config.WIDTH + "+\n"
         for y in range(self.config.HEIGHT):
             maze += "|" + "".join(
@@ -115,6 +155,33 @@ class Maze:
                 for cell in (
                     self.cells[x][y] for x in range(self.config.WIDTH))) + "\n"
         return maze
+
+    def __repr__(self) -> str:
+        """Debug method displaying all information about the Maze."""
+        return (
+            f"{f"Maze Attributes:":^33}\n"
+            f"{"Width:":<23}{self.config.WIDTH}\n"
+            f"{"Height:":<23}{self.config.HEIGHT}\n"
+            f"{"Entry:":<23}{self.config.ENTRY}\n"
+            f"{"Exit:":<23}{self.config.EXIT}\n"
+            f"{"Perfect:":<23}{self.config.PERFECT}\n"
+            f"{"Generation algorithm:":<23}{self.config.GEN_ALGORITHM}\n"
+            f"{"Imperfect algorithm:":<23}{self.config.IMPERFECT_ALGORITHM}\n"
+            f"{"Seed:":<23}{self.config.SEED}\n\n"
+            f"{f"Pattern Attributes:":^40}\n"
+            f"{"Pattern width:":<35}{self.pattern_width}\n"
+            f"{"Pattern height:":<35}{self.pattern_height}\n"
+            f"{"Pattern horizontal offset:":<35}{self.pattern_h_offset}\n"
+            f"{"Pattern vertical offset:":<35}{self.pattern_v_offset}\n"
+            f"{f"Effective Maze Information:":^40}\n"
+            f"{"Cell matrix width:":<35}{len(self.cells)}\n"
+            f"{"Cell matrix height:":<35}{(
+                len(self.cells[0]) if len(self.cells) > 0 else "-")}\n"
+            f"{"Initialized (existing grid):":<35}{self.initialized}\n"
+            f"{"Pattern implemented:":<35}{self.pattern_implemented}\n"
+            f"{"Generated (gen algorithm done):":<35}{self.generated}\n"
+            f"{"Imperfected (maze imperfected):":<35}{self.imperfected}\n"
+        )
 
     class Config(BaseModel):
         """Class Config
@@ -234,6 +301,7 @@ class Maze:
             self.cells[x][-1].walls[Directions.SOUTH] = True
         self.get_cell(self.config.ENTRY).entry = True
         self.get_cell(self.config.EXIT).exit = True
+        self.initialized = True
         self.integrate_pattern()
 
     def integrate_pattern(self) -> None:
@@ -241,16 +309,20 @@ class Maze:
         Maze, marking all concerned cells as pattern (attribute set to True),
         and marking up all their walls.
         """
-        if self.config.PATTERN == []:
-            return
-        for x in range(len(self.config.PATTERN[0])):
-            for y in range(len(self.config.PATTERN)):
+        if self.config.PATTERN == [] or self.initialized is False:
+            raise GenerationError(
+                self,
+                "The maze was not initialized using the grid_generation "
+                "or a global generation method before pattern implementation.")
+        for x in range(self.pattern_width):
+            for y in range(self.pattern_height):
                 if self.config.PATTERN[y][x] is False:
                     continue
                 self.cells[x + self.pattern_h_offset][
                     y + self.pattern_v_offset].pattern = True
                 self.cells[x + self.pattern_h_offset][
                     y + self.pattern_v_offset].walls = [True, True, True, True]
+        self.pattern_implemented = True
 
     def add_enclosed_cells_to_pattern(self) -> None:
         """Method to add every cells that weren't visited by the generating
@@ -258,16 +330,20 @@ class Maze:
         making of an imperfect maze. This concerns cells enclosed by the
         pattern but not part of its drawing.
         """
-        if self.config.PATTERN == []:
-            return
-        for x in range(len(self.config.PATTERN[0])):
-            for y in range(len(self.config.PATTERN)):
+        if self.config.PATTERN == [] or self.initialized is False:
+            raise GenerationError(
+                self,
+                "The maze was not initialized using the grid_generation "
+                "or a global generation method before pattern implementation.")
+        for x in range(self.pattern_width):
+            for y in range(self.pattern_height):
                 if self.cells[x + self.pattern_h_offset][
                         y + self.pattern_v_offset].is_in_maze is False:
                     if (x + self.pattern_h_offset,
                             y + self.pattern_v_offset) in (
                             self.config.ENTRY, self.config.EXIT):
                         raise GenerationError(
+                            self,
                             "The entry or exit point was placed in an "
                             "inaccessible cell (due to pattern).")
                     self.cells[x + self.pattern_h_offset][
@@ -378,6 +454,32 @@ class Maze:
     def add_to_maze(self, coords: CellCoordinates) -> None:
         """Set the cell to is_in_maze = True."""
         self.get_cell(coords).is_in_maze = True
+
+    def get_starting_point(self) -> CellCoordinates:
+        """Return a random CellCoordinates for a cell situated in the maze,
+        either anywhere if there is no pattern or between the maze edges and
+        the pattern's offsets.
+        """
+        x_range: tuple[int, ...]
+        y_range: tuple[int, ...]
+        if self.config.PATTERN != []:
+            x_range = tuple(
+                x for x in range(0, (self.config.WIDTH - 1))
+                if x not in range(
+                    self.pattern_h_offset,
+                    self.pattern_h_offset + self.pattern_width))
+            y_range = tuple(
+                y for y in range(0, (self.config.HEIGHT - 1))
+                if y not in range(
+                    self.pattern_v_offset,
+                    self.pattern_v_offset + self.pattern_height))
+        else:
+            x_range = tuple(x for x in range(0, self.config.WIDTH))
+            y_range = tuple(y for y in range(0, self.config.HEIGHT))
+        start: CellCoordinates = (choice(x_range), choice(y_range))
+        while self.is_available(start) is False:
+            start = (choice(x_range), choice(y_range))
+        return start
 
     def path_to_not_in_maze(self,
                             coords: CellCoordinates) -> CellCoordinates | None:
@@ -528,11 +630,13 @@ class Maze:
         """Generate a perfect maze with a backtraking algorithm.
         Return a Generator to display a dynamic maze.
         """
-        start: CellCoordinates = (randint(0, (self.config.WIDTH - 1)),
-                                  randint(0, (self.config.HEIGHT - 1)))
-        while self.is_available(start) is False:
-            start = (randint(0, (self.config.WIDTH - 1)),
-                     randint(0, (self.config.HEIGHT - 1)))
+        if self.initialized is False:
+            raise GenerationError(
+                self,
+                "Maze was not initialized using one of the implemented "
+                "grid_generation, stepped_generation or generate_maze method.")
+
+        start: CellCoordinates = self.get_starting_point()
         self.add_to_maze(start)
 
         back_track: list[CellCoordinates] = [start]
@@ -544,11 +648,18 @@ class Maze:
             else:
                 back_track.pop(-1)
             yield None
+        self.generated = True
 
     def prim_algo(self) -> Generator[None]:
         """Generate a perfect maze with a Prim algorithm.
         Return a Generator to display a dynamic maze.
         """
+        if self.initialized is False:
+            raise GenerationError(
+                self,
+                "Maze was not initialized using one of the implemented "
+                "grid_generation, stepped_generation or generate_maze method.")
+
         starts: tuple[CellCoordinates, ...] = (
             (int((self.config.WIDTH - 1)/2), 0),
             (self.config.WIDTH - 1, int((self.config.HEIGHT - 1)/2)),
@@ -556,6 +667,7 @@ class Maze:
             (0, int((self.config.HEIGHT - 1)/2)))
         start: CellCoordinates = choice(starts)
         self.add_to_maze(start)
+
         frontiers: set[CellCoordinates] = set(self.get_neighbors(start, False))
         maze_cells: list[CellCoordinates] = [start, start]
         while frontiers:
@@ -571,16 +683,19 @@ class Maze:
                     break
             yield None
             frontiers.update(self.get_neighbors(start, False))
+        self.generated = True
 
     def hunt_and_kill_algo(self) -> Generator[None]:
         """Generate a perfect maze with a Hunt and Kill algorithm.
         Return a Generator to display a dynamic maze.
         """
-        starts: tuple[CellCoordinates, ...] = (
-            (self.config.WIDTH - 1, int((self.config.HEIGHT - 1)/2)),
-            (int((self.config.WIDTH - 1)/2), self.config.HEIGHT - 1),
-            (0, int((self.config.HEIGHT - 1)/2)))
-        start: CellCoordinates = choice(starts)
+        if self.initialized is False:
+            raise GenerationError(
+                self,
+                "Maze was not initialized using one of the implemented "
+                "grid_generation, stepped_generation or generate_maze method.")
+
+        start: CellCoordinates = self.get_starting_point()
         self.add_to_maze(start)
 
         def hunt_mode() -> CellCoordinates | None:
@@ -612,6 +727,7 @@ class Maze:
             else:
                 new_start: CellCoordinates | None = hunt_mode()
                 if new_start is None:
+                    self.generated = True
                     return
                 else:
                     start = new_start
@@ -627,6 +743,12 @@ class Maze:
         broken that way, open up a single dead-end with dead-end opener.
         Yields None when walls a broken.
         """
+        if self.generated is False:
+            raise GenerationError(
+                self,
+                "Maze was not generated using an implemented algorithm before "
+                "attempting to imperfect it")
+
         def break_east_wall(coords: CellCoordinates) -> None:
             """Break the wall between a cell and its right neighbor."""
             right_neighbor: CellCoordinates = (coords[0] + 1, coords[1])
@@ -663,6 +785,7 @@ class Maze:
                 break
             else:
                 self.break_random_wall()
+        self.imperfected = True
 
     def braided_algo(self) -> Generator[None]:
         """Imperfect algorithm which purpose is to open up loops within the
@@ -679,11 +802,17 @@ class Maze:
         Loops and yields None for each action until no dead-end are to be
         found. Edge cases may generate infinite loops.
         """
+        if self.generated is False:
+            raise GenerationError(
+                self,
+                "Maze was not generated using an implemented algorithm before "
+                "attempting to imperfect it")
         while len(self.find_dead_end()) != 0:
             for _ in self.dead_end_opener(False):
                 yield None
             for _ in self.room_closer():
                 yield None
+        self.imperfected = True
 
     # _________________________________________________________________________
     #                       MAZE GENERATION TRIGGERS
